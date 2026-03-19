@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
-public class ProductoService {
+public class ProductoServiceImpl implements ProductoService {
 
     private final List<Producto> productos = new ArrayList<>();
     private final AtomicLong contadorId = new AtomicLong(1);
