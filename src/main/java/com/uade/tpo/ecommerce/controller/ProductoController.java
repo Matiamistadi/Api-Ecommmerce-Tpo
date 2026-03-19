@@ -2,7 +2,6 @@ package com.uade.tpo.ecommerce.controller;
 
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.service.ProductoService;
-import com.uade.tpo.ecommerce.service.ProductoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
