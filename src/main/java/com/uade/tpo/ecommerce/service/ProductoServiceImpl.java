@@ -1,50 +1,55 @@
 package com.uade.tpo.ecommerce.service;
 
 import com.uade.tpo.ecommerce.entity.Producto;
+import com.uade.tpo.ecommerce.repository.ProductoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class ProductoServiceImpl implements ProductoService {
 
-    private final List<Producto> productos = new ArrayList<>();
-    private final AtomicLong contadorId = new AtomicLong(1);
+    @Autowired
+    private ProductoRepository productoRepository;
+
+
+    ProductoServiceImpl(ProductoRepository productoRepository) {
+        this.productoRepository = productoRepository;
+    }
+
 
     public List<Producto> obtenerTodos() {
-        return productos;
+        return productoRepository.findAll();
     }
 
     public Optional<Producto> obtenerPorId(Long id) {
-        return productos.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst();
+        return productoRepository.findById(id);
     }
 
     public Producto crear(Producto producto) {
-        producto.setId(contadorId.getAndIncrement());
-        productos.add(producto);
-        return producto;
+        return productoRepository.save(producto);
     }
 
     public boolean eliminar(Long id) {
-        return productos.removeIf(p -> p.getId().equals(id));
+        if (productoRepository.existsById(id)) {
+            productoRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
     public Optional<Producto> actualizar(Long id, Producto productoActualizado) {
-    return productos.stream()
-            .filter(p -> p.getId().equals(id))
-            .findFirst()
+        return productoRepository.findById(id)
             .map(p -> {
                 p.setNombre(productoActualizado.getNombre());
                 p.setDescripcion(productoActualizado.getDescripcion());
                 p.setPrecio(productoActualizado.getPrecio());
                 p.setStock(productoActualizado.getStock());
                 p.setCategoria(productoActualizado.getCategoria());
-                return p;
+                return productoRepository.save(p);
             });
 }
 
