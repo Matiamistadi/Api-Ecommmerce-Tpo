@@ -10,17 +10,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "items_carrito")
-public class ItemCarrito {
+@Table(name = "items_orden")
+public class ItemOrden {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonBackReference("carrito-items")
+    @JsonBackReference("orden-items")
     @ManyToOne
-    @JoinColumn(name = "id_carrito", nullable = false)
-    private Carrito carrito;
+    @JoinColumn(name = "id_orden", nullable = false)
+    private Orden orden;
 
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)
@@ -29,6 +29,5 @@ public class ItemCarrito {
     private Integer cantidad;
 
     @Column(name = "precio_unitario")
-    private Double precio_unitario;
+    private Double precioUnitario;
 }
-

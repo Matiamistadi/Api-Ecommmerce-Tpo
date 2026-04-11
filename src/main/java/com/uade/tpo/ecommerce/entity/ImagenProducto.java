@@ -10,25 +10,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "items_carrito")
-public class ItemCarrito {
+@Table(name = "imagenes_producto")
+public class ImagenProducto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonBackReference("carrito-items")
-    @ManyToOne
-    @JoinColumn(name = "id_carrito", nullable = false)
-    private Carrito carrito;
-
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
-    private Integer cantidad;
-
-    @Column(name = "precio_unitario")
-    private Double precio_unitario;
+    private String url;
+    private String descripcion;
 }
-
