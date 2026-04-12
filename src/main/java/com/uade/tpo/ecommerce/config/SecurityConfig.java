@@ -60,10 +60,11 @@ public class SecurityConfig {
                 // Solo ADMIN puede ver todos los usuarios
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
 
-                // ── CLIENTE y ADMIN pueden operar el carrito y las órdenes ──
+                // ── CLIENTE y ADMIN pueden operar el carrito, órdenes, pagos y direcciones ──
                 .requestMatchers("/api/carritos/**").hasAnyRole("CLIENTE", "ADMIN")
                 .requestMatchers("/api/ordenes/usuario/**").hasAnyRole("CLIENTE", "ADMIN")
                 .requestMatchers("/api/pagos/**").hasAnyRole("CLIENTE", "ADMIN")
+                .requestMatchers("/api/usuarios/*/direcciones/**").hasAnyRole("CLIENTE", "ADMIN")
 
                 // El resto requiere estar autenticado
                 .anyRequest().authenticated()
