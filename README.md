@@ -8,7 +8,7 @@ Implementada con **Spring Boot 4**, **Spring Security + JWT** y persistencia en 
 | Nombre                | Legajo |
 |-----------------------|--------|
 | Matias Amistadi       |        |
-| Manuel Oliver Nacher  |        |
+| Manuel Oliver Nacher  | 1161721       |
 | Luciano Frasca        |        |
 | Nicolas Oroño         |        |
 | Simon Ottati          |        |
