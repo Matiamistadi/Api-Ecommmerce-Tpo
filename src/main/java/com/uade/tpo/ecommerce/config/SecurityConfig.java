@@ -57,8 +57,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/ordenes").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/ordenes/**").hasRole("ADMIN")
 
-                // Solo ADMIN puede ver todos los usuarios
+                // Solo ADMIN puede ver todos los usuarios y cambiar roles
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/rol").hasRole("ADMIN")
 
                 // ── CLIENTE y ADMIN pueden operar el carrito, órdenes, pagos y direcciones ──
                 .requestMatchers("/api/carritos/**").hasAnyRole("CLIENTE", "ADMIN")

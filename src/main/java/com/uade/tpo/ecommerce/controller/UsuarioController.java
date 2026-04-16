@@ -1,21 +1,22 @@
 package com.uade.tpo.ecommerce.controller;
 
+import com.uade.tpo.ecommerce.dto.CambiarRolRequest;
+import com.uade.tpo.ecommerce.dto.UsuarioUpdateRequest;
 import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.service.UsuarioService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
 
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
@@ -29,16 +30,22 @@ public class UsuarioController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Usuario> registrarUsuario(@RequestBody Usuario usuario) {
-        usuario.setFechaRegistro(LocalDateTime.now());
-        usuario.setActivo(true);
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crear(usuario));
+    // Actualiza email, contraseña y estado — el rol NO se puede cambiar desde aquí
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> actualizarUsuario(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioUpdateRequest request) {
+        return usuarioService.actualizar(id, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        return usuarioService.actualizar(id, usuario)
+    // Solo ADMIN puede cambiar el rol de un usuario (protegido en SecurityConfig)
+    @PatchMapping("/{id}/rol")
+    public ResponseEntity<Usuario> cambiarRol(
+            @PathVariable Long id,
+            @Valid @RequestBody CambiarRolRequest request) {
+        return usuarioService.cambiarRol(id, request.getRol())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

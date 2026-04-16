@@ -1,18 +1,22 @@
 package com.uade.tpo.ecommerce.service;
 
+import com.uade.tpo.ecommerce.dto.UsuarioUpdateRequest;
+import com.uade.tpo.ecommerce.entity.Rol;
 import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<Usuario> obtenerTodos() {
@@ -30,17 +34,26 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Usuario crear(Usuario usuario) {
-        return usuarioRepository.save(usuario);
+    public Optional<Usuario> actualizar(Long id, UsuarioUpdateRequest request) {
+        return usuarioRepository.findById(id).map(u -> {
+            if (request.getEmail() != null) {
+                u.setEmail(request.getEmail());
+            }
+            if (request.getPassword() != null) {
+                u.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+            }
+            if (request.getActivo() != null) {
+                u.setActivo(request.getActivo());
+            }
+            // El rol NO se modifica aquí — usar cambiarRol() con privilegio ADMIN
+            return usuarioRepository.save(u);
+        });
     }
 
     @Override
-    public Optional<Usuario> actualizar(Long id, Usuario usuarioActualizado) {
+    public Optional<Usuario> cambiarRol(Long id, Rol nuevoRol) {
         return usuarioRepository.findById(id).map(u -> {
-            u.setEmail(usuarioActualizado.getEmail());
-            u.setPasswordHash(usuarioActualizado.getPasswordHash());
-            u.setRol(usuarioActualizado.getRol());
-            u.setActivo(usuarioActualizado.isActivo());
+            u.setRol(nuevoRol);
             return usuarioRepository.save(u);
         });
     }

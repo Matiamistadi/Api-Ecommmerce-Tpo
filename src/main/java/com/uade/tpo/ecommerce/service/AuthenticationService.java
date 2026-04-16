@@ -32,7 +32,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 // Nunca guardamos contraseñas en texto plano
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .rol(request.getRol() != null ? request.getRol() : Rol.CLIENTE)
+                .rol(Rol.CLIENTE)
                 .fechaRegistro(LocalDateTime.now())
                 .activo(true)
                 .build();
