@@ -74,10 +74,14 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // 401 cuando no hay token, 403 cuando el token existe pero no tiene permisos
             .exceptionHandling(ex -> ex
+                // 401 — no hay token o el token es inválido/expirado
                 .authenticationEntryPoint((request, response, authException) ->
                     response.sendError(401, "No autenticado: token ausente o inválido")
+                )
+                // 403 — hay token válido pero el rol no tiene permisos
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                    response.sendError(403, "Acceso denegado: permisos insuficientes")
                 )
             )
             .authenticationProvider(authenticationProvider)
