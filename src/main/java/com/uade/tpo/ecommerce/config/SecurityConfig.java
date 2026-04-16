@@ -74,6 +74,12 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            // 401 cuando no hay token, 403 cuando el token existe pero no tiene permisos
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(401, "No autenticado: token ausente o inválido")
+                )
+            )
             .authenticationProvider(authenticationProvider)
             // Registrar nuestro filtro JWT ANTES del filtro de usuario/contraseña de Spring
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
