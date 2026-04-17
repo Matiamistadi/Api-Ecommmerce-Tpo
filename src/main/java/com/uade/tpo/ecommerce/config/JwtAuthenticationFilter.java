@@ -65,15 +65,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("JWT Filter — SecurityContext poblado para: {}", userEmail);
+                    log.info("JWT Filter — SecurityContext poblado para: {} con roles: {}", userEmail, userDetails.getAuthorities());
+                } else {
+                    log.warn("JWT Filter — token inválido o expirado para: {}", userEmail);
+                    SecurityContextHolder.clearContext();
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+                    return;
                 }
             }
         } catch (Exception e) {
-            log.info("JWT Filter — excepción procesando token: {}", e.getMessage());
+            log.warn("JWT Filter — excepción procesando token [{}]: {}", e.getClass().getSimpleName(), e.getMessage());
             SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+            return;
         }
 
-        // 8. Continuar con el siguiente filtro
+        // Continuar con el siguiente filtro
         filterChain.doFilter(request, response);
     }
 }
