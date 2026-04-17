@@ -76,13 +76,17 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex
                 // 401 — no hay token o el token es inválido/expirado
-                .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(401, "No autenticado: token ausente o inválido")
-                )
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"No autenticado: token ausente o inválido\"}");
+                })
                 // 403 — hay token válido pero el rol no tiene permisos
-                .accessDeniedHandler((request, response, accessDeniedException) ->
-                    response.sendError(403, "Acceso denegado: permisos insuficientes")
-                )
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"Acceso denegado: permisos insuficientes\"}");
+                })
             )
             .authenticationProvider(authenticationProvider)
             // Registrar nuestro filtro JWT ANTES del filtro de usuario/contraseña de Spring

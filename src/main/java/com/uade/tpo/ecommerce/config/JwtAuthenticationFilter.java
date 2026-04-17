@@ -8,16 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -64,23 +63,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             userDetails.getAuthorities()
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication(authToken);
+                    SecurityContextHolder.setContext(context);
                     log.info("JWT Filter — SecurityContext poblado para: {} con roles: {}", userEmail, userDetails.getAuthorities());
                 } else {
                     log.warn("JWT Filter — token inválido o expirado para: {}", userEmail);
                     SecurityContextHolder.clearContext();
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+                    writeUnauthorized(response, "Token inválido o expirado");
                     return;
                 }
             }
         } catch (Exception e) {
             log.warn("JWT Filter — excepción procesando token [{}]: {}", e.getClass().getSimpleName(), e.getMessage());
             SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+            writeUnauthorized(response, "Token inválido o expirado");
             return;
         }
 
         // Continuar con el siguiente filtro
         filterChain.doFilter(request, response);
+    }
+
+    // Escribe 401 directamente sin response.sendError() para evitar el forward
+    // automático a /error, que Spring Security re-evalúa y sobrescribe el status.
+    private void writeUnauthorized(HttpServletResponse response, String mensaje) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"error\":\"" + mensaje + "\"}");
     }
 }

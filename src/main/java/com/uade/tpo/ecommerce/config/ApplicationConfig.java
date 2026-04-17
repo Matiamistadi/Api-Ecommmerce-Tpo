@@ -2,6 +2,7 @@ package com.uade.tpo.ecommerce.config;
 
 import com.uade.tpo.ecommerce.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,5 +45,20 @@ public class ApplicationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        return new JwtAuthenticationFilter(jwtService, userDetailsService);
+    }
+
+    // Impide que Spring Boot auto-registre el filtro como servlet filter global.
+    // Solo debe correr dentro de la cadena de Spring Security (addFilterBefore).
+    // Si se auto-registraba, corría dos veces y el SecurityContext se perdía → 401 en vez de 403.
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtAuthFilterRegistration(JwtAuthenticationFilter filter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 }
