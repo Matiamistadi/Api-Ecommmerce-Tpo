@@ -47,15 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String userEmail = jwtService.extractUsername(jwt);
-            log.debug("JWT Filter — email extraído del token: {}", userEmail);
+            log.info("JWT Filter — email extraído del token: {}", userEmail);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                log.debug("JWT Filter — usuario cargado: {}, authorities: {}", userDetails.getUsername(), userDetails.getAuthorities());
+                log.info("JWT Filter — usuario cargado: {}, authorities: {}", userDetails.getUsername(), userDetails.getAuthorities());
 
                 boolean valid = jwtService.isTokenValid(jwt, userDetails);
-                log.debug("JWT Filter — token válido: {}", valid);
+                log.info("JWT Filter — token válido: {}", valid);
 
                 if (valid) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -65,11 +65,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.debug("JWT Filter — SecurityContext poblado para: {}", userEmail);
+                    log.info("JWT Filter — SecurityContext poblado para: {}", userEmail);
                 }
             }
         } catch (Exception e) {
-            log.warn("JWT Filter — excepción procesando token: {}", e.getMessage());
+            log.info("JWT Filter — excepción procesando token: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
 
