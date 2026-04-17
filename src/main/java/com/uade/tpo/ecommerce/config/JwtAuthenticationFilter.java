@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +20,8 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -42,19 +46,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
 
         try {
-            // 3. Extraer el email del token
             final String userEmail = jwtService.extractUsername(jwt);
+            log.debug("JWT Filter — email extraído del token: {}", userEmail);
 
-            // 4. Si hay email y el usuario aún no está autenticado en el contexto
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // 5. Buscar el usuario en la base de datos
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                log.debug("JWT Filter — usuario cargado: {}, authorities: {}", userDetails.getUsername(), userDetails.getAuthorities());
 
-                // 6. Validar que el token sea válido para ese usuario
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                boolean valid = jwtService.isTokenValid(jwt, userDetails);
+                log.debug("JWT Filter — token válido: {}", valid);
 
-                    // 7. Crear el token de autenticación y guardarlo en el SecurityContext
+                if (valid) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -62,11 +65,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("JWT Filter — SecurityContext poblado para: {}", userEmail);
                 }
             }
         } catch (Exception e) {
-            // Token malformado, expirado o firma inválida — se deja el contexto vacío
-            // Spring Security lo tratará como no autenticado → 401
+            log.warn("JWT Filter — excepción procesando token: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
 
