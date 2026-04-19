@@ -3,15 +3,24 @@
 API REST para una plataforma de e-commerce orientada a la venta de suplementos y equipamiento de gimnasio.  
 Implementada con **Spring Boot 4**, **Spring Security + JWT** y persistencia en **MySQL**.
 
-## Integrantes
+**Repositorio:** https://github.com/Matiamistadi/Api-Ecommmerce-Tpo
 
-| Nombre                | Legajo |
-|-----------------------|--------|
-| Matias Amistadi       |        |
-| Manuel Oliver Nacher  | 1161721       |
-| Luciano Frasca        |        |
-| Nicolas Oroño         |        |
-| Simon Ottati          |        |
+---
+
+## Grupo 12 – Integrantes
+
+| Nombre                      | Legajo   |
+|-----------------------------|----------|
+| Amistadi, Matias            | 1163830  |
+| Frasca, Luciano             | 1164185  |
+| Oliver Nacher, Manuel       | 1161721  |
+| Oroño, Nicolás Ezequiel     | 1158650  |
+| Ottati Ostiglia, Simon      | 1155931  |
+
+**Materia:** Aplicaciones Interactivas  
+**Profesora:** Cuello, Gisele Gabriela  
+**Turno:** Jueves Noche – Curso 14792  
+**Cuatrimestre:** 1° Cuatrimestre 2026
 
 ---
 
@@ -42,7 +51,7 @@ Implementada con **Spring Boot 4**, **Spring Security + JWT** y persistencia en 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/<org>/Api-Ecommmerce-Tpo.git
+git clone https://github.com/Matiamistadi/Api-Ecommmerce-Tpo.git
 cd Api-Ecommmerce-Tpo
 ```
 
@@ -57,13 +66,15 @@ CREATE DATABASE IF NOT EXISTS ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_un
 Copiar el archivo de ejemplo y completar con tus datos:
 
 ```bash
-cp src/main/resources/application.properties.example src/main/resources/application.properties
+cp src/main/resources/application.properties.example src/main/resources/application-local.properties
 ```
 
-Editar `application.properties` y reemplazar:
+Editar `application-local.properties` y reemplazar:
 - `TU_USUARIO_MYSQL` → tu usuario de MySQL (ej: `root`)
 - `TU_PASSWORD_MYSQL` → tu contraseña de MySQL
 - `TU_JWT_SECRET_BASE64_MINIMO_256_BITS` → clave secreta (mínimo 32 bytes en hex, ej: generada con `openssl rand -hex 32`)
+
+> **Nota de seguridad:** El archivo `application-local.properties` está en `.gitignore` y nunca debe subirse al repositorio.
 
 ### 4. Cargar datos iniciales (opcional pero recomendado para demo)
 
@@ -84,6 +95,13 @@ Esto crea:
 ```
 
 La API queda disponible en `http://localhost:8080`
+
+Para verificar que arrancó bien:
+
+```bash
+curl http://localhost:8080/status
+# Debería devolver: "Servidor activo - Ecommerce Gym TPO"
+```
 
 ---
 
@@ -116,9 +134,10 @@ La API queda disponible en `http://localhost:8080`
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Capa de Controllers                         │
-│  AuthController · ProductoController · CategoriaController     │
+│  AuthController · ProductoController · CategoriaController      │
 │  MarcaController · CarritoController · OrdenController          │
 │  DescuentoController · PagoController · UsuarioController       │
+│  DireccionController · StatusController                         │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
                            ▼
@@ -127,6 +146,7 @@ La API queda disponible en `http://localhost:8080`
 │  AuthenticationService · ProductoServiceImpl                    │
 │  CarritoServiceImpl · OrdenServiceImpl · PagoServiceImpl        │
 │  CategoriaServiceImpl · MarcaServiceImpl · DescuentoServiceImpl │
+│  UsuarioServiceImpl · DireccionServiceImpl                      │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
                            ▼
@@ -140,7 +160,7 @@ La API queda disponible en `http://localhost:8080`
 │                    MySQL 8 – BD "ecommerce"                     │
 │  usuarios · productos · categorias · marcas · imagenes_producto │
 │  carritos · items_carrito · ordenes · items_orden               │
-│  descuentos · productos_descuento · pagos · direcciones         │
+│  descuentos · producto_descuento · pagos · direcciones          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -162,9 +182,16 @@ El JWT contiene:
    - Firmado con HMAC-SHA256
 ```
 
+**Seguridad aplicada:**
+- Contraseñas hasheadas con **BCrypt** (nunca en texto plano)
+- `UserDetailsService` carga usuarios desde MySQL por email
+- `JwtAuthenticationFilter` valida cada request y popula el `SecurityContextHolder`
+- `SessionCreationPolicy.STATELESS` – el servidor no mantiene sesiones
+- Separación estricta de roles: ADMIN vs CLIENTE
+
 ---
 
-## Entidades y tablas
+## Entidades y tablas (Entidad ↔ Clase Java ↔ Tabla BD)
 
 | Entidad Java         | Tabla BD               | Descripción                         |
 |----------------------|------------------------|-------------------------------------|
@@ -178,9 +205,9 @@ El JWT contiene:
 | `Orden`              | `ordenes`              | Orden generada al confirmar carrito |
 | `ItemOrden`          | `items_orden`          | Ítems dentro de la orden            |
 | `Descuento`          | `descuentos`           | Descuentos configurables            |
-| `ProductoDescuento`  | `productos_descuento`  | Relación producto ↔ descuento       |
+| `ProductoDescuento`  | `producto_descuento`   | Relación producto ↔ descuento       |
 | `Pago`               | `pagos`                | Registro de pago de una orden       |
-| `Direccion`          | `direcciones`          | Direcciones de envío del usuario (CRUD completo vía `/api/usuarios/{id}/direcciones`) |
+| `Direccion`          | `direcciones`          | Direcciones de envío del usuario    |
 
 ---
 
@@ -188,11 +215,11 @@ El JWT contiene:
 
 ### Autenticación (público)
 
-| Método | URL                         | Body / Params                          | Respuesta              |
-|--------|-----------------------------|----------------------------------------|------------------------|
-| POST   | `/api/v1/auth/register`     | `{ email, password, rol? }`            | `{ access_token }`     |
-| POST   | `/api/v1/auth/authenticate` | `{ email, password }`                  | `{ access_token }`     |
-| GET    | `/status`                   | —                                      | String                 |
+| Método | URL                         | Body / Params               | Respuesta          |
+|--------|-----------------------------|-----------------------------|--------------------|
+| POST   | `/api/v1/auth/register`     | `{ email, password }`       | `{ access_token }` |
+| POST   | `/api/v1/auth/authenticate` | `{ email, password }`       | `{ access_token }` |
+| GET    | `/status`                   | —                           | String             |
 
 ### Productos
 
@@ -230,15 +257,15 @@ El JWT contiene:
 
 ### Carrito
 
-| Método | URL                                        | Auth / Rol      | Descripción                   |
-|--------|--------------------------------------------|-----------------|-------------------------------|
-| GET    | `/api/carritos/{id}`                       | CLIENTE / ADMIN | Obtener carrito por id        |
-| GET    | `/api/carritos/usuario/{usuarioId}`        | CLIENTE / ADMIN | Obtener carrito del usuario   |
-| POST   | `/api/carritos/usuario/{usuarioId}`        | CLIENTE / ADMIN | Crear carrito                 |
-| POST   | `/api/carritos/{id}/items?productoId=&cantidad=` | CLIENTE / ADMIN | Agregar ítem         |
-| DELETE | `/api/carritos/{id}/items/{itemId}`        | CLIENTE / ADMIN | Eliminar ítem                 |
-| DELETE | `/api/carritos/{id}/vaciar`                | CLIENTE / ADMIN | Vaciar carrito                |
-| POST   | `/api/carritos/{id}/confirmar?direccionEnvioId=` | CLIENTE / ADMIN | Confirmar → crea Orden |
+| Método | URL                                              | Auth / Rol      | Descripción                   |
+|--------|--------------------------------------------------|-----------------|-------------------------------|
+| GET    | `/api/carritos/{id}`                             | CLIENTE / ADMIN | Obtener carrito por id        |
+| GET    | `/api/carritos/usuario/{usuarioId}`              | CLIENTE / ADMIN | Obtener carrito del usuario   |
+| POST   | `/api/carritos/usuario/{usuarioId}`              | CLIENTE / ADMIN | Crear carrito                 |
+| POST   | `/api/carritos/{id}/items?productoId=&cantidad=` | CLIENTE / ADMIN | Agregar ítem al carrito       |
+| DELETE | `/api/carritos/{id}/items/{itemId}`              | CLIENTE / ADMIN | Eliminar ítem                 |
+| DELETE | `/api/carritos/{id}/vaciar`                      | CLIENTE / ADMIN | Vaciar carrito                |
+| POST   | `/api/carritos/{id}/confirmar?direccionEnvioId=` | CLIENTE / ADMIN | Confirmar → genera una Orden  |
 
 ### Órdenes
 
@@ -281,25 +308,32 @@ El JWT contiene:
 
 ### Usuarios
 
-| Método | URL                  | Auth / Rol      | Descripción             |
-|--------|----------------------|-----------------|-------------------------|
-| GET    | `/api/usuarios`      | ADMIN           | Listar todos            |
-| GET    | `/api/usuarios/{id}` | Autenticado     | Obtener por id          |
-| POST   | `/api/usuarios`      | Autenticado     | Crear usuario           |
-| PUT    | `/api/usuarios/{id}` | Autenticado     | Actualizar usuario      |
-| DELETE | `/api/usuarios/{id}` | Autenticado     | Eliminar usuario        |
+| Método | URL                    | Auth / Rol            | Descripción                       |
+|--------|------------------------|-----------------------|-----------------------------------|
+| GET    | `/api/usuarios`        | ADMIN                 | Listar todos los usuarios         |
+| GET    | `/api/usuarios/{id}`   | Autenticado           | Obtener usuario por id            |
+| PUT    | `/api/usuarios/{id}`   | Propietario / ADMIN   | Actualizar datos del usuario      |
+| PATCH  | `/api/usuarios/{id}/rol` | ADMIN               | Cambiar el rol de un usuario      |
+| DELETE | `/api/usuarios/{id}`   | Autenticado           | Eliminar usuario                  |
 
 ---
 
-## Cómo probar con Postman
+## Cómo probar la API
 
-1. Importar el archivo `postman_collection.json` que se encuentra en la raíz del proyecto.
-2. Ejecutar **POST Register** o **POST Login** → copiar el `access_token` de la respuesta.
-3. En los requests protegidos, la colección ya tiene configurada la variable `{{token}}` — se actualiza automáticamente tras el login.
-4. Probar un endpoint ADMIN con un token de CLIENTE → debe devolver **403 Forbidden**.
-5. Probar un endpoint protegido sin token → debe devolver **401 Unauthorized**.
+### Opción 1 – Postman
 
-### Ejemplo rápido – login y uso del token
+1. Importar el archivo `postman_collection.json` desde la raíz del proyecto.
+2. Ejecutar **POST Login** → el token se guarda automáticamente en la variable `{{token}}`.
+3. Probar cualquier endpoint protegido — la colección ya inyecta el token en el header.
+4. Para probar autorización: intentar un endpoint ADMIN con token CLIENTE → debe devolver **403 Forbidden**.
+5. Intentar un endpoint protegido sin token → debe devolver **401 Unauthorized**.
+
+### Opción 2 – Insomnia
+
+1. Importar el archivo `Insomnia_TPO-Ecomercce.yaml` desde la raíz del proyecto (File → Import).
+2. La colección contiene los 55 requests organizados por entidad, ya configurados con los tokens de prueba.
+
+### Ejemplo rápido con curl – login y uso del token
 
 ```bash
 # 1. Login
@@ -307,7 +341,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/authenticate \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@gym.com","password":"Admin1234!"}' | jq -r .access_token)
 
-# 2. Usar el token
+# 2. Usar el token en un endpoint protegido
 curl http://localhost:8080/api/productos \
   -H "Authorization: Bearer $TOKEN"
 ```
@@ -319,8 +353,41 @@ curl http://localhost:8080/api/productos \
 | Rol      | Permisos                                                                                      |
 |----------|-----------------------------------------------------------------------------------------------|
 | `ADMIN`  | CRUD completo de catálogo (productos, categorías, marcas, descuentos), gestión de órdenes y usuarios |
-| `CLIENTE`| Carrito, órdenes propias, pagos, perfil propio                                                |
+| `CLIENTE`| Carrito, órdenes propias, pagos, gestión de su perfil y direcciones                           |
 | Público  | Lectura de catálogo (productos, categorías, marcas, descuentos), registro y login             |
+
+### Promover un usuario a ADMIN
+
+Por seguridad, el endpoint público de registro sólo crea usuarios con rol `CLIENTE`. Para crear un administrador, ejecutar directamente en MySQL:
+
+```sql
+UPDATE usuarios SET rol = 'ADMIN' WHERE email = 'admin@gym.com';
+```
+
+---
+
+## Manejo de errores
+
+El `GlobalExceptionHandler` devuelve respuestas consistentes en formato JSON:
+
+| Código | Situación                                          |
+|--------|----------------------------------------------------|
+| 400    | Datos inválidos (validación de campos)             |
+| 401    | Token ausente, inválido o expirado                 |
+| 403    | Usuario autenticado sin permisos suficientes       |
+| 404    | Recurso no encontrado                              |
+| 409    | Conflicto (ej: email ya registrado)                |
+| 500    | Error interno del servidor                         |
+
+Ejemplo de respuesta de error:
+```json
+{
+  "timestamp": "2026-04-19T19:15:03",
+  "status": 403,
+  "error": "Forbidden",
+  "mensaje": "Acceso denegado: permisos insuficientes"
+}
+```
 
 ---
 
@@ -333,13 +400,15 @@ src/
     │   ├── config/          # Spring Security, JWT, ApplicationConfig
     │   ├── controller/      # REST Controllers
     │   ├── dto/             # Data Transfer Objects
-    │   ├── entity/          # Entidades JPA
+    │   ├── entity/          # Entidades JPA (13 entidades)
     │   ├── exception/       # GlobalExceptionHandler
     │   ├── repository/      # JPA Repositories
     │   └── service/         # Lógica de negocio (interfaces + implementaciones)
     └── resources/
-        ├── application.properties         # Config local (no subir al repo)
+        ├── application.properties         # Config base (usa variables de entorno)
         └── application.properties.example # Plantilla sin credenciales
 init.sql                    # Script de datos iniciales para demo
 postman_collection.json     # Colección Postman lista para importar
+Insomnia_TPO-Ecomercce.yaml # Colección Insomnia con los 55 requests
+README.md                   # Este archivo
 ```
