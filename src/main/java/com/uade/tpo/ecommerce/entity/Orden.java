@@ -1,5 +1,6 @@
 package com.uade.tpo.ecommerce.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,10 +21,12 @@ public class Orden {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnoreProperties({"passwordHash", "password", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled", "username"})
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
+    @JsonIgnoreProperties({"usuario"})
     @ManyToOne
     @JoinColumn(name = "id_direccion_envio")
     private Direccion direccionEnvio;
@@ -38,7 +41,7 @@ public class Orden {
     private LocalDateTime fechaCreacion;
 
     @JsonManagedReference("orden-items")
-    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ItemOrden> items;
 
     @OneToOne(mappedBy = "orden")

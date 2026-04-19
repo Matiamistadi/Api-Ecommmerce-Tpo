@@ -34,14 +34,12 @@ public class Producto {
     @JoinColumn(name = "id_marca")
     private Marca marca;
 
-    // Corrección 1: relación Producto → Usuario (quién lo creó)
     @ManyToOne
     @JoinColumn(name = "id_vendedor")
     private Usuario vendedor;
 
-    // Corrección 3: imágenes como entidad separada
     @JsonManagedReference
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ImagenProducto> imagenes;
 
     @JsonIgnore
