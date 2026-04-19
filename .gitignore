@@ -56,4 +56,6 @@ build/
 
 # VS Code
 .vscode/
-src/main/resources/application.properties
+
+# Config local de cada dev (NO commitear — contiene password de MySQL, etc)
+src/main/resources/application-local.properties

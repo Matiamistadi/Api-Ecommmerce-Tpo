@@ -1,0 +1,16 @@
+# Template de configuración local.
+# Cada dev debe COPIAR este archivo a "application-local.properties" (misma carpeta)
+# y poner SUS datos. El archivo real (sin .example) está en .gitignore.
+#
+# Windows PowerShell:
+#   Copy-Item application-local.properties.example application-local.properties
+# Linux/Mac:
+#   cp application-local.properties.example application-local.properties
+#
+# Después editá application-local.properties con tu password de MySQL.
+
+spring.datasource.password=TU_PASSWORD_DE_MYSQL
+
+# Si tu URL o user de MySQL son distintos, descomentá y editá:
+#spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce
+#spring.datasource.username=root
