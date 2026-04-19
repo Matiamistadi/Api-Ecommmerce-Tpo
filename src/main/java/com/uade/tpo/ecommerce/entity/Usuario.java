@@ -30,6 +30,7 @@ public class Usuario implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -55,8 +56,6 @@ public class Usuario implements UserDetails {
     @ToString.Exclude
     @OneToMany(mappedBy = "usuario")
     private List<Orden> ordenes;
-
-    // ─── UserDetails ────────────────────────────────────────────────
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

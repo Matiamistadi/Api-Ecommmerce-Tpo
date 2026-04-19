@@ -2,11 +2,13 @@ package com.uade.tpo.ecommerce.controller;
 
 import com.uade.tpo.ecommerce.dto.CambiarRolRequest;
 import com.uade.tpo.ecommerce.dto.UsuarioUpdateRequest;
+import com.uade.tpo.ecommerce.entity.Rol;
 import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,17 +32,23 @@ public class UsuarioController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Actualiza email, contraseña y estado — el rol NO se puede cambiar desde aquí
+    // Solo puede editarse a sí mismo, salvo que sea ADMIN
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(
             @PathVariable Long id,
-            @Valid @RequestBody UsuarioUpdateRequest request) {
+            @Valid @RequestBody UsuarioUpdateRequest request,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
+
+        if (!usuarioAutenticado.getId().equals(id) && usuarioAutenticado.getRol() != Rol.ADMIN) {
+            return ResponseEntity.status(403).build();
+        }
+
         return usuarioService.actualizar(id, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Solo ADMIN puede cambiar el rol de un usuario (protegido en SecurityConfig)
+    // Solo ADMIN puede cambiar el rol de un usuario
     @PatchMapping("/{id}/rol")
     public ResponseEntity<Usuario> cambiarRol(
             @PathVariable Long id,

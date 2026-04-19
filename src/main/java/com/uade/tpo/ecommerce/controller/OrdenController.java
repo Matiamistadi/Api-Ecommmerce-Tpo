@@ -2,9 +2,12 @@ package com.uade.tpo.ecommerce.controller;
 
 import com.uade.tpo.ecommerce.entity.EstadoOrden;
 import com.uade.tpo.ecommerce.entity.Orden;
+import com.uade.tpo.ecommerce.entity.Rol;
+import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.service.OrdenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,11 +25,16 @@ public class OrdenController {
         return ResponseEntity.ok(ordenService.obtenerTodas());
     }
 
+    // Solo puede ver su propia orden, salvo que sea ADMIN
     @GetMapping("/{id}")
-    public ResponseEntity<Orden> obtenerOrden(@PathVariable Long id) {
+    public ResponseEntity<Orden> obtenerOrden(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
         return ordenService.obtenerPorId(id)
+                .filter(orden -> orden.getUsuario().getId().equals(usuarioAutenticado.getId())
+                        || usuarioAutenticado.getRol() == Rol.ADMIN)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(403).build());
     }
 
     @GetMapping("/usuario/{usuarioId}")

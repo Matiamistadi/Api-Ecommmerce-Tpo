@@ -66,12 +66,23 @@ public class CarritoServiceImpl implements CarritoService {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + productoId));
 
+        // Validar stock
+        int cantidadTotal = cantidad;
         Optional<ItemCarrito> itemExistente = carrito.getItems().stream()
                 .filter(i -> i.getProducto().getId().equals(productoId))
                 .findFirst();
 
         if (itemExistente.isPresent()) {
-            itemExistente.get().setCantidad(itemExistente.get().getCantidad() + cantidad);
+            cantidadTotal += itemExistente.get().getCantidad();
+        }
+
+        if (producto.getStock() < cantidadTotal) {
+            throw new IllegalArgumentException("Stock insuficiente para " + producto.getNombre()
+                    + ". Disponible: " + producto.getStock() + ", solicitado: " + cantidadTotal);
+        }
+
+        if (itemExistente.isPresent()) {
+            itemExistente.get().setCantidad(cantidadTotal);
         } else {
             ItemCarrito nuevoItem = new ItemCarrito();
             nuevoItem.setCarrito(carrito);
@@ -120,6 +131,16 @@ public class CarritoServiceImpl implements CarritoService {
         Direccion direccion = direccionRepository.findById(direccionEnvioId)
                 .orElseThrow(() -> new RuntimeException("Dirección no encontrada: " + direccionEnvioId));
 
+        // Descontar stock
+        for (ItemCarrito item : carrito.getItems()) {
+            Producto prod = item.getProducto();
+            if (prod.getStock() < item.getCantidad()) {
+                throw new IllegalArgumentException("Stock insuficiente para " + prod.getNombre());
+            }
+            prod.setStock(prod.getStock() - item.getCantidad());
+            productoRepository.save(prod);
+        }
+
         // Crear la Orden desde los ítems del Carrito
         Orden orden = new Orden();
         orden.setUsuario(carrito.getUsuario());
@@ -140,7 +161,7 @@ public class CarritoServiceImpl implements CarritoService {
         orden.setItems(itemsOrden);
         Orden ordenGuardada = ordenRepository.save(orden);
 
-        // Vincular el Carrito con la Orden creada (corrección 2)
+        // Vincular el Carrito con la Orden creada
         carrito.setEstado(EstadoCarrito.CONFIRMADO);
         carrito.setOrden(ordenGuardada);
         carritoRepository.save(carrito);
