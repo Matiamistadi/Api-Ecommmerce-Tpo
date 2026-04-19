@@ -161,7 +161,6 @@ public class CarritoServiceImpl implements CarritoService {
         orden.setItems(itemsOrden);
         Orden ordenGuardada = ordenRepository.save(orden);
 
-        // Vincular el Carrito con la Orden creada
         carrito.setEstado(EstadoCarrito.CONFIRMADO);
         carrito.setOrden(ordenGuardada);
         carritoRepository.save(carrito);
