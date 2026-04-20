@@ -59,7 +59,13 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarUsuario(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
+        if (!usuarioAutenticado.getId().equals(id) && usuarioAutenticado.getRol() != Rol.ADMIN) {
+            return ResponseEntity.status(403).build();
+        }
+
         if (usuarioService.eliminar(id)) {
             return ResponseEntity.noContent().build();
         }

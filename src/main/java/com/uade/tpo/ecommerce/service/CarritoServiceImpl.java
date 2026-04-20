@@ -56,6 +56,10 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public Carrito agregarItem(Long carritoId, Long productoId, Integer cantidad) {
+        if (cantidad == null || cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
+        }
+
         Carrito carrito = carritoRepository.findById(carritoId)
                 .orElseThrow(() -> new RuntimeException("Carrito no encontrado: " + carritoId));
 
@@ -131,8 +135,15 @@ public class CarritoServiceImpl implements CarritoService {
         Direccion direccion = direccionRepository.findById(direccionEnvioId)
                 .orElseThrow(() -> new RuntimeException("Dirección no encontrada: " + direccionEnvioId));
 
+        if (!direccion.getUsuario().getId().equals(carrito.getUsuario().getId())) {
+            throw new IllegalArgumentException("La dirección de envío no pertenece al usuario del carrito");
+        }
+
         // Descontar stock
         for (ItemCarrito item : carrito.getItems()) {
+            if (item.getCantidad() == null || item.getCantidad() <= 0) {
+                throw new IllegalArgumentException("El carrito contiene un ítem con cantidad inválida");
+            }
             Producto prod = item.getProducto();
             if (prod.getStock() < item.getCantidad()) {
                 throw new IllegalArgumentException("Stock insuficiente para " + prod.getNombre());

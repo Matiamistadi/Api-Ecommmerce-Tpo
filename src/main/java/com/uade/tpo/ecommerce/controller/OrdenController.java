@@ -38,7 +38,12 @@ public class OrdenController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Orden>> obtenerPorUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<Orden>> obtenerPorUsuario(
+            @PathVariable Long usuarioId,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
+        if (!usuarioAutenticado.getId().equals(usuarioId) && usuarioAutenticado.getRol() != Rol.ADMIN) {
+            return ResponseEntity.status(403).build();
+        }
         return ResponseEntity.ok(ordenService.obtenerPorUsuario(usuarioId));
     }
 
