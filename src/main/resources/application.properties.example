@@ -1,0 +1,24 @@
+server.port=8080
+spring.application.name=ecommerce-tpo
+
+# ─── Base de datos MySQL ───────────────────────────────────────────────────────
+# Reemplazar con tus credenciales locales
+spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce
+spring.datasource.username=TU_USUARIO_MYSQL
+spring.datasource.password=TU_PASSWORD_MYSQL
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# ─── JPA / Hibernate ──────────────────────────────────────────────────────────
+# "update" crea/actualiza las tablas automáticamente al iniciar
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# ─── Actuator ─────────────────────────────────────────────────────────────────
+management.endpoints.web.exposure.include=health,info
+
+# ─── JWT ──────────────────────────────────────────────────────────────────────
+# Generar una clave aleatoria de al menos 256 bits (32 bytes) en Base64
+# Ejemplo: openssl rand -hex 32
+jwt.secret=TU_JWT_SECRET_BASE64_MINIMO_256_BITS
+jwt.expiration=86400000
