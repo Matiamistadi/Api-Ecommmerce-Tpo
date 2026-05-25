@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './ProductCard.css';
 
 const ProductCard = ({ producto }) => {
@@ -5,12 +6,14 @@ const ProductCard = ({ producto }) => {
     <div className="product-card">
       <span className="product-card__chip">{producto.categoria}</span>
 
-      <div className="product-card__image">
-        <img src={producto.imagenUrl} alt={producto.nombre} />
-      </div>
+      <Link to={`/producto/${producto.id}`} className="product-card__link">
+        <div className="product-card__image">
+          <img src={producto.imagenUrl} alt={producto.nombre} />
+        </div>
 
-      <p className="product-card__brand">{producto.marca}</p>
-      <h3 className="product-card__name">{producto.nombre}</h3>
+        <p className="product-card__brand">{producto.marca}</p>
+        <h3 className="product-card__name">{producto.nombre}</h3>
+      </Link>
 
       <div className="product-card__price">
         <span className="product-card__price-current">${producto.precio.toFixed(2)}</span>

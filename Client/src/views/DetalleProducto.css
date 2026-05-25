@@ -1,0 +1,132 @@
+.detalle {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.detalle__layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.detalle__imagen {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: var(--color-surface-low);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.detalle__imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detalle__chip {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: var(--color-chip-bg);
+  color: var(--color-chip-text);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.detalle__nombre {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.detalle__descripcion {
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.detalle__precio-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.detalle__precio {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.detalle__stock {
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detalle__cantidad {
+  margin-bottom: 24px;
+}
+
+.detalle__label {
+  display: block;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.detalle__cantidad-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.detalle__cantidad-btn {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.detalle__cantidad-btn:hover {
+  background-color: var(--color-surface-low);
+}
+
+.detalle__cantidad-valor {
+  min-width: 48px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.detalle__agregar {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.detalle__agregar:hover {
+  background-color: #00b894;
+}
+
+@media (max-width: 768px) {
+  .detalle__layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -95,3 +95,13 @@
 .product-card__button:hover {
   background-color: var(--color-primary-hover);
 }
+
+.product-card__link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.product-card__link:hover .product-card__name {
+  color: var(--color-accent);
+}
