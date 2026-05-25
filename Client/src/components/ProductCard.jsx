@@ -1,23 +1,22 @@
 import './ProductCard.css';
 
-const ProductCard = () => {
+const ProductCard = ({ producto }) => {
   return (
     <div className="product-card">
-      <span className="product-card__chip">Proteína</span>
+      <span className="product-card__chip">{producto.categoria}</span>
 
       <div className="product-card__image">
-        <img
-          src="https://placehold.co/400x400/1a1a2e/00d4aa?text=WHEY"
-          alt="Whey Protein Isolate 2kg"
-        />
+        <img src={producto.imagenUrl} alt={producto.nombre} />
       </div>
 
-      <p className="product-card__brand">OPTIMUM NUTRITION</p>
-      <h3 className="product-card__name">Whey Protein Isolate 2kg</h3>
+      <p className="product-card__brand">{producto.marca}</p>
+      <h3 className="product-card__name">{producto.nombre}</h3>
 
       <div className="product-card__price">
-        <span className="product-card__price-current">$39.99</span>
-        <span className="product-card__price-old">$49.99</span>
+        <span className="product-card__price-current">${producto.precio}</span>
+        {producto.precioOriginal && (
+          <span className="product-card__price-old">${producto.precioOriginal}</span>
+        )}
       </div>
 
       <button className="product-card__button">Agregar</button>

@@ -1,10 +1,10 @@
-import ProductCard from './components/ProductCard';
+import Catalogo from './views/Catalogo';
 import './App.css';
 
 function App() {
   return (
     <div className="app">
-      <ProductCard />
+      <Catalogo />
     </div>
   );
 }

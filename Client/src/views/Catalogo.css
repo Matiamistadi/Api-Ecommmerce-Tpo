@@ -1,0 +1,40 @@
+.catalogo {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.catalogo__header {
+  margin-bottom: 32px;
+}
+
+.catalogo__title {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.catalogo__subtitle {
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+
+.catalogo__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* Responsive: en mobile las cards se apilan */
+@media (max-width: 768px) {
+  .catalogo__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogo__title {
+    font-size: 36px;
+  }
+}
