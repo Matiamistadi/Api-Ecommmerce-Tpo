@@ -1,12 +1,17 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { productos } from '../data/productos';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useProducts } from '../context/ProductsContext';
+import { useCart } from '../context/CartContext';
 import './DetalleProducto.css';
 
 const DetalleProducto = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { agregarAlCarrito } = useCart();
+  const { productos } = useProducts();
   const producto = productos.find((p) => p.id === parseInt(id));
   const [cantidad, setCantidad] = useState(1);
+  const [imgActiva, setImgActiva] = useState(0);
 
   if (!producto) {
     return (
@@ -18,14 +23,31 @@ const DetalleProducto = () => {
     );
   }
 
+  const imagenes = [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean);
+
   const disminuir = () => setCantidad((c) => Math.max(1, c - 1));
   const aumentar = () => setCantidad((c) => c + 1);
 
   return (
     <main className="detalle">
       <div className="detalle__layout">
-        <div className="detalle__imagen">
-          <img src={producto.imagenUrl} alt={producto.nombre} />
+        <div className="detalle__galeria">
+          <div className="detalle__imagen">
+            <img src={imagenes[imgActiva]} alt={producto.nombre} />
+          </div>
+          {imagenes.length > 1 && (
+            <div className="detalle__thumbnails">
+              {imagenes.map((src, i) => (
+                <button
+                  key={i}
+                  className={`detalle__thumb ${i === imgActiva ? 'detalle__thumb--activa' : ''}`}
+                  onClick={() => setImgActiva(i)}
+                >
+                  <img src={src} alt={`Vista ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="detalle__info">
@@ -47,7 +69,10 @@ const DetalleProducto = () => {
             </div>
           </div>
 
-          <button className="detalle__agregar">
+          <button
+            className="detalle__agregar"
+            onClick={() => { agregarAlCarrito(producto, cantidad); navigate('/carrito'); }}
+          >
             🛒 AGREGAR AL CARRITO ({cantidad})
           </button>
         </div>

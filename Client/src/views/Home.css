@@ -1,3 +1,109 @@
+/* ── Carousel ── */
+.carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-primary);
+}
+
+.carousel__track {
+  display: flex;
+  transition: transform 0.5s ease;
+  will-change: transform;
+}
+
+.carousel__slide {
+  min-width: 100%;
+  position: relative;
+}
+
+.carousel__img {
+  width: 100%;
+  height: clamp(260px, 45vw, 560px);
+  object-fit: cover;
+  display: block;
+}
+
+.carousel__overlay {
+  position: absolute;
+  bottom: 32px;
+  left: 48px;
+}
+
+.carousel__cta {
+  display: inline-block;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.carousel__cta:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel__arrow:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.carousel__arrow--prev { left: 16px; }
+.carousel__arrow--next { right: 16px; }
+
+.carousel__dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.carousel__dot--active {
+  background: var(--color-accent);
+  transform: scale(1.25);
+}
+
+@media (max-width: 768px) {
+  .carousel__overlay { left: 24px; bottom: 20px; }
+  .carousel__arrow { width: 36px; height: 36px; font-size: 20px; }
+}
+
+/* ── Hero ── */
 .home__hero {
   background-color: var(--color-primary);
   color: #ffffff;

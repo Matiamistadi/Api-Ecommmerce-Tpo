@@ -105,3 +105,8 @@
 .product-card__link:hover .product-card__name {
   color: var(--color-accent);
 }
+
+.product-card__button--ok {
+  background-color: var(--color-accent) !important;
+  color: var(--color-primary) !important;
+}

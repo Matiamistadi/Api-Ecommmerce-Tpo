@@ -1,7 +1,19 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 import './ProductCard.css';
 
 const ProductCard = ({ producto }) => {
+  const { agregarAlCarrito } = useCart();
+  const [agregado, setAgregado] = useState(false);
+
+  const handleAgregar = (e) => {
+    e.preventDefault();
+    agregarAlCarrito(producto, 1);
+    setAgregado(true);
+    setTimeout(() => setAgregado(false), 1500);
+  };
+
   return (
     <div className="product-card">
       <span className="product-card__chip">{producto.categoria}</span>
@@ -10,7 +22,6 @@ const ProductCard = ({ producto }) => {
         <div className="product-card__image">
           <img src={producto.imagenUrl} alt={producto.nombre} />
         </div>
-
         <p className="product-card__brand">{producto.marca}</p>
         <h3 className="product-card__name">{producto.nombre}</h3>
       </Link>
@@ -22,7 +33,12 @@ const ProductCard = ({ producto }) => {
         )}
       </div>
 
-      <button className="product-card__button">Agregar</button>
+      <button
+        className={`product-card__button ${agregado ? 'product-card__button--ok' : ''}`}
+        onClick={handleAgregar}
+      >
+        {agregado ? '✓ Agregado' : 'Agregar'}
+      </button>
     </div>
   );
 };

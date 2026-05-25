@@ -1,0 +1,122 @@
+.confirmacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+}
+
+.confirmacion__card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 56px 48px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.confirmacion__icono {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  font-size: 32px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.confirmacion__titulo {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.confirmacion__orden {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+
+.confirmacion__mensaje {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.confirmacion__detalle {
+  background-color: var(--color-surface-low);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.confirmacion__detalle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.confirmacion__detalle-row:last-child {
+  border-bottom: none;
+}
+
+.confirmacion__badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-chip-text);
+  background-color: var(--color-chip-bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.confirmacion__acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirmacion__btn-primary {
+  padding: 16px;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  transition: background-color 0.2s;
+}
+
+.confirmacion__btn-primary:hover {
+  background-color: #00b894;
+}
+
+.confirmacion__btn-secondary {
+  padding: 14px;
+  background: none;
+  border: 2px solid var(--color-outline);
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.confirmacion__btn-secondary:hover {
+  border-color: var(--color-primary);
+}

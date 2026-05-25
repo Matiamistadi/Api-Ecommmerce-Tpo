@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
-import { productos } from '../data/productos';
+import { useProducts } from '../context/ProductsContext';
 import './Catalogo.css';
 
 const Catalogo = () => {
-  // Estado local: qué categoría está seleccionada actualmente
+  const { productos } = useProducts();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
 
-  // Lógica de filtrado: si es "Todas" mostramos todo, sino filtramos
   const productosFiltrados =
     categoriaSeleccionada === 'Todas'
       ? productos
