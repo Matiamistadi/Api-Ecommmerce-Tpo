@@ -22,18 +22,52 @@
   color: var(--color-text-muted);
 }
 
+.catalogo__layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.catalogo__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.catalogo__count {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
 .catalogo__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
-/* Responsive: en mobile las cards se apilan */
-@media (max-width: 768px) {
+.catalogo__empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+/* Responsive: sidebar arriba en mobile/tablet */
+@media (max-width: 1024px) {
+  .catalogo__layout {
+    grid-template-columns: 1fr;
+  }
+  .catalogo__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
   .catalogo__grid {
     grid-template-columns: 1fr;
   }
-
   .catalogo__title {
     font-size: 36px;
   }

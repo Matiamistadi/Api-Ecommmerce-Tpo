@@ -1,0 +1,73 @@
+.filter-sidebar {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+
+.filter-sidebar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.filter-sidebar__title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.filter-sidebar__clear {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filter-sidebar__clear:hover {
+  text-decoration: underline;
+}
+
+.filter-sidebar__section-title {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-sidebar__list {
+  list-style: none;
+}
+
+.filter-sidebar__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.filter-sidebar__option input {
+  cursor: pointer;
+  accent-color: var(--color-accent);
+}
+
+.filter-sidebar__option:hover {
+  color: var(--color-accent);
+}
