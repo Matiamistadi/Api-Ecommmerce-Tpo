@@ -1,16 +1,91 @@
-# React + Vite
+# GymStore — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend del e-commerce de suplementos y equipamiento de gimnasio "GymStore", desarrollado como parte del TPO de la materia.
 
-Currently, two official plugins are available:
+## Stack tecnológico
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** — biblioteca de UI basada en componentes
+- **Vite 7** — herramienta de desarrollo con HMR
+- **React Router DOM** — manejo de rutas y navegación SPA
+- **JavaScript** + CSS modular con variables globales
 
-## React Compiler
+## Cómo ejecutar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Prerrequisito: tener Node.js v20 o superior instalado.
 
-## Expanding the ESLint configuration
+```bash
+cd Client
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+La aplicación queda disponible en `http://localhost:5173`.
+
+## Estructura del proyecto
+
+```
+Client/
+├── src/
+│   ├── components/         # Componentes reutilizables
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   ├── ProductCard.jsx
+│   │   └── FilterSidebar.jsx
+│   ├── views/              # Pantallas completas
+│   │   ├── Home.jsx
+│   │   ├── Catalogo.jsx
+│   │   ├── DetalleProducto.jsx
+│   │   ├── Login.jsx
+│   │   ├── Registro.jsx
+│   │   ├── Carrito.jsx
+│   │   ├── MiPerfil.jsx
+│   │   └── NotFound.jsx
+│   ├── data/               # Datos hardcodeados (futura conexión a API)
+│   │   └── productos.js
+│   ├── App.jsx             # Configuración de rutas
+│   ├── App.css
+│   ├── index.css           # Design system (CSS variables globales)
+│   └── main.jsx            # Punto de entrada con BrowserRouter
+├── index.html
+├── package.json
+└── vite.config.js
+```
+
+## Rutas disponibles
+
+| Ruta | Vista | Descripción |
+|------|-------|-------------|
+| `/` | Home | Página de inicio con hero y CTA |
+| `/suplementos` | Catalogo | Catálogo con filtro por categoría (useState) |
+| `/producto/:id` | DetalleProducto | Detalle dinámico de un producto (useParams) |
+| `/login` | Login | Formulario de inicio de sesión con inputs controlados |
+| `/registro` | Registro | Registro de usuario (en construcción) |
+| `/carrito` | Carrito | Carrito de compras (en construcción) |
+| `/perfil` | MiPerfil | Perfil de usuario (en construcción) |
+| `*` | NotFound | Página 404 para rutas no existentes |
+
+## Conceptos React aplicados
+
+- Componentes funcionales con arrow functions
+- Props y flujo unidireccional de datos
+- `useState` para estado local (filtros, cantidad, formularios)
+- `useParams` para leer parámetros de URL en rutas dinámicas
+- `Link` y `NavLink` para navegación sin recarga (SPA)
+- Render condicional con operadores `&&` y ternarios
+- Renderizado de listas con `.map()` y prop `key`
+- CSS modular por componente con variables globales
+
+## Design system
+
+Paleta "High-Performance Athletic":
+- **Dark Navy** `#1a1a2e` (primario)
+- **Electric Green** `#00d4aa` (acento)
+- Tipografía: **Plus Jakarta Sans** (titulares) + **Inter** (cuerpo)
+
+## Integrantes
+
+- Matías Amistadi
+- Manuel Oliver Nacher
+- Luciano Frasca
+- Nicolás Oroño
+- Simón Ottati
