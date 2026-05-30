@@ -8,6 +8,14 @@
   flex: 1;
 }
 
+.app:has(.home) {
+  position: relative;
+}
+
+.app:has(.home) .app__content {
+  padding-top: 0;
+}
+
 .placeholder {
   max-width: 1280px;
   margin: 0 auto;
