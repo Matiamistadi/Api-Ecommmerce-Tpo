@@ -1,195 +1,342 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductsContext';
-import './Admin.css';
+import { AdminSidebar } from '../components/AdminSidebar';
+import { 
+  Search, Plus, SlidersHorizontal, Download, Edit2, Trash2, 
+  Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown 
+} from 'lucide-react';
 
 const Admin = () => {
-  const { productos, actualizarProducto, eliminarProducto } = useProducts();
+  const { productos } = useProducts();
   const [busqueda, setBusqueda] = useState('');
-  const [editandoId, setEditandoId] = useState(null);
-  const [draft, setDraft] = useState({});
+  const [isAdding, setIsAdding] = useState(false);
 
-  const filtrados = productos.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.marca.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // Stats calculation
+  const totalProducts = productos.length;
+  // const lowStock = productos.filter(p => p.stock < 15).length;
+  // const categoriesCount = [...new Set(productos.map(p => p.categoria))].length;
+  // const totalValue = productos.reduce((a, p) => a + p.precio * p.stock, 0);
 
-  const iniciarEdicion = (p) => { setEditandoId(p.id); setDraft({ ...p }); };
-  const cancelarEdicion = () => { setEditandoId(null); setDraft({}); };
-
-  const guardarEdicion = () => {
-    actualizarProducto({
-      ...draft,
-      precio: parseFloat(draft.precio) || 0,
-      precioOriginal: draft.precioOriginal ? parseFloat(draft.precioOriginal) : null,
-      stock: parseInt(draft.stock) || 0,
-    });
-    setEditandoId(null);
+  const handleSave = () => {
+    alert('Producto guardado!');
+    setIsAdding(false);
   };
-
-  const eliminar = (id) => {
-    if (window.confirm('¿Eliminar este producto?')) eliminarProducto(id);
-  };
-
-  const stats = [
-    { label: 'Total Productos', value: productos.length, sub: 'En catálogo' },
-    { label: 'Stock Bajo', value: productos.filter(p => p.stock < 15).length, sub: 'Requieren atención' },
-    { label: 'Categorías', value: [...new Set(productos.map(p => p.categoria))].length, sub: 'Activas' },
-    { label: 'Valor Inventario', value: `$${productos.reduce((a, p) => a + p.precio * p.stock, 0).toFixed(0)}`, sub: 'Estimado' },
-  ];
 
   return (
-    <div className="admin">
-      <aside className="admin__sidebar">
-        <p className="admin__sidebar-brand">GymStore</p>
-        <nav className="admin__sidebar-nav">
-          <Link to="/" className="admin__nav-link">🏠 Ir a la Home</Link>
-          <Link to="/suplementos" className="admin__nav-link">🛍️ Ver Catálogo</Link>
-          <a href="#productos" className="admin__nav-link admin__nav-link--active">📦 Productos</a>
-          <a href="#pedidos" className="admin__nav-link">🛒 Pedidos</a>
-          <a href="#clientes" className="admin__nav-link">👥 Clientes</a>
-          <a href="#ajustes" className="admin__nav-link">⚙️ Ajustes</a>
-        </nav>
-      </aside>
-
-      <main className="admin__main">
-        <div className="admin__header">
-          <div>
-            <h1 className="admin__titulo">Panel de Administración</h1>
-            <p className="admin__subtitulo">Gestión de productos e inventario · Los cambios se reflejan en el catálogo</p>
-          </div>
-          <button className="admin__btn-agregar" onClick={() => alert('Próximamente: formulario para nuevo producto')}>
-            + Agregar Producto
-          </button>
-        </div>
-
-        <div className="admin__stats">
-          {stats.map(s => (
-            <div key={s.label} className="admin__stat-card">
-              <p className="admin__stat-value">{s.value}</p>
-              <p className="admin__stat-label">{s.label}</p>
-              <p className="admin__stat-sub">{s.sub}</p>
+    <div className="flex h-full bg-[#fafafa] font-sans w-full">
+      <AdminSidebar onAddClick={() => setIsAdding(true)} />
+      
+      <main className="flex-1 ml-64 h-screen overflow-y-auto">
+        {!isAdding ? (
+          <div className="p-8 max-w-6xl mx-auto">
+            {/* INVENTORY VIEW */}
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">Gestión de Inventario</h1>
+                <p className="text-gray-500 text-sm">Administra tus productos, precios y niveles de stock.</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar productos..." 
+                    className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm w-64 focus:ring-2 focus:ring-[#00e69e] outline-none transition-all shadow-sm"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                  />
+                </div>
+                <button 
+                  onClick={() => setIsAdding(true)}
+                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm"
+                >
+                  <Plus size={18} />
+                  Agregar Nuevo Producto
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
 
-        <section id="productos" className="admin__tabla-seccion">
-          <div className="admin__tabla-header">
-            <h2 className="admin__tabla-titulo">Inventario de Productos</h2>
-            <input
-              type="text"
-              className="admin__busqueda"
-              placeholder="Buscar por nombre, marca o categoría..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
+            {/* STATS CARDS */}
+            <div className="grid grid-cols-4 gap-6 mb-8">
+              {/* Card 1 */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-gray-600 font-bold text-sm">Productos Totales</h3>
+                  <div className="w-8 h-8 rounded bg-[#e6fff7] flex items-center justify-center text-[#00c98a]">
+                    <Package size={18} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">1,248</div>
+                <div className="text-xs font-semibold text-[#00c98a]">↑ +12 esta semana</div>
+              </div>
+              
+              {/* Card 2 */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-gray-600 font-bold text-sm">Stock Bajo</h3>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">24</div>
+                <div className="text-xs font-semibold text-red-500">Requiere atención</div>
+              </div>
 
-          <div className="admin__tabla-wrapper">
-            <table className="admin__tabla">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Marca</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtrados.map(p => (
-                  editandoId === p.id ? (
-                    <tr key={p.id} className="admin__fila-editando">
-                      <td colSpan={7}>
-                        <div className="admin__form-edicion">
-                          <div className="admin__form-grid">
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Nombre</label>
-                              <input className="admin__edit-input" value={draft.nombre}
-                                onChange={e => setDraft({ ...draft, nombre: e.target.value })} />
-                            </div>
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Marca</label>
-                              <input className="admin__edit-input" value={draft.marca}
-                                onChange={e => setDraft({ ...draft, marca: e.target.value })} />
-                            </div>
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Categoría</label>
-                              <select className="admin__edit-input" value={draft.categoria}
-                                onChange={e => setDraft({ ...draft, categoria: e.target.value })}>
-                                <option>Proteína</option>
-                                <option>Energía</option>
-                                <option>Recuperación</option>
-                                <option>Fuerza</option>
-                                <option>Vitaminas</option>
-                              </select>
-                            </div>
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Precio ($)</label>
-                              <input className="admin__edit-input" type="number" value={draft.precio}
-                                onChange={e => setDraft({ ...draft, precio: e.target.value })} />
-                            </div>
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Precio Original ($)</label>
-                              <input className="admin__edit-input" type="number" value={draft.precioOriginal || ''}
-                                placeholder="Sin descuento"
-                                onChange={e => setDraft({ ...draft, precioOriginal: e.target.value })} />
-                            </div>
-                            <div className="admin__form-field">
-                              <label className="admin__form-label">Stock</label>
-                              <input className="admin__edit-input" type="number" value={draft.stock}
-                                onChange={e => setDraft({ ...draft, stock: e.target.value })} />
-                            </div>
-                            <div className="admin__form-field admin__form-field--full">
-                              <label className="admin__form-label">Descripción</label>
-                              <textarea className="admin__edit-input admin__edit-textarea" value={draft.descripcion}
-                                onChange={e => setDraft({ ...draft, descripcion: e.target.value })} />
-                            </div>
-                          </div>
-                          <div className="admin__form-acciones">
-                            <button className="admin__btn-guardar" onClick={guardarEdicion}>✓ Guardar cambios</button>
-                            <button className="admin__btn-cancelar" onClick={cancelarEdicion}>Cancelar</button>
-                          </div>
+              {/* Card 3 */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-gray-600 font-bold text-sm">Categorías activas</h3>
+                  <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600">
+                    <Shapes size={18} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">15</div>
+                <div className="text-xs font-semibold text-gray-500">Categorías activas</div>
+              </div>
+
+              {/* Card 4 */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-gray-400 font-bold text-sm">Valor Total</h3>
+                  <div className="w-8 h-8 rounded border border-[#00e69e] bg-white flex items-center justify-center text-[#00e69e]">
+                    <Banknote size={18} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-[#00e69e] mb-2">$452K</div>
+                <div className="text-xs font-semibold text-blue-200">Valor estimado del inventario</div>
+              </div>
+            </div>
+
+            {/* TABLE */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">Inventario Actual</h2>
+                <div className="flex gap-3">
+                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+                    <SlidersHorizontal size={16} />
+                    Filtrar
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+                    <Download size={16} />
+                    Exportar
+                  </button>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#1a1f2e] text-white text-sm">
+                      <th className="py-4 px-6 w-12"><input type="checkbox" className="w-4 h-4 rounded border-gray-500 bg-transparent" /></th>
+                      <th className="py-4 px-6 font-semibold">Nombre del Producto</th>
+                      <th className="py-4 px-6 font-semibold">Categoría</th>
+                      <th className="py-4 px-6 font-semibold">Precio</th>
+                      <th className="py-4 px-6 font-semibold">Stock</th>
+                      <th className="py-4 px-6 font-semibold">Estado</th>
+                      <th className="py-4 px-6 font-semibold text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-5 px-6"><input type="checkbox" className="w-4 h-4 rounded border-gray-300" /></td>
+                      <td className="py-5 px-6 font-bold text-gray-900">Pro-Grip Dumbbell Set - 50lb</td>
+                      <td className="py-5 px-6"><span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold">Weights</span></td>
+                      <td className="py-5 px-6 text-gray-600 font-medium">$149.99</td>
+                      <td className="py-5 px-6 text-gray-600 font-medium">124</td>
+                      <td className="py-5 px-6">
+                        <span className="flex items-center gap-2 text-[#016b53] font-bold text-xs">
+                          <span className="w-2 h-2 rounded-full bg-[#016b53]"></span>En Stock
+                        </span>
+                      </td>
+                      <td className="py-5 px-6 text-right">
+                        <div className="flex justify-end gap-4 text-gray-500">
+                          <button className="hover:text-gray-900 transition-colors"><Edit2 size={16} /></button>
+                          <button className="hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
-                  ) : (
-                    <tr key={p.id}>
-                      <td className="admin__producto-nombre">
-                        <img src={p.imagenUrl} alt={p.nombre} className="admin__producto-img" />
-                        <span>{p.nombre}</span>
-                      </td>
-                      <td className="admin__marca">{p.marca}</td>
-                      <td><span className="admin__chip">{p.categoria}</span></td>
-                      <td className="admin__precio">
-                        ${p.precio.toFixed(2)}
-                        {p.precioOriginal && (
-                          <span className="admin__descuento">
-                            {Math.round((1 - p.precio / p.precioOriginal) * 100)}% OFF
-                          </span>
-                        )}
-                      </td>
-                      <td className={`admin__stock ${p.stock < 15 ? 'admin__stock--bajo' : ''}`}>{p.stock}</td>
-                      <td>
-                        <span className={`admin__estado ${p.stock > 0 ? 'admin__estado--activo' : 'admin__estado--inactivo'}`}>
-                          {p.stock > 0 ? 'Activo' : 'Sin stock'}
+                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-5 px-6"><input type="checkbox" className="w-4 h-4 rounded border-gray-300" /></td>
+                      <td className="py-5 px-6 font-bold text-gray-900">Whey Isolate Protein - Vanilla</td>
+                      <td className="py-5 px-6"><span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold">Supplements</span></td>
+                      <td className="py-5 px-6 text-gray-600 font-medium">$45.00</td>
+                      <td className="py-5 px-6 text-red-500 font-bold">5</td>
+                      <td className="py-5 px-6">
+                        <span className="flex items-center gap-2 text-red-500 font-bold text-xs">
+                          <span className="w-2 h-2 rounded-full bg-red-500"></span>Stock Bajo
                         </span>
                       </td>
-                      <td className="admin__acciones">
-                        <button className="admin__btn-editar" onClick={() => iniciarEdicion(p)}>Editar</button>
-                        <button className="admin__btn-eliminar" onClick={() => eliminar(p.id)}>Eliminar</button>
+                      <td className="py-5 px-6 text-right">
+                        <div className="flex justify-end gap-4 text-gray-500">
+                          <button className="hover:text-gray-900 transition-colors"><Edit2 size={16} /></button>
+                          <button className="hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                        </div>
                       </td>
                     </tr>
-                  )
-                ))}
-              </tbody>
-            </table>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-5 px-6"><input type="checkbox" className="w-4 h-4 rounded border-gray-300" /></td>
+                      <td className="py-5 px-6 font-bold text-gray-900">Adjustable Bench Press Pro</td>
+                      <td className="py-5 px-6"><span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold">Equipment</span></td>
+                      <td className="py-5 px-6 text-gray-600 font-medium">$299.00</td>
+                      <td className="py-5 px-6 text-gray-600 font-medium">42</td>
+                      <td className="py-5 px-6">
+                        <span className="flex items-center gap-2 text-[#016b53] font-bold text-xs">
+                          <span className="w-2 h-2 rounded-full bg-[#016b53]"></span>En Stock
+                        </span>
+                      </td>
+                      <td className="py-5 px-6 text-right">
+                        <div className="flex justify-end gap-4 text-gray-500">
+                          <button className="hover:text-gray-900 transition-colors"><Edit2 size={16} /></button>
+                          <button className="hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors opacity-70">
+                      <td className="py-5 px-6"><input type="checkbox" className="w-4 h-4 rounded border-gray-300" /></td>
+                      <td className="py-5 px-6 font-bold text-gray-500">Pre-Workout Burst - Blue Raz</td>
+                      <td className="py-5 px-6"><span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold opacity-80">Supplements</span></td>
+                      <td className="py-5 px-6 text-gray-400 font-medium">$35.00</td>
+                      <td className="py-5 px-6 text-gray-400 font-medium">0</td>
+                      <td className="py-5 px-6">
+                        <span className="flex items-center gap-2 text-gray-400 font-bold text-xs">
+                          <span className="w-2 h-2 rounded-full bg-gray-400"></span>Sin Stock
+                        </span>
+                      </td>
+                      <td className="py-5 px-6 text-right">
+                        <div className="flex justify-end gap-4 text-gray-300">
+                          <button className="hover:text-gray-900 transition-colors"><Edit2 size={16} /></button>
+                          <button className="hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-500 font-medium">
+                <span>Mostrando 1-4 de 1.248 productos</span>
+                <div className="flex items-center gap-2">
+                  <button className="px-3 py-1 text-gray-400 hover:text-gray-900 font-semibold">Anterior</button>
+                  <button className="w-8 h-8 rounded bg-[#1a1f2e] text-white flex items-center justify-center font-bold">1</button>
+                  <button className="w-8 h-8 rounded hover:bg-gray-100 text-gray-600 flex items-center justify-center font-bold">2</button>
+                  <button className="w-8 h-8 rounded hover:bg-gray-100 text-gray-600 flex items-center justify-center font-bold">3</button>
+                  <button className="px-3 py-1 text-gray-600 hover:text-gray-900 font-semibold">Siguiente</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="admin__paginacion">Mostrando {filtrados.length} de {productos.length} productos</p>
-        </section>
+        ) : (
+          <div className="p-8 max-w-5xl mx-auto">
+            {/* ADD PRODUCT VIEW */}
+            <div className="flex items-center text-xs font-bold text-gray-500 mb-6 uppercase tracking-wider">
+              <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => setIsAdding(false)}>Inventario</span>
+              <ChevronRight size={14} className="mx-2" />
+              <span className="text-gray-900">Agregar Producto</span>
+            </div>
+
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Agregar Nuevo Producto</h1>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsAdding(false)}
+                  className="px-6 py-2.5 border-2 border-gray-900 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleSave}
+                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                >
+                  Guardar Producto
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-8">
+              <div className="col-span-2 space-y-6">
+                {/* Info Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 mb-6">Información del Producto</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Nombre del Producto</label>
+                      <input 
+                        type="text" 
+                        placeholder="ej., Barra Olímpica 20kg"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Descripción</label>
+                      <textarea 
+                        rows={5}
+                        placeholder="Descripción detallada del producto..."
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none resize-none font-medium"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 mb-6">Detalles del Producto</h2>
+                  
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio Base ($)</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <input 
+                          type="text" 
+                          placeholder="0.00"
+                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Nivel de Stock Inicial</label>
+                      <input 
+                        type="text" 
+                        placeholder="0"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Categoría</label>
+                    <div className="relative">
+                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none appearance-none text-gray-600 font-medium">
+                        <option>Selecciona una categoría</option>
+                        <option>Suplementos</option>
+                        <option>Equipamiento</option>
+                        <option>Ropa</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-span-1">
+                {/* Media Card */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-lg font-bold text-gray-900 leading-tight">Multimedia del<br/>Producto</h2>
+                    <span className="bg-[#e6fff7] text-[#00c98a] px-2 py-1 rounded text-[10px] font-bold uppercase mt-1">Obligatorio</span>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100">
+                      <UploadCloud size={20} className="text-gray-900" />
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2 text-sm leading-tight">Haz clic para subir o<br/>arrastra y suelta</h3>
+                    <p className="text-xs text-gray-500 mb-6 font-medium">SVG, PNG, JPG or GIF<br/>(max. 800x400px)</p>
+                    <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors text-gray-700 shadow-sm">
+                      Buscar Archivos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

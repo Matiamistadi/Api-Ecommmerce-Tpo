@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Dumbbell, ArrowRight } from 'lucide-react';
 import './Registro.css';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Registro = () => {
   const navigate = useNavigate();
@@ -28,78 +32,79 @@ const Registro = () => {
       return;
     }
     setError('');
+    alert(`¡Cuenta creada con éxito! Bienvenido, ${form.nombre}.`);
     navigate('/login');
   };
 
   return (
     <div className="registro">
       <div className="registro__form-panel">
-        <p className="registro__brand">GymStore</p>
-        <h1 className="registro__title">Crear Cuenta</h1>
+        <div className="registro__brand">GymStore</div>
+        <h1 className="registro__title">Crear cuenta</h1>
         <p className="registro__subtitle">
-          Equipamiento de grado profesional para atletas que exigen lo mejor.
+          Únete para acceder a ofertas exclusivas y rutinas de rendimiento.
         </p>
 
         <form onSubmit={handleSubmit} className="registro__form" noValidate>
           <div className="registro__field">
-            <label htmlFor="nombre" className="registro__label">Nombre Completo</label>
-            <input
+            <Label htmlFor="nombre" className="registro__label">Nombre completo</Label>
+            <Input
               id="nombre" name="nombre" type="text"
-              className="registro__input" placeholder="Tu nombre"
+              className="registro__input h-auto" placeholder="Juan Pérez"
               value={form.nombre} onChange={handleChange}
             />
           </div>
 
           <div className="registro__field">
-            <label htmlFor="email" className="registro__label">Correo Electrónico</label>
-            <input
+            <Label htmlFor="email" className="registro__label">Correo electrónico</Label>
+            <Input
               id="email" name="email" type="email"
-              className="registro__input" placeholder="athlete@example.com"
+              className="registro__input h-auto" placeholder="juan@ejemplo.com"
               value={form.email} onChange={handleChange}
             />
           </div>
 
           <div className="registro__field">
-            <label htmlFor="password" className="registro__label">Contraseña</label>
-            <input
+            <Label htmlFor="password" className="registro__label">Contraseña</Label>
+            <Input
               id="password" name="password" type="password"
-              className="registro__input" placeholder="Mínimo 6 caracteres"
+              className="registro__input h-auto" placeholder="••••••••"
               value={form.password} onChange={handleChange}
             />
           </div>
 
           <div className="registro__field">
-            <label htmlFor="confirmar" className="registro__label">Confirmar Contraseña</label>
-            <input
+            <Label htmlFor="confirmar" className="registro__label">Confirmar contraseña</Label>
+            <Input
               id="confirmar" name="confirmar" type="password"
-              className="registro__input" placeholder="Repetí tu contraseña"
+              className="registro__input h-auto" placeholder="••••••••"
               value={form.confirmar} onChange={handleChange}
             />
           </div>
 
           {error && <p className="registro__error">{error}</p>}
 
-          <button type="submit" className="registro__submit">REGISTRARSE →</button>
+          <Button type="submit" className="registro__submit h-auto w-full">
+            REGISTRARSE <ArrowRight size={18} />
+          </Button>
         </form>
 
         <p className="registro__footer">
-          ¿Ya tenés una cuenta?{' '}
-          <Link to="/login" className="registro__link">Iniciá sesión</Link>
+          Ya tengo una cuenta. <Link to="/login" className="registro__link">Iniciar sesión</Link>
         </p>
       </div>
 
       <div className="registro__hero">
+        <div className="registro__hero-image"></div>
+        <div className="registro__hero-overlay"></div>
         <div className="registro__hero-content">
-          <div className="registro__hero-icon">⚡</div>
-          <h2 className="registro__hero-title">Rendimiento<br />sin límites</h2>
+          <div className="registro__hero-badge">
+            <Dumbbell size={24} className="text-gym-primary" />
+          </div>
+          <h2 className="registro__hero-title">Rendimiento sin límites.</h2>
           <p className="registro__hero-text">
-            Accedé a los mejores suplementos de performance, historial de pedidos y ofertas exclusivas para atletas.
+            Equipamiento de grado profesional para atletas que exigen lo mejor en cada entrenamiento.
           </p>
-          <ul className="registro__hero-list">
-            <li>✓ Envío rápido a todo el país</li>
-            <li>✓ Productos 100% originales</li>
-            <li>✓ Soporte especializado 24/7</li>
-          </ul>
         </div>
       </div>
     </div>

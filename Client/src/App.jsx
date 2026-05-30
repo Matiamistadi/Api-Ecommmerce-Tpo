@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './views/Home';
@@ -15,10 +15,13 @@ import NotFound from './views/NotFound';
 import './App.css';
 
 function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
     <div className="app">
-      <Header />
-      <div className="app__content">
+      {!isAdminRoute && <Header />}
+      <div className={isAdminRoute ? "h-screen bg-[#fafafa] w-full" : "app__content"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/suplementos" element={<Catalogo />} />
@@ -33,7 +36,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
-      <Footer />
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }

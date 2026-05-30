@@ -36,7 +36,6 @@ const FEATURES = [
   },
 ];
 
-const HERO_PRODUCT_IMG = '/img/ProteVainilla.png';
 const HERO_BG_IMAGE =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1920&q=80';
 
@@ -48,7 +47,7 @@ const Home = () => {
   return (
     <div className="home w-full">
       {/* Hero */}
-      <section className="relative flex min-h-[92vh] max-h-[720px] items-center overflow-hidden bg-gym-primary">
+      <section className="relative flex min-h-[calc(100vh-68px)] items-center overflow-hidden bg-gym-primary">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${HERO_BG_IMAGE})` }}
@@ -59,7 +58,7 @@ const Home = () => {
           aria-hidden
         />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 py-24 pt-28 md:grid-cols-2 md:gap-12 md:px-12 md:py-32 lg:pt-32">
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 py-12 md:grid-cols-2 md:gap-12 md:px-12 md:py-16">
           <div className="text-center md:text-left">
             <p className="mb-5 text-[13px] font-bold tracking-[0.14em] text-gym-accent uppercase">
               NUTRICIÓN PREMIUM
@@ -90,14 +89,6 @@ const Home = () => {
               Comprar Ahora
               <ArrowRight className="size-5" aria-hidden />
             </Link>
-          </div>
-
-          <div className="order-first flex items-center justify-center md:order-0">
-            <img
-              src={HERO_PRODUCT_IMG}
-              alt="Proteína Whey GymStore"
-              className="h-auto w-full max-w-[260px] animate-home-float object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)] sm:max-w-[380px]"
-            />
           </div>
         </div>
       </section>

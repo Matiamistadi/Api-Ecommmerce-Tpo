@@ -1,14 +1,12 @@
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './Header.css';
 
 const Header = () => {
   const { totalItems } = useCart();
-  const { pathname } = useLocation();
-  const onHome = pathname === '/';
 
   return (
-    <header className={`header${onHome ? ' header--hero' : ''}`}>
+    <header className="header">
       <div className="header__container">
         <Link to="/" className="header__logo">GymStore</Link>
 
