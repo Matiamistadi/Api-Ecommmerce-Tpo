@@ -6,6 +6,19 @@ const ProductsContext = createContext();
 export const ProductsProvider = ({ children }) => {
   const [productos, setProductos] = useState(productosIniciales);
 
+  const agregarProducto = (productoNuevo) => {
+    const nuevoProducto = {
+      ...productoNuevo,
+      id: productoNuevo.id || Math.max(...productos.map((producto) => producto.id), 0) + 1,
+      precio: Number(productoNuevo.precio) || 0,
+      precioOriginal: productoNuevo.precioOriginal ? Number(productoNuevo.precioOriginal) : null,
+      stock: Number(productoNuevo.stock) || 0,
+    };
+
+    setProductos((prev) => [nuevoProducto, ...prev]);
+    return nuevoProducto;
+  };
+
   const actualizarProducto = (productoActualizado) => {
     setProductos(prev =>
       prev.map(p => p.id === productoActualizado.id ? productoActualizado : p)
@@ -17,7 +30,7 @@ export const ProductsProvider = ({ children }) => {
   };
 
   return (
-    <ProductsContext.Provider value={{ productos, actualizarProducto, eliminarProducto }}>
+    <ProductsContext.Provider value={{ productos, agregarProducto, actualizarProducto, eliminarProducto }}>
       {children}
     </ProductsContext.Provider>
   );

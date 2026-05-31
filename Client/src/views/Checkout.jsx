@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAddresses } from '../context/AddressContext';
+import { useCommerce } from '../context/CommerceContext';
 import { useCart } from '../context/CartContext';
 import './Checkout.css';
 
@@ -8,7 +10,10 @@ const PASOS = ['Identificación', 'Envío', 'Pago'];
 const Checkout = () => {
   const navigate = useNavigate();
   const { carrito, subtotal, vaciarCarrito } = useCart();
+  const { direccionesFormateadas, direccionPrincipal } = useAddresses();
+  const { registrarPedido } = useCommerce();
   const [paso, setPaso] = useState(0);
+  const [direccionSeleccionadaId, setDireccionSeleccionadaId] = useState(direccionPrincipal?.id || null);
   const [form, setForm] = useState({
     email: '',
     nombre: '', direccion: '', ciudad: '', codigoPostal: '',
@@ -19,7 +24,28 @@ const Checkout = () => {
   const impuestos = subtotal * 0.08;
   const total = subtotal + impuestos;
 
+  useEffect(() => {
+    if (!direccionSeleccionadaId && direccionPrincipal) {
+      setDireccionSeleccionadaId(direccionPrincipal.id);
+    }
+  }, [direccionPrincipal, direccionSeleccionadaId]);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const direccionSeleccionada = useMemo(
+    () => direccionesFormateadas.find((direccion) => direccion.id === direccionSeleccionadaId) || direccionPrincipal || null,
+    [direccionesFormateadas, direccionPrincipal, direccionSeleccionadaId]
+  );
+
+  const aplicarDireccion = (direccion) => {
+    setDireccionSeleccionadaId(direccion.id);
+    setForm((current) => ({
+      ...current,
+      direccion: `${direccion.calle} ${direccion.numero}${direccion.piso ? `, ${direccion.piso}` : ''}`,
+      ciudad: direccion.ciudad,
+      codigoPostal: direccion.codigoPostal,
+    }));
+  };
 
   const validarPaso = () => {
     const e = {};
@@ -43,6 +69,13 @@ const Checkout = () => {
 
   const confirmar = () => {
     if (!validarPaso()) return;
+    registrarPedido({
+      clienteNombre: form.nombre,
+      clienteEmail: form.email,
+      items: carrito,
+      total,
+      direccion: direccionSeleccionada ? direccionSeleccionada.etiqueta : `${form.direccion}, ${form.ciudad}`,
+    });
     vaciarCarrito();
     navigate('/pago-confirmado');
   };
@@ -95,6 +128,23 @@ const Checkout = () => {
           {paso === 1 && (
             <div className="checkout__seccion">
               <h2 className="checkout__seccion-title">Dirección de Envío</h2>
+              {direccionesFormateadas.length > 0 && (
+                <div className="checkout__direcciones">
+                  <p className="checkout__direcciones-title">Direcciones guardadas</p>
+                  <div className="checkout__direcciones-lista">
+                    {direccionesFormateadas.map((direccion) => (
+                      <button
+                        key={direccion.id}
+                        type="button"
+                        className={`checkout__direccion-chip ${direccionSeleccionadaId === direccion.id ? 'checkout__direccion-chip--activa' : ''}`}
+                        onClick={() => aplicarDireccion(direccion)}
+                      >
+                        {direccion.etiqueta}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {[
                 { name: 'nombre', label: 'Nombre Completo', placeholder: 'Tu nombre' },
                 { name: 'direccion', label: 'Dirección', placeholder: 'Calle y número' },

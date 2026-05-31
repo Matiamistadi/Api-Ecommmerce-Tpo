@@ -15,7 +15,7 @@ const Carrito = () => {
         <div className="carrito-vacio__icon">🛒</div>
         <h2 className="carrito-vacio__title">Tu carrito está vacío</h2>
         <p className="carrito-vacio__text">Explorá nuestro catálogo y agregá productos.</p>
-        <Link to="/suplementos" className="carrito-vacio__btn">Ver catálogo →</Link>
+        <Link to="/productos" className="carrito-vacio__btn">Ver catálogo →</Link>
       </div>
     );
   }
@@ -79,7 +79,7 @@ const Carrito = () => {
               Proceder al Pago →
             </button>
             <p className="carrito__seguro">🔒 Pago Seguro y Encriptado</p>
-            <Link to="/suplementos" className="carrito__seguir">← Seguir comprando</Link>
+            <Link to="/productos" className="carrito__seguir">← Seguir comprando</Link>
           </div>
         </div>
       </div>

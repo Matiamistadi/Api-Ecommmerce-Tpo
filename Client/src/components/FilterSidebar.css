@@ -17,6 +17,12 @@
   border-bottom: 1px solid var(--color-outline);
 }
 
+.filter-sidebar__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .filter-sidebar__title {
   font-family: var(--font-heading);
   font-size: 20px;
@@ -37,6 +43,19 @@
 
 .filter-sidebar__clear:hover {
   text-decoration: underline;
+}
+
+.filter-sidebar__close {
+  display: none;
+  background: none;
+  border: 1px solid var(--color-outline);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
 }
 
 .filter-sidebar__section-title {
@@ -70,4 +89,15 @@
 
 .filter-sidebar__option:hover {
   color: var(--color-accent);
+}
+
+@media (max-width: 1024px) {
+  .filter-sidebar {
+    position: static;
+    top: auto;
+  }
+
+  .filter-sidebar__close {
+    display: inline-flex;
+  }
 }

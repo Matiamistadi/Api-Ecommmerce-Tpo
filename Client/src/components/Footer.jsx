@@ -11,11 +11,10 @@ const Footer = () => {
         </div>
 
         <nav className="footer__links">
-          <a href="#" className="footer__link">Sobre Nosotros</a>
-          <a href="#" className="footer__link">Política de Envío</a>
-          <a href="#" className="footer__link">Devoluciones</a>
-          <a href="#" className="footer__link">Política de Privacidad</a>
-          <a href="#" className="footer__link">Contacto</a>
+          <Link to="/productos" className="footer__link">Productos</Link>
+          <Link to="/carrito" className="footer__link">Carrito</Link>
+          <Link to="/perfil" className="footer__link">Mi cuenta</Link>
+          <Link to="/admin" className="footer__link">Admin</Link>
         </nav>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import PublicLayout from './components/PublicLayout';
+import AdminLayout from './components/AdminLayout';
 import Home from './views/Home';
 import Catalogo from './views/Catalogo';
 import DetalleProducto from './views/DetalleProducto';
@@ -10,7 +10,10 @@ import Carrito from './views/Carrito';
 import Checkout from './views/Checkout';
 import Confirmacion from './views/Confirmacion';
 import MiPerfil from './views/MiPerfil';
-import Admin from './views/Admin';
+import AdminProductos from './views/Admin';
+import AdminDashboard from './views/AdminDashboard';
+import AdminPedidos from './views/AdminPedidos';
+import AdminClientes from './views/AdminClientes';
 import AgregarDireccion from './views/AgregarDireccion';
 import AgregarProducto from './views/AgregarProducto';
 import NotFound from './views/NotFound';
@@ -18,28 +21,32 @@ import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <div className="app__content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/suplementos" element={<Catalogo />} />
-          <Route path="/producto/:id" element={<DetalleProducto />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} />
-          <Route path="/carrito" element={<Carrito />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/confirmacion" element={<Confirmacion />} />
-          <Route path="/pago-confirmado" element={<Confirmacion />} />
-          <Route path="/agregar-direccion" element={<AgregarDireccion />} />
-          <Route path="/agregar-producto" element={<AgregarProducto />} />
-          <Route path="/perfil" element={<MiPerfil />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-      <Footer />
-    </div>
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/productos" element={<Catalogo />} />
+        <Route path="/suplementos" element={<Catalogo />} />
+        <Route path="/productos/:id" element={<DetalleProducto />} />
+        <Route path="/producto/:id" element={<DetalleProducto />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+        <Route path="/carrito" element={<Carrito />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/confirmacion" element={<Confirmacion />} />
+        <Route path="/pago-confirmado" element={<Confirmacion />} />
+        <Route path="/agregar-direccion" element={<AgregarDireccion />} />
+        <Route path="/agregar-producto" element={<AgregarProducto />} />
+        <Route path="/perfil" element={<MiPerfil />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/productos" element={<AdminProductos />} />
+        <Route path="/admin/pedidos" element={<AdminPedidos />} />
+        <Route path="/admin/clientes" element={<AdminClientes />} />
+      </Route>
+    </Routes>
   );
 }
 

@@ -18,7 +18,7 @@ const DetalleProducto = () => {
       <div className="placeholder">
         <h1 className="placeholder__title">Producto no encontrado</h1>
         <p className="placeholder__text">El producto que buscás no existe.</p>
-        <Link to="/suplementos" className="home__cta">Ver catálogo</Link>
+        <Link to="/productos" className="home__cta">Ver catálogo</Link>
       </div>
     );
   }

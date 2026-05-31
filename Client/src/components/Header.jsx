@@ -1,32 +1,46 @@
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './Header.css';
 
 const Header = () => {
   const { totalItems } = useCart();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="header">
       <div className="header__container">
         <Link to="/" className="header__logo">GymStore</Link>
 
-        <nav className="header__nav">
+        <button
+          type="button"
+          className="header__menu-button"
+          aria-expanded={menuOpen}
+          aria-controls="header-navigation"
+          onClick={() => setMenuOpen((current) => !current)}
+        >
+          ☰
+        </button>
+
+        <nav className={`header__nav ${menuOpen ? 'header__nav--open' : ''}`} id="header-navigation">
           <NavLink
             to="/"
             className={({ isActive }) =>
               isActive ? 'header__link header__link--active' : 'header__link'
             }
             end
+            onClick={() => setMenuOpen(false)}
           >
             Inicio
           </NavLink>
           <NavLink
-            to="/suplementos"
+            to="/productos"
             className={({ isActive }) =>
               isActive ? 'header__link header__link--active' : 'header__link'
             }
+            onClick={() => setMenuOpen(false)}
           >
-            Suplementos
+            Productos
           </NavLink>
         </nav>
 

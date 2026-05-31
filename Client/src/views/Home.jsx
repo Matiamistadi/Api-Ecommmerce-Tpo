@@ -14,7 +14,7 @@ const Home = () => {
             </p>
 
             <div className="home__actions">
-              <Link to="/suplementos" className="home__cta home__cta--primary">Ver productos</Link>
+              <Link to="/productos" className="home__cta home__cta--primary">Ver productos</Link>
               <Link to="/carrito" className="home__cta home__cta--secondary">Ir al carrito</Link>
             </div>
 

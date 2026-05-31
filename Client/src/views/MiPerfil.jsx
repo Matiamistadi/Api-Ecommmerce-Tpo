@@ -1,28 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAddresses } from '../context/AddressContext';
+import { useCommerce } from '../context/CommerceContext';
 import './MiPerfil.css';
 
-const PEDIDOS_MOCK = [
-  {
-    id: '#GS-58210',
-    fecha: '12 Oct 2025',
-    items: [{ nombre: 'Whey Protein Isolate 2kg', precio: 39.99 }],
-    total: 43.19,
-    estado: 'Entregado',
-  },
-  {
-    id: '#GS-61047',
-    fecha: '28 Oct 2025',
-    items: [
-      { nombre: 'Pre-Workout Explosive', precio: 29.99 },
-      { nombre: 'Creatina Monohidratada 500g', precio: 19.99 },
-    ],
-    total: 54.00,
-    estado: 'En camino',
-  },
-];
-
 const MiPerfil = () => {
+  const { direccionesFormateadas } = useAddresses();
+  const { pedidos } = useCommerce();
   const [perfil, setPerfil] = useState({
     nombre: 'Luciano Frasca',
     email: 'luciano@gymstore.com',
@@ -108,12 +92,13 @@ const MiPerfil = () => {
                 <h2 className="perfil__seccion-title">Direcciones de Envío</h2>
                 <Link to="/agregar-direccion" className="perfil__btn-editar">+ Agregar</Link>
               </div>
-              <div className="perfil__direccion">
-                <div className="perfil__direccion-tag">Principal</div>
-                <p className="perfil__direccion-texto">
-                  Av. Corrientes 1234, CABA<br />
-                  Buenos Aires, Argentina CP 1043
-                </p>
+              <div className="perfil__direcciones-lista">
+                {direccionesFormateadas.map((direccion) => (
+                  <div key={direccion.id} className="perfil__direccion">
+                    <div className="perfil__direccion-tag">{direccion.principal ? 'Principal' : 'Guardada'}</div>
+                    <p className="perfil__direccion-texto">{direccion.etiqueta}</p>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -121,18 +106,18 @@ const MiPerfil = () => {
             <section id="pedidos" className="perfil__seccion">
               <h2 className="perfil__seccion-title">Historial de Pedidos</h2>
               <div className="perfil__pedidos">
-                {PEDIDOS_MOCK.map(pedido => (
+                {pedidos.slice(0, 3).map((pedido) => (
                   <div key={pedido.id} className="perfil__pedido">
                     <div className="perfil__pedido-header">
                       <span className="perfil__pedido-id">{pedido.id}</span>
-                      <span className={`perfil__pedido-estado perfil__pedido-estado--${pedido.estado === 'Entregado' ? 'ok' : 'transito'}`}>
-                        {pedido.estado === 'Entregado' ? '✓' : '🚚'} {pedido.estado}
+                      <span className={`perfil__pedido-estado perfil__pedido-estado--${pedido.estado === 'Completado' ? 'ok' : 'transito'}`}>
+                        {pedido.estado === 'Completado' ? '✓' : '🚚'} {pedido.estado}
                       </span>
                     </div>
                     <p className="perfil__pedido-fecha">{pedido.fecha}</p>
-                    {pedido.items.map(item => (
+                    {pedido.items.map((item) => (
                       <p key={item.nombre} className="perfil__pedido-item">
-                        · {item.nombre} — ${item.precio.toFixed(2)}
+                        · {item.nombre} × {item.cantidad} — ${item.precio.toFixed(2)}
                       </p>
                     ))}
                     <p className="perfil__pedido-total">Total: ${pedido.total.toFixed(2)}</p>

@@ -2,17 +2,21 @@ import './FilterSidebar.css';
 
 const categorias = ['Todas', 'Proteína', 'Energía', 'Recuperación', 'Fuerza', 'Vitaminas'];
 
-const FilterSidebar = ({ categoriaSeleccionada, onCategoriaChange }) => {
+const FilterSidebar = ({ categoriaSeleccionada, onCategoriaChange, onClose }) => {
   return (
     <aside className="filter-sidebar">
       <div className="filter-sidebar__header">
         <h3 className="filter-sidebar__title">Filtros</h3>
-        <button
-          className="filter-sidebar__clear"
-          onClick={() => onCategoriaChange('Todas')}
-        >
-          Limpiar todo
-        </button>
+        <div className="filter-sidebar__header-actions">
+          <button
+            className="filter-sidebar__clear"
+            onClick={() => onCategoriaChange('Todas')}
+            type="button"
+          >
+            Limpiar todo
+          </button>
+          <button className="filter-sidebar__close" type="button" onClick={onClose}>Cerrar</button>
+        </div>
       </div>
 
       <div className="filter-sidebar__section">

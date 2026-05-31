@@ -18,7 +18,7 @@ const ProductCard = ({ producto }) => {
     <div className="product-card">
       <span className="product-card__chip">{producto.categoria}</span>
 
-      <Link to={`/producto/${producto.id}`} className="product-card__link">
+      <Link to={`/productos/${producto.id}`} className="product-card__link">
         <div className="product-card__image">
           <img src={producto.imagenUrl} alt={producto.nombre} />
         </div>

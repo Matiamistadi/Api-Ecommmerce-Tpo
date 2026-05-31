@@ -12,6 +12,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .header__logo {
@@ -25,6 +27,20 @@
 .header__nav {
   display: flex;
   gap: 32px;
+  align-items: center;
+}
+
+.header__menu-button {
+  display: none;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 .header__link {
@@ -49,6 +65,7 @@
 .header__actions {
   display: flex;
   gap: 16px;
+  align-items: center;
 }
 
 .header__icon {
@@ -93,4 +110,44 @@
 .header__admin-link:hover {
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 860px) {
+  .header__container {
+    padding: 14px 16px;
+  }
+
+  .header__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header__nav {
+    order: 3;
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 0 4px;
+  }
+
+  .header__nav--open {
+    display: flex;
+  }
+
+  .header__actions {
+    order: 2;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .header__actions {
+    gap: 12px;
+  }
+
+  .header__admin-link {
+    display: none;
+  }
 }
