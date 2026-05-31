@@ -1,210 +1,251 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAddresses } from '../context/AddressContext';
-import { useCommerce } from '../context/CommerceContext';
 import { useCart } from '../context/CartContext';
+import { CreditCard, Lock } from 'lucide-react';
 import './Checkout.css';
-
-const PASOS = ['Identificación', 'Envío', 'Pago'];
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { carrito, subtotal, vaciarCarrito } = useCart();
-  const { direccionesFormateadas, direccionPrincipal } = useAddresses();
-  const { registrarPedido } = useCommerce();
-  const [paso, setPaso] = useState(0);
-  const [direccionSeleccionadaId, setDireccionSeleccionadaId] = useState(direccionPrincipal?.id || null);
+  const isCheckingOut = useRef(false);
+
   const [form, setForm] = useState({
     email: '',
-    nombre: '', direccion: '', ciudad: '', codigoPostal: '',
-    numeroTarjeta: '', fechaVencimiento: '', cvv: '',
+    nombre: '',
+    direccion: '',
+    ciudad: '',
+    codigoPostal: '',
+    numeroTarjeta: '',
+    fechaVencimiento: '',
+    cvv: '',
   });
+
   const [errores, setErrores] = useState({});
+
+  useEffect(() => {
+    if (carrito.length === 0 && !isCheckingOut.current) {
+      navigate('/carrito');
+    }
+  }, [carrito, navigate]);
 
   const impuestos = subtotal * 0.08;
   const total = subtotal + impuestos;
 
-  useEffect(() => {
-    if (!direccionSeleccionadaId && direccionPrincipal) {
-      setDireccionSeleccionadaId(direccionPrincipal.id);
-    }
-  }, [direccionPrincipal, direccionSeleccionadaId]);
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const direccionSeleccionada = useMemo(
-    () => direccionesFormateadas.find((direccion) => direccion.id === direccionSeleccionadaId) || direccionPrincipal || null,
-    [direccionesFormateadas, direccionPrincipal, direccionSeleccionadaId]
-  );
-
-  const aplicarDireccion = (direccion) => {
-    setDireccionSeleccionadaId(direccion.id);
-    setForm((current) => ({
-      ...current,
-      direccion: `${direccion.calle} ${direccion.numero}${direccion.piso ? `, ${direccion.piso}` : ''}`,
-      ciudad: direccion.ciudad,
-      codigoPostal: direccion.codigoPostal,
-    }));
-  };
-
-  const validarPaso = () => {
-    const e = {};
-    if (paso === 0 && !form.email.includes('@')) e.email = 'Email inválido';
-    if (paso === 1) {
-      if (!form.nombre) e.nombre = 'Campo requerido';
-      if (!form.direccion) e.direccion = 'Campo requerido';
-      if (!form.ciudad) e.ciudad = 'Campo requerido';
-      if (!form.codigoPostal) e.codigoPostal = 'Campo requerido';
-    }
-    if (paso === 2) {
-      if (form.numeroTarjeta.replace(/\s/g, '').length < 16) e.numeroTarjeta = 'Número inválido';
-      if (!form.fechaVencimiento) e.fechaVencimiento = 'Campo requerido';
-      if (form.cvv.length < 3) e.cvv = 'CVV inválido';
-    }
-    setErrores(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const siguiente = () => { if (validarPaso()) setPaso(p => p + 1); };
-
-  const confirmar = () => {
-    if (!validarPaso()) return;
-    registrarPedido({
-      clienteNombre: form.nombre,
-      clienteEmail: form.email,
-      items: carrito,
-      total,
-      direccion: direccionSeleccionada ? direccionSeleccionada.etiqueta : `${form.direccion}, ${form.ciudad}`,
-    });
-    vaciarCarrito();
-    navigate('/pago-confirmado');
-  };
 
   const formatTarjeta = (val) => {
     const digits = val.replace(/\D/g, '').slice(0, 16);
     return digits.replace(/(.{4})/g, '$1 ').trim();
   };
 
+  const formatVencimiento = (val) => {
+    const digits = val.replace(/\D/g, '').slice(0, 4);
+    if (digits.length > 2) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+  };
+
+  const validarTodo = () => {
+    const e = {};
+    if (!form.email || !form.email.includes('@')) {
+      e.email = 'Ingresá un correo electrónico válido.';
+    }
+    if (!form.nombre) {
+      e.nombre = 'Ingresá tu nombre completo.';
+    }
+    if (!form.direccion) {
+      e.direccion = 'Ingresá tu dirección de facturación.';
+    }
+    if (!form.ciudad) {
+      e.ciudad = 'Ingresá tu ciudad.';
+    }
+    if (!form.codigoPostal) {
+      e.codigoPostal = 'Ingresá tu código postal.';
+    }
+    if (!form.numeroTarjeta || form.numeroTarjeta.replace(/\s/g, '').length < 16) {
+      e.numeroTarjeta = 'Ingresá un número de tarjeta válido.';
+    }
+    if (!form.fechaVencimiento || !/^\d{2}\/\d{2}$/.test(form.fechaVencimiento)) {
+      e.fechaVencimiento = 'Ingresá el vencimiento en formato MM/AA.';
+    }
+    if (!form.cvv || form.cvv.length < 3) {
+      e.cvv = 'Ingresá un CVV válido.';
+    }
+
+    setErrores(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validarTodo()) {
+      return;
+    }
+
+    sessionStorage.setItem('ultimo_pedido_items', JSON.stringify(carrito));
+    sessionStorage.setItem('ultimo_pedido_total', total.toFixed(2));
+    sessionStorage.setItem('ultimo_pedido_subtotal', subtotal.toFixed(2));
+    sessionStorage.setItem('ultimo_pedido_envio', 'Gratis');
+    sessionStorage.setItem('ultimo_pedido_direccion', JSON.stringify({
+      nombre: form.nombre,
+      direccion: form.direccion,
+      ciudad: form.ciudad,
+      codigoPostal: form.codigoPostal
+    }));
+
+    isCheckingOut.current = true;
+    vaciarCarrito();
+    navigate('/confirmacion');
+  };
+
+  const isStep1Active = true;
+  const isStep2Active = form.email.includes('@');
+  const isStep3Active = isStep2Active && form.nombre && form.direccion && form.ciudad && form.codigoPostal;
+
   if (carrito.length === 0) {
-    navigate('/carrito');
     return null;
   }
 
   return (
     <main className="checkout">
       <div className="checkout__container">
-        <div className="checkout__main">
-          {/* Progreso */}
-          <div className="checkout__progreso">
-            {PASOS.map((label, i) => (
-              <div key={i} className={`checkout__paso ${i <= paso ? 'checkout__paso--activo' : ''}`}>
-                <div className="checkout__paso-num">{i < paso ? '✓' : i + 1}</div>
-                <span className="checkout__paso-label">{label}</span>
-                {i < PASOS.length - 1 && <div className="checkout__paso-linea" />}
-              </div>
-            ))}
-          </div>
 
-          {/* Paso 0: Identificación */}
-          {paso === 0 && (
-            <div className="checkout__seccion">
-              <h2 className="checkout__seccion-title">Identificación</h2>
+        <header className="checkout__header">
+          <h1 className="checkout__title">Finalizar Compra</h1>
+          <p className="checkout__subtitle">Completa tu información para procesar el pedido.</p>
+        </header>
+
+        <form onSubmit={handleSubmit} className="checkout__main" noValidate>
+
+          {/* Sección 1: Identificación */}
+          <section className="checkout__seccion">
+            <div className="checkout__seccion-header">
+              <div className={`checkout__step-circle ${isStep1Active ? 'checkout__step-circle--active' : ''}`}>1</div>
+              <h2 className={`checkout__seccion-title ${isStep1Active ? 'checkout__seccion-title--active' : ''}`}>Identificación</h2>
+            </div>
+
+            <div className="checkout__form-fields">
               <div className="checkout__field">
-                <label className="checkout__label">Correo Electrónico</label>
-                <input
+                <Input
                   name="email"
                   type="email"
-                  className={`checkout__input ${errores.email ? 'checkout__input--error' : ''}`}
-                  placeholder="athlete@example.com"
+                  placeholder="Correo Electrónico"
+                  className={`checkout__input h-auto ${errores.email ? 'checkout__input--error' : ''}`}
                   value={form.email}
                   onChange={handleChange}
                 />
                 {errores.email && <span className="checkout__field-error">{errores.email}</span>}
               </div>
             </div>
-          )}
+          </section>
 
-          {/* Paso 1: Envío */}
-          {paso === 1 && (
-            <div className="checkout__seccion">
-              <h2 className="checkout__seccion-title">Dirección de Envío</h2>
-              {direccionesFormateadas.length > 0 && (
-                <div className="checkout__direcciones">
-                  <p className="checkout__direcciones-title">Direcciones guardadas</p>
-                  <div className="checkout__direcciones-lista">
-                    {direccionesFormateadas.map((direccion) => (
-                      <button
-                        key={direccion.id}
-                        type="button"
-                        className={`checkout__direccion-chip ${direccionSeleccionadaId === direccion.id ? 'checkout__direccion-chip--activa' : ''}`}
-                        onClick={() => aplicarDireccion(direccion)}
-                      >
-                        {direccion.etiqueta}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {[
-                { name: 'nombre', label: 'Nombre Completo', placeholder: 'Tu nombre' },
-                { name: 'direccion', label: 'Dirección', placeholder: 'Calle y número' },
-                { name: 'ciudad', label: 'Ciudad', placeholder: 'Buenos Aires' },
-                { name: 'codigoPostal', label: 'Código Postal', placeholder: '1001' },
-              ].map(({ name, label, placeholder }) => (
-                <div key={name} className="checkout__field">
-                  <label className="checkout__label">{label}</label>
-                  <input
-                    name={name}
-                    type="text"
-                    className={`checkout__input ${errores[name] ? 'checkout__input--error' : ''}`}
-                    placeholder={placeholder}
-                    value={form[name]}
-                    onChange={handleChange}
-                  />
-                  {errores[name] && <span className="checkout__field-error">{errores[name]}</span>}
-                </div>
-              ))}
+          {/* Sección 2: Facturación */}
+          <section className="checkout__seccion">
+            <div className="checkout__seccion-header">
+              <div className={`checkout__step-circle ${isStep2Active ? 'checkout__step-circle--active' : ''}`}>2</div>
+              <h2 className={`checkout__seccion-title ${isStep2Active ? 'checkout__seccion-title--active' : ''}`}>Facturación</h2>
             </div>
-          )}
 
-          {/* Paso 2: Pago */}
-          {paso === 2 && (
-            <div className="checkout__seccion">
-              <h2 className="checkout__seccion-title">💳 Datos de Pago</h2>
+            <div className="checkout__form-fields">
               <div className="checkout__field">
-                <label className="checkout__label">Número de Tarjeta</label>
-                <input
-                  name="numeroTarjeta"
+                <Input
+                  name="nombre"
                   type="text"
-                  className={`checkout__input ${errores.numeroTarjeta ? 'checkout__input--error' : ''}`}
-                  placeholder="0000 0000 0000 0000"
-                  value={form.numeroTarjeta}
-                  onChange={(e) => setForm({ ...form, numeroTarjeta: formatTarjeta(e.target.value) })}
-                  maxLength={19}
+                  placeholder="Nombre Completo"
+                  className={`checkout__input h-auto ${errores.nombre ? 'checkout__input--error' : ''}`}
+                  value={form.nombre}
+                  onChange={handleChange}
                 />
-                {errores.numeroTarjeta && <span className="checkout__field-error">{errores.numeroTarjeta}</span>}
+                {errores.nombre && <span className="checkout__field-error">{errores.nombre}</span>}
               </div>
+
+              <div className="checkout__field">
+                <Input
+                  name="direccion"
+                  type="text"
+                  placeholder="Dirección"
+                  className={`checkout__input h-auto ${errores.direccion ? 'checkout__input--error' : ''}`}
+                  value={form.direccion}
+                  onChange={handleChange}
+                />
+                {errores.direccion && <span className="checkout__field-error">{errores.direccion}</span>}
+              </div>
+
               <div className="checkout__row-2">
                 <div className="checkout__field">
-                  <label className="checkout__label">Vencimiento (MM/AA)</label>
-                  <input
+                  <Input
+                    name="ciudad"
+                    type="text"
+                    placeholder="Ciudad"
+                    className={`checkout__input h-auto ${errores.ciudad ? 'checkout__input--error' : ''}`}
+                    value={form.ciudad}
+                    onChange={handleChange}
+                  />
+                  {errores.ciudad && <span className="checkout__field-error">{errores.ciudad}</span>}
+                </div>
+
+                <div className="checkout__field">
+                  <Input
+                    name="codigoPostal"
+                    type="text"
+                    placeholder="Código Postal"
+                    className={`checkout__input h-auto ${errores.codigoPostal ? 'checkout__input--error' : ''}`}
+                    value={form.codigoPostal}
+                    onChange={handleChange}
+                  />
+                  {errores.codigoPostal && <span className="checkout__field-error">{errores.codigoPostal}</span>}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Sección 3: Pago */}
+          <section className="checkout__seccion">
+            <div className="checkout__seccion-header">
+              <div className={`checkout__step-circle ${isStep3Active ? 'checkout__step-circle--active' : ''}`}>3</div>
+              <h2 className={`checkout__seccion-title ${isStep3Active ? 'checkout__seccion-title--active' : ''}`}>Pago</h2>
+            </div>
+
+            <div className="checkout__form-fields">
+              <div className="checkout__field">
+                <div className="checkout__input-wrapper">
+                  <Input
+                    name="numeroTarjeta"
+                    type="text"
+                    placeholder="Número de Tarjeta"
+                    className={`checkout__input pr-12 h-auto ${errores.numeroTarjeta ? 'checkout__input--error' : ''}`}
+                    value={form.numeroTarjeta}
+                    onChange={(e) => setForm({ ...form, numeroTarjeta: formatTarjeta(e.target.value) })}
+                    maxLength={19}
+                  />
+                  <CreditCard className="checkout__input-icon" size={18} />
+                </div>
+                {errores.numeroTarjeta && <span className="checkout__field-error">{errores.numeroTarjeta}</span>}
+              </div>
+
+              <div className="checkout__row-2">
+                <div className="checkout__field">
+                  <Input
                     name="fechaVencimiento"
                     type="text"
-                    className={`checkout__input ${errores.fechaVencimiento ? 'checkout__input--error' : ''}`}
-                    placeholder="MM/AA"
+                    placeholder="Fecha (MM/AA)"
+                    className={`checkout__input h-auto ${errores.fechaVencimiento ? 'checkout__input--error' : ''}`}
                     value={form.fechaVencimiento}
-                    onChange={handleChange}
+                    onChange={(e) => setForm({ ...form, fechaVencimiento: formatVencimiento(e.target.value) })}
                     maxLength={5}
                   />
                   {errores.fechaVencimiento && <span className="checkout__field-error">{errores.fechaVencimiento}</span>}
                 </div>
+
                 <div className="checkout__field">
-                  <label className="checkout__label">CVV</label>
-                  <input
+                  <Input
                     name="cvv"
                     type="password"
-                    className={`checkout__input ${errores.cvv ? 'checkout__input--error' : ''}`}
-                    placeholder="•••"
+                    placeholder="CVV"
+                    className={`checkout__input h-auto ${errores.cvv ? 'checkout__input--error' : ''}`}
                     value={form.cvv}
                     onChange={handleChange}
                     maxLength={4}
@@ -213,61 +254,23 @@ const Checkout = () => {
                 </div>
               </div>
             </div>
-          )}
+          </section>
 
-          {/* Botones de navegación */}
           <div className="checkout__acciones">
-            {paso > 0 && (
-              <button className="checkout__btn-back" onClick={() => setPaso(p => p - 1)}>
-                ← Atrás
-              </button>
-            )}
-            {paso < PASOS.length - 1 ? (
-              <button className="checkout__btn-next" onClick={siguiente}>
-                Continuar →
-              </button>
-            ) : (
-              <button className="checkout__btn-confirm" onClick={confirmar}>
-                🔒 Confirmar pago · ${total.toFixed(2)}
-              </button>
-            )}
+            <Button
+              type="submit"
+              className="checkout__btn-confirm h-auto w-full"
+            >
+              FINALIZAR PEDIDO • ${total.toFixed(2)}
+            </Button>
+
+            <p className="checkout__seguridad">
+              <Lock size={14} /> Transacción segura y encriptada
+            </p>
           </div>
 
-          <p className="checkout__seguridad">Transacción segura y encriptada</p>
-        </div>
+        </form>
 
-        {/* Sidebar de resumen */}
-        <aside className="checkout__sidebar">
-          <h3 className="checkout__sidebar-title">Tu Pedido</h3>
-          <div className="checkout__sidebar-items">
-            {carrito.map(item => (
-              <div key={item.id} className="checkout__sidebar-item">
-                <img src={item.imagenUrl} alt={item.nombre} className="checkout__sidebar-img" />
-                <div className="checkout__sidebar-info">
-                  <p className="checkout__sidebar-nombre">{item.nombre}</p>
-                  <p className="checkout__sidebar-qty">× {item.cantidad}</p>
-                </div>
-                <span className="checkout__sidebar-precio">
-                  ${(item.precio * item.cantidad).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="checkout__sidebar-totales">
-            <div className="checkout__sidebar-row">
-              <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="checkout__sidebar-row">
-              <span>Impuestos</span>
-              <span>${impuestos.toFixed(2)}</span>
-            </div>
-            <div className="checkout__sidebar-total">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-          </div>
-        </aside>
       </div>
     </main>
   );

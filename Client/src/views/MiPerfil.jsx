@@ -1,131 +1,221 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAddresses } from '../context/AddressContext';
-import { useCommerce } from '../context/CommerceContext';
+import { User, MapPin, ShoppingBag, Zap } from 'lucide-react';
 import './MiPerfil.css';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+const PEDIDOS_MOCK = [
+  {
+    id: 1,
+    nombre: 'Proteína Whey 100%',
+    descripcion: 'Sabor Vainilla • 2kg',
+    categoria: 'Musculación',
+    fecha: '24 Oct 2023',
+    estado: 'En camino',
+    total: '€54.99',
+    imagen: '/img/ProteVainilla.png'
+  },
+  {
+    id: 2,
+    nombre: 'Pre-Entreno Explosivo',
+    descripcion: 'Sabor Sandía • 300g',
+    categoria: 'Energía',
+    fecha: '10 Oct 2023',
+    estado: 'Entregado',
+    total: '€29.50',
+    imagen: '/img/PreworkSandia.png'
+  }
+];
 
 const MiPerfil = () => {
-  const { direccionesFormateadas } = useAddresses();
-  const { pedidos } = useCommerce();
   const [perfil, setPerfil] = useState({
-    nombre: 'Luciano Frasca',
-    email: 'luciano@gymstore.com',
-    telefono: '+54 11 5555-1234',
+    nombre: 'Atleta Élite',
+    email: 'atleta@gymstore.com',
+    telefono: '+34 600 000 000',
   });
-  const [editando, setEditando] = useState(false);
-  const [draft, setDraft] = useState({ ...perfil });
 
-  const guardar = () => {
-    setPerfil({ ...draft });
-    setEditando(false);
+  const handleSave = (e) => {
+    e.preventDefault();
+    alert(`¡Cambios guardados con éxito para ${perfil.nombre}!`);
   };
 
   return (
     <main className="perfil">
       <div className="perfil__container">
-        <h1 className="perfil__titulo">Mi Cuenta</h1>
 
-        <div className="perfil__layout">
-          {/* Sidebar */}
-          <nav className="perfil__sidebar">
-            <a href="#datos" className="perfil__sidebar-link perfil__sidebar-link--active">
-              👤 Mis Datos
-            </a>
-            <a href="#direcciones" className="perfil__sidebar-link">
-              📍 Direcciones
-            </a>
-            <a href="#pedidos" className="perfil__sidebar-link">
-              📦 Pedidos
-            </a>
-            <Link to="/login" className="perfil__sidebar-link perfil__sidebar-link--logout">
-              ← Cerrar Sesión
-            </Link>
-          </nav>
-
-          <div className="perfil__contenido">
-            {/* Datos personales */}
-            <section id="datos" className="perfil__seccion">
-              <div className="perfil__seccion-header">
-                <h2 className="perfil__seccion-title">Datos Personales</h2>
-                {!editando ? (
-                  <button className="perfil__btn-editar" onClick={() => setEditando(true)}>
-                    Editar
-                  </button>
-                ) : (
-                  <div className="perfil__acciones">
-                    <button className="perfil__btn-cancelar" onClick={() => { setDraft({ ...perfil }); setEditando(false); }}>
-                      Cancelar
-                    </button>
-                    <button className="perfil__btn-guardar" onClick={guardar}>
-                      Guardar
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="perfil__campos">
-                {[
-                  { key: 'nombre', label: 'Nombre', type: 'text' },
-                  { key: 'email', label: 'Email', type: 'email' },
-                  { key: 'telefono', label: 'Teléfono', type: 'tel' },
-                ].map(({ key, label, type }) => (
-                  <div key={key} className="perfil__campo">
-                    <label className="perfil__campo-label">{label}</label>
-                    {editando ? (
-                      <input
-                        type={type}
-                        className="perfil__campo-input"
-                        value={draft[key]}
-                        onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
-                      />
-                    ) : (
-                      <p className="perfil__campo-valor">{perfil[key]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Direcciones */}
-            <section id="direcciones" className="perfil__seccion">
-              <div className="perfil__seccion-header">
-                <h2 className="perfil__seccion-title">Direcciones de Envío</h2>
-                <Link to="/agregar-direccion" className="perfil__btn-editar">+ Agregar</Link>
-              </div>
-              <div className="perfil__direcciones-lista">
-                {direccionesFormateadas.map((direccion) => (
-                  <div key={direccion.id} className="perfil__direccion">
-                    <div className="perfil__direccion-tag">{direccion.principal ? 'Principal' : 'Guardada'}</div>
-                    <p className="perfil__direccion-texto">{direccion.etiqueta}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Historial de pedidos */}
-            <section id="pedidos" className="perfil__seccion">
-              <h2 className="perfil__seccion-title">Historial de Pedidos</h2>
-              <div className="perfil__pedidos">
-                {pedidos.slice(0, 3).map((pedido) => (
-                  <div key={pedido.id} className="perfil__pedido">
-                    <div className="perfil__pedido-header">
-                      <span className="perfil__pedido-id">{pedido.id}</span>
-                      <span className={`perfil__pedido-estado perfil__pedido-estado--${pedido.estado === 'Completado' ? 'ok' : 'transito'}`}>
-                        {pedido.estado === 'Completado' ? '✓' : '🚚'} {pedido.estado}
-                      </span>
-                    </div>
-                    <p className="perfil__pedido-fecha">{pedido.fecha}</p>
-                    {pedido.items.map((item) => (
-                      <p key={item.nombre} className="perfil__pedido-item">
-                        · {item.nombre} × {item.cantidad} — ${item.precio.toFixed(2)}
-                      </p>
-                    ))}
-                    <p className="perfil__pedido-total">Total: ${pedido.total.toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+        {/* Header con Título y Loyalty Card */}
+        <header className="perfil__header">
+          <div className="perfil__header-left">
+            <h1 className="perfil__titulo">Mi Cuenta</h1>
+            <p className="perfil__subtitulo">Gestión de perfil, pedidos y lealtad.</p>
           </div>
+
+          {/* Tarjeta de Lealtad */}
+          <div className="perfil__loyalty-card">
+            <div className="perfil__loyalty-icon-container">
+              <Zap className="perfil__loyalty-icon" size={20} fill="#0c0d14" stroke="#0c0d14" />
+            </div>
+            <div className="perfil__loyalty-info">
+              <span className="perfil__loyalty-label">NIVEL PRO</span>
+              <div className="perfil__loyalty-value-row">
+                <span className="perfil__loyalty-pts">1,250</span>
+                <span className="perfil__loyalty-unit">Pts</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Layout en Grid */}
+        <div className="perfil__grid">
+
+          {/* Columna Izquierda (Datos y Direcciones) */}
+          <div className="perfil__grid-left">
+
+            {/* Tarjeta de Datos Personales */}
+            <section className="perfil__card">
+              <div className="perfil__card-header">
+                <User size={20} className="perfil__card-icon" />
+                <h2 className="perfil__card-title">Mis Datos</h2>
+              </div>
+
+              <form onSubmit={handleSave} className="perfil__form">
+                <div className="perfil__form-field">
+                  <Label htmlFor="nombre" className="perfil__form-label">Nombre</Label>
+                  <Input
+                    id="nombre"
+                    type="text"
+                    className="perfil__form-input h-auto"
+                    value={perfil.nombre}
+                    onChange={(e) => setPerfil({ ...perfil, nombre: e.target.value })}
+                  />
+                </div>
+
+                <div className="perfil__form-field">
+                  <Label htmlFor="email" className="perfil__form-label">Mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className="perfil__form-input h-auto"
+                    value={perfil.email}
+                    onChange={(e) => setPerfil({ ...perfil, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="perfil__form-field">
+                  <Label htmlFor="telefono" className="perfil__form-label">Teléfono</Label>
+                  <Input
+                    id="telefono"
+                    type="tel"
+                    className="perfil__form-input h-auto"
+                    value={perfil.telefono}
+                    onChange={(e) => setPerfil({ ...perfil, telefono: e.target.value })}
+                  />
+                </div>
+
+                <Button type="submit" className="perfil__btn-guardar-cambios h-auto">
+                  Guardar Cambios
+                </Button>
+              </form>
+            </section>
+
+            {/* Tarjeta de Direcciones de Envío */}
+            <section className="perfil__card">
+              <div className="perfil__card-header">
+                <MapPin size={20} className="perfil__card-icon" />
+                <h2 className="perfil__card-title">Direcciones de Envío</h2>
+              </div>
+
+              <div className="perfil__address-box">
+                <div className="perfil__address-header">
+                  <span className="perfil__address-tag">Principal (Casa)</span>
+                  <span className="perfil__address-badge">Predeterminada</span>
+                </div>
+                <p className="perfil__address-text">
+                  Av. de la Fuerza 45, Portal 2, 4A<br />
+                  Madrid, 28001<br />
+                  España
+                </p>
+              </div>
+
+              <Link to="/agregar-direccion" style={{ textDecoration: 'none' }}>
+                <Button variant="outline" className="perfil__btn-add-address h-auto">
+                  + Añadir Dirección
+                </Button>
+              </Link>
+            </section>
+
+          </div>
+
+          {/* Columna Derecha (Historial de Pedidos) */}
+          <div className="perfil__grid-right">
+
+            {/* Tarjeta de Pedidos */}
+            <section className="perfil__card">
+              <div className="perfil__card-header-with-action">
+                <div className="perfil__card-header-left">
+                  <ShoppingBag size={20} className="perfil__card-icon" />
+                  <h2 className="perfil__card-title">Historial de Pedidos</h2>
+                </div>
+                <Link to="/pedidos" className="perfil__card-action">
+                  Ver todos
+                </Link>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table className="perfil__orders-table">
+                  <thead className="perfil__orders-thead">
+                    <tr className="perfil__orders-thead-tr">
+                      <th>Producto</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                      <th style={{ textAlign: 'right' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="perfil__orders-tbody">
+                    {PEDIDOS_MOCK.map((pedido) => (
+                      <tr key={pedido.id} className="perfil__orders-row">
+
+                        <td>
+                          <div className="perfil__product-cell">
+                            <div className="perfil__product-img-box">
+                              <img
+                                src={pedido.imagen}
+                                alt={pedido.nombre}
+                                className="perfil__product-img"
+                              />
+                            </div>
+                            <div className="perfil__product-info">
+                              <span className="perfil__product-name">{pedido.nombre}</span>
+                              <span className="perfil__product-desc">{pedido.descripcion}</span>
+                              <span className="perfil__product-badge">{pedido.categoria}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="perfil__date-cell">
+                          {pedido.fecha}
+                        </td>
+
+                        <td>
+                          <span className={`perfil__status-badge perfil__status-badge--${pedido.estado.toLowerCase().replace(' ', '-')}`}>
+                            {pedido.estado === 'En camino' ? '🚚' : '✓'} {pedido.estado}
+                          </span>
+                        </td>
+
+                        <td className="perfil__total-cell">
+                          {pedido.total}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+          </div>
+
         </div>
       </div>
     </main>

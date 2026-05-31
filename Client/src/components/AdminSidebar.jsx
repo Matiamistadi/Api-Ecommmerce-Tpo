@@ -1,28 +1,62 @@
-import { NavLink, Link } from 'react-router-dom';
-import './AdminLayout.css';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Package, ShoppingBag, Users, TrendingUp, Settings, Plus, Monitor } from 'lucide-react';
 
-const AdminSidebar = ({ onNavigate }) => {
-  const linkClassName = ({ isActive }) => (
-    isActive ? 'admin-sidebar__link admin-sidebar__link--active' : 'admin-sidebar__link'
-  );
+const sidebarItems = [
+  { icon: Home, label: 'Ir a la Home', path: '/' },
+  { icon: Package, label: 'Inventario', path: '/admin' },
+  { icon: ShoppingBag, label: 'Pedidos', path: '/admin/pedidos' },
+  { icon: Users, label: 'Clientes', path: '/admin/clientes' },
+  { icon: TrendingUp, label: 'Analíticas', path: '/admin/analiticas' },
+  { icon: Settings, label: 'Ajustes', path: '/admin/ajustes' },
+];
+
+export const AdminSidebar = ({ onAddClick }) => {
+  const location = useLocation();
 
   return (
-    <aside className="admin-sidebar">
-      <div className="admin-sidebar__brand">
-        <p className="admin-sidebar__eyebrow">Admin</p>
-        <h1 className="admin-sidebar__title">GymStore</h1>
-        <p className="admin-sidebar__subtitle">Panel de administración</p>
+    <aside className="w-64 bg-[#f4f4f5] h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col justify-between z-10">
+      <div>
+        <div className="flex items-center gap-3 p-6 mb-4">
+          <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-800">
+            <Monitor size={20} />
+          </div>
+          <div>
+            <h2 className="font-bold text-gray-900 leading-tight">Panel de<br/>Administración</h2>
+            <p className="text-xs text-gray-500">Gestión de GymStore</p>
+          </div>
+        </div>
+
+        <nav className="px-4 space-y-1">
+          {sidebarItems.map((item) => {
+            const isActive = location.pathname === item.path || (item.path === '/admin' && location.pathname.startsWith('/admin') && item.path !== location.pathname ? false : location.pathname === item.path);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.label}
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-[#016b53] text-white'
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Icon size={20} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
-      <nav className="admin-sidebar__nav" aria-label="Navegación administrativa">
-        <NavLink to="/admin" end className={linkClassName} onClick={onNavigate}>Inicio Admin</NavLink>
-        <NavLink to="/admin/productos" className={linkClassName} onClick={onNavigate}>Productos</NavLink>
-        <NavLink to="/admin/pedidos" className={linkClassName} onClick={onNavigate}>Pedidos</NavLink>
-        <NavLink to="/admin/clientes" className={linkClassName} onClick={onNavigate}>Clientes</NavLink>
-      </nav>
-
-      <div className="admin-sidebar__footer">
-        <Link to="/" className="admin-sidebar__public-link" onClick={onNavigate}>Volver al sitio</Link>
+      <div className="p-4 border-t border-gray-200">
+        <button
+          onClick={onAddClick}
+          className="w-full bg-[#00e69e] hover:bg-[#00c98a] text-black font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
+        >
+          <Plus size={20} />
+          Agregar Producto
+        </button>
       </div>
     </aside>
   );
