@@ -44,7 +44,7 @@ const Checkout = () => {
   const confirmar = () => {
     if (!validarPaso()) return;
     vaciarCarrito();
-    navigate('/confirmacion');
+    navigate('/pago-confirmado');
   };
 
   const formatTarjeta = (val) => {

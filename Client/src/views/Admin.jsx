@@ -59,9 +59,9 @@ const Admin = () => {
             <h1 className="admin__titulo">Panel de Administración</h1>
             <p className="admin__subtitulo">Gestión de productos e inventario · Los cambios se reflejan en el catálogo</p>
           </div>
-          <button className="admin__btn-agregar" onClick={() => alert('Próximamente: formulario para nuevo producto')}>
+          <Link to="/agregar-producto" className="admin__btn-agregar">
             + Agregar Producto
-          </button>
+          </Link>
         </div>
 
         <div className="admin__stats">

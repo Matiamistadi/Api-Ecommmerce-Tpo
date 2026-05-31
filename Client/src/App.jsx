@@ -11,6 +11,8 @@ import Checkout from './views/Checkout';
 import Confirmacion from './views/Confirmacion';
 import MiPerfil from './views/MiPerfil';
 import Admin from './views/Admin';
+import AgregarDireccion from './views/AgregarDireccion';
+import AgregarProducto from './views/AgregarProducto';
 import NotFound from './views/NotFound';
 import './App.css';
 
@@ -28,6 +30,9 @@ function App() {
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/confirmacion" element={<Confirmacion />} />
+          <Route path="/pago-confirmado" element={<Confirmacion />} />
+          <Route path="/agregar-direccion" element={<AgregarDireccion />} />
+          <Route path="/agregar-producto" element={<AgregarProducto />} />
           <Route path="/perfil" element={<MiPerfil />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
