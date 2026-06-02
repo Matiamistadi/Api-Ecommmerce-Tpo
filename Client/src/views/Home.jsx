@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BadgeCheck,
+  CheckCircle2,
   FlaskConical,
   Mail,
   Tag,
@@ -43,6 +45,13 @@ const Home = () => {
   const { productos } = useProducts();
   const destacados = productos.filter((p) => p.precioOriginal).slice(0, 3);
   const ofertas = destacados.length >= 3 ? destacados : productos.slice(0, 3);
+  const [suscripto, setSuscripto] = useState(false);
+
+  const handleSuscribirse = (e) => {
+    e.preventDefault();
+    setSuscripto(true);
+    setTimeout(() => setSuscripto(false), 4000);
+  };
 
   return (
     <div className="home w-full">
@@ -167,27 +176,36 @@ const Home = () => {
           Recibí tips de entrenamiento, ofertas exclusivas y acceso anticipado a nuevos
           lanzamientos.
         </p>
-        <form
-          className="mx-auto flex max-w-[440px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:flex-row sm:rounded-full"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <input
-            type="email"
-            className="min-w-0 flex-1 border-none bg-transparent px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/40"
-            placeholder="tu@email.com"
-            aria-label="Correo electrónico"
-            required
-          />
-          <button
-            type="submit"
-            className={cn(
-              'shrink-0 border-none px-6 py-3.5 text-sm font-bold',
-              'bg-gym-accent text-gym-primary transition-opacity hover:opacity-90'
-            )}
+        {suscripto ? (
+          <div className="mx-auto flex max-w-[440px] items-center justify-center gap-3 rounded-2xl border border-gym-accent/30 bg-gym-accent/10 px-6 py-4 sm:rounded-full">
+            <CheckCircle2 className="size-5 shrink-0 text-gym-accent" aria-hidden />
+            <p className="text-sm font-semibold text-gym-accent">
+              ¡Listo! Te avisaremos con las mejores ofertas.
+            </p>
+          </div>
+        ) : (
+          <form
+            className="mx-auto flex max-w-[440px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:flex-row sm:rounded-full"
+            onSubmit={handleSuscribirse}
           >
-            Suscribirse
-          </button>
-        </form>
+            <input
+              type="email"
+              className="min-w-0 flex-1 border-none bg-transparent px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/40"
+              placeholder="tu@email.com"
+              aria-label="Correo electrónico"
+              required
+            />
+            <button
+              type="submit"
+              className={cn(
+                'shrink-0 border-none px-6 py-3.5 text-sm font-bold',
+                'bg-gym-accent text-gym-primary transition-opacity hover:opacity-90'
+              )}
+            >
+              Suscribirse
+            </button>
+          </form>
+        )}
       </section>
     </div>
   );
