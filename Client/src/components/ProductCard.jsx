@@ -29,12 +29,6 @@ const ProductCard = ({ producto, variant }) => {
           'hover:shadow-[var(--shadow-card-hover)]'
         )}
       >
-        {discount > 0 && (
-          <span className="absolute top-4 left-4 z-10 rounded bg-[#e63946] px-2.5 py-1.5 text-xs font-extrabold text-white">
-            -{discount}%
-          </span>
-        )}
-
         <span
           className={cn(
             'mx-5 mt-4 inline-block rounded px-3 py-1.5 text-xs font-medium',
@@ -47,10 +41,15 @@ const ProductCard = ({ producto, variant }) => {
         <Link to={`/producto/${producto.id}`} className="block px-5 text-inherit no-underline">
           <div
             className={cn(
-              'mt-3 flex aspect-4/3 items-center justify-center p-6',
+              'relative mt-3 flex aspect-4/3 items-center justify-center p-6',
               'bg-gradient-to-br from-gym-primary to-[#0d0d14]'
             )}
           >
+            {discount > 0 && (
+              <span className="absolute top-3 left-3 z-10 rounded bg-[#e63946] px-2.5 py-1.5 text-xs font-extrabold text-white">
+                -{discount}%
+              </span>
+            )}
             <img
               src={producto.imagenUrl}
               alt={producto.nombre}
