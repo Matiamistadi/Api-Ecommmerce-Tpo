@@ -6,25 +6,157 @@ import {
   Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown
 } from 'lucide-react';
 
+const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza', 'Vitaminas'];
+
+const formVacio = {
+  nombre: '',
+  descripcion: '',
+  precio: '',
+  precioOriginal: '',
+  stock: '',
+  categoria: 'Proteína',
+  marca: 'GymStore',
+  imagenes: [''],
+  activo: true,
+  oferta: false,
+};
+
 const Admin = () => {
-  const { productos } = useProducts();
+  const { productos, agregarProducto, actualizarProducto, eliminarProducto } = useProducts();
   const [busqueda, setBusqueda] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [form, setForm] = useState(formVacio);
+  const [errores, setErrores] = useState({});
+  const [filtroCategoria, setFiltroCategoria] = useState('Todas');
+  const [filtroStock, setFiltroStock] = useState(false);
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
-  const filtrados = productos.filter((producto) => (
-    producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
-    || producto.categoria.toLowerCase().includes(busqueda.toLowerCase())
-    || producto.marca.toLowerCase().includes(busqueda.toLowerCase())
-  ));
+  const filtrados = productos.filter((producto) => {
+    const matchBusqueda = (
+      producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
+      || producto.categoria.toLowerCase().includes(busqueda.toLowerCase())
+      || producto.marca.toLowerCase().includes(busqueda.toLowerCase())
+    );
+    const matchCategoria = filtroCategoria === 'Todas' || producto.categoria === filtroCategoria;
+    const matchStock = !filtroStock || producto.stock < 15;
+    return matchBusqueda && matchCategoria && matchStock;
+  });
+
+  const exportarCSV = () => {
+    const encabezado = ['ID', 'Nombre', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock', 'Estado'];
+    const filas = filtrados.map((p) => [
+      p.id,
+      `"${p.nombre}"`,
+      `"${p.marca}"`,
+      p.categoria,
+      p.precio.toFixed(2),
+      p.precioOriginal ? p.precioOriginal.toFixed(2) : '',
+      p.stock,
+      p.stock > 0 ? 'En Stock' : 'Sin Stock',
+    ]);
+    const csv = [encabezado, ...filas].map((fila) => fila.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventario.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const abrirAgregar = () => {
+    setForm(formVacio);
+    setEditando(null);
+    setIsAdding(true);
+  };
+
+  const abrirEditar = (producto) => {
+    let imagenes;
+    if (Array.isArray(producto.imagenes) && producto.imagenes.length > 0) {
+      imagenes = [...producto.imagenes];
+    } else {
+      imagenes = [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean);
+      if (imagenes.length === 0) imagenes = [''];
+    }
+    setForm({
+      nombre: producto.nombre || '',
+      descripcion: producto.descripcion || '',
+      precio: producto.precio || '',
+      precioOriginal: producto.precioOriginal || '',
+      stock: producto.stock || '',
+      categoria: producto.categoria || 'Proteína',
+      marca: producto.marca || 'GymStore',
+      imagenes,
+      activo: producto.activo !== false,
+      oferta: producto.oferta || false,
+    });
+    setEditando(producto);
+    setIsAdding(true);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleImagenChange = (index, value) => {
+    setForm((prev) => {
+      const imagenes = [...prev.imagenes];
+      imagenes[index] = value;
+      return { ...prev, imagenes };
+    });
+  };
+
+  const handleImagenFile = (index, file) => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    handleImagenChange(index, url);
+  };
+
+  const agregarImagenSlot = () => {
+    setForm((prev) => ({ ...prev, imagenes: [...prev.imagenes, ''] }));
+  };
+
+  const eliminarImagenSlot = (index) => {
+    setForm((prev) => {
+      const imagenes = prev.imagenes.filter((_, i) => i !== index);
+      return { ...prev, imagenes: imagenes.length > 0 ? imagenes : [''] };
+    });
+  };
 
   const handleSave = () => {
-    alert('Producto guardado!');
+    const nuevosErrores = {};
+    if (!form.nombre.trim()) nuevosErrores.nombre = 'El nombre es obligatorio';
+    if (!form.precio) nuevosErrores.precio = 'El precio es obligatorio';
+    if (!form.stock) nuevosErrores.stock = 'El stock es obligatorio';
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrores(nuevosErrores);
+      return;
+    }
+    setErrores({});
+    const imagenesValidas = form.imagenes.filter((url) => url.trim() !== '');
+    const datos = {
+      ...form,
+      precio: Number(form.precio),
+      precioOriginal: form.precioOriginal ? Number(form.precioOriginal) : null,
+      stock: Number(form.stock),
+      imagenes: imagenesValidas.length > 0 ? imagenesValidas : ['/img/BannerNexa.png'],
+      imagenUrl: imagenesValidas[0] || '/img/BannerNexa.png',
+      imagenDetalleUrl: imagenesValidas[1] || imagenesValidas[0] || '/img/BannerNexa.png',
+    };
+    if (editando) {
+      actualizarProducto({ ...editando, ...datos });
+    } else {
+      agregarProducto(datos);
+    }
     setIsAdding(false);
+    setEditando(null);
   };
 
   return (
     <div className="flex h-full bg-[#fafafa] font-sans w-full">
-      <AdminSidebar onAddClick={() => setIsAdding(true)} />
+      <AdminSidebar onAddClick={abrirAgregar} />
 
       <main className="flex-1 ml-64 h-screen overflow-y-auto">
         {!isAdding ? (
@@ -47,7 +179,7 @@ const Admin = () => {
                   />
                 </div>
                 <button
-                  onClick={() => setIsAdding(true)}
+                  onClick={abrirAgregar}
                   className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm"
                 >
                   <Plus size={18} />
@@ -111,13 +243,55 @@ const Admin = () => {
               <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-900">Inventario Actual</h2>
                 <div className="flex gap-3">
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
-                    <SlidersHorizontal size={16} />
-                    Filtrar
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+                  <div className="relative">
+                    <button
+                      onClick={() => setMostrarFiltros((v) => !v)}
+                      className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors ${mostrarFiltros ? 'border-[#00e69e] text-[#00c98a] bg-[#f0fff9]' : 'border-gray-900'}`}
+                    >
+                      <SlidersHorizontal size={16} />
+                      Filtrar
+                      {(filtroCategoria !== 'Todas' || filtroStock) && (
+                        <span className="w-2 h-2 rounded-full bg-[#00e69e] ml-0.5" />
+                      )}
+                    </button>
+                    {mostrarFiltros && (
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-20 p-4 space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-2">Categoría</label>
+                          <select
+                            value={filtroCategoria}
+                            onChange={(e) => setFiltroCategoria(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#00e69e] outline-none"
+                          >
+                            <option value="Todas">Todas</option>
+                            {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filtroStock}
+                            onChange={(e) => setFiltroStock(e.target.checked)}
+                            className="w-4 h-4 accent-[#00e69e]"
+                          />
+                          <span className="text-xs font-semibold text-gray-700">Solo stock bajo (&lt;15)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => { setFiltroCategoria('Todas'); setFiltroStock(false); }}
+                          className="w-full text-xs font-bold text-gray-400 hover:text-gray-700 transition-colors text-left"
+                        >
+                          Limpiar filtros
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={exportarCSV}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                  >
                     <Download size={16} />
-                    Exportar
+                    Exportar CSV
                   </button>
                 </div>
               </div>
@@ -165,8 +339,8 @@ const Admin = () => {
                         </td>
                         <td className="py-5 px-6 text-right">
                           <div className="flex justify-end gap-4 text-gray-500">
-                            <button className="hover:text-gray-900 transition-colors"><Edit2 size={16} /></button>
-                            <button className="hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                            <button className="hover:text-gray-900 transition-colors" onClick={() => abrirEditar(producto)}><Edit2 size={16} /></button>
+                            <button className="hover:text-red-500 transition-colors" onClick={() => eliminarProducto(producto.id)}><Trash2 size={16} /></button>
                           </div>
                         </td>
                       </tr>
@@ -185,11 +359,11 @@ const Admin = () => {
             <div className="flex items-center text-xs font-bold text-gray-500 mb-6 uppercase tracking-wider">
               <span className="hover:text-gray-900 cursor-pointer transition-colors" onClick={() => setIsAdding(false)}>Inventario</span>
               <ChevronRight size={14} className="mx-2" />
-              <span className="text-gray-900">Agregar Producto</span>
+              <span className="text-gray-900">{editando ? 'Editar Producto' : 'Agregar Producto'}</span>
             </div>
 
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Agregar Nuevo Producto</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{editando ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h1>
               <div className="flex gap-4">
                 <button
                   onClick={() => setIsAdding(false)}
@@ -201,7 +375,7 @@ const Admin = () => {
                   onClick={handleSave}
                   className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
                 >
-                  Guardar Producto
+                  {editando ? 'Guardar Cambios' : 'Guardar Producto'}
                 </button>
               </div>
             </div>
@@ -215,7 +389,22 @@ const Admin = () => {
                       <label className="block text-sm font-bold text-gray-900 mb-2">Nombre del Producto</label>
                       <input
                         type="text"
-                        placeholder="ej., Barra Olímpica 20kg"
+                        name="nombre"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        placeholder="ej., Proteína Whey 2kg"
+                        className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.nombre ? 'border-red-400' : 'border-gray-100'}`}
+                      />
+                      {errores.nombre && <p className="text-red-500 text-xs mt-1 font-medium">{errores.nombre}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Marca</label>
+                      <input
+                        type="text"
+                        name="marca"
+                        value={form.marca}
+                        onChange={handleChange}
+                        placeholder="GymStore"
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
                       />
                     </div>
@@ -223,6 +412,9 @@ const Admin = () => {
                       <label className="block text-sm font-bold text-gray-900 mb-2">Descripción</label>
                       <textarea
                         rows={5}
+                        name="descripcion"
+                        value={form.descripcion}
+                        onChange={handleChange}
                         placeholder="Descripción detallada del producto..."
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none resize-none font-medium"
                       ></textarea>
@@ -238,52 +430,130 @@ const Admin = () => {
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
                         <input
-                          type="text"
+                          type="number"
+                          name="precio"
+                          value={form.precio}
+                          onChange={handleChange}
                           placeholder="0.00"
+                          step="0.01"
+                          className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.precio ? 'border-red-400' : 'border-gray-100'}`}
+                        />
+                      </div>
+                      {errores.precio && <p className="text-red-500 text-xs mt-1 font-medium">{errores.precio}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio Original ($)</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <input
+                          type="number"
+                          name="precioOriginal"
+                          value={form.precioOriginal}
+                          onChange={handleChange}
+                          placeholder="0.00"
+                          step="0.01"
                           className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-2">Nivel de Stock Inicial</label>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Stock Inicial</label>
                       <input
-                        type="text"
+                        type="number"
+                        name="stock"
+                        value={form.stock}
+                        onChange={handleChange}
                         placeholder="0"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
+                        className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.stock ? 'border-red-400' : 'border-gray-100'}`}
                       />
+                      {errores.stock && <p className="text-red-500 text-xs mt-1 font-medium">{errores.stock}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Categoría</label>
+                      <div className="relative">
+                        <select
+                          name="categoria"
+                          value={form.categoria}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none appearance-none text-gray-600 font-medium"
+                        >
+                          {CATEGORIAS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-900 mb-2">Categoría</label>
-                    <div className="relative">
-                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none appearance-none text-gray-600 font-medium">
-                        <option>Selecciona una categoría</option>
-                        <option>Suplementos</option>
-                        <option>Equipamiento</option>
-                        <option>Ropa</option>
-                      </select>
-                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-                    </div>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                      <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} className="w-4 h-4 accent-[#00e69e]" />
+                      Producto activo
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                      <input type="checkbox" name="oferta" checked={form.oferta} onChange={handleChange} className="w-4 h-4 accent-[#00e69e]" />
+                      Destacar como oferta
+                    </label>
                   </div>
                 </div>
               </div>
 
               <div className="col-span-1">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-start mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 leading-tight">Multimedia del<br/>Producto</h2>
-                    <span className="bg-[#e6fff7] text-[#00c98a] px-2 py-1 rounded text-[10px] font-bold uppercase mt-1">Obligatorio</span>
+                  <div className="flex justify-between items-start mb-4">
+                    <h2 className="text-lg font-bold text-gray-900 leading-tight">Imágenes del<br/>Producto</h2>
+                    <span className="bg-[#e6fff7] text-[#00c98a] px-2 py-1 rounded text-[10px] font-bold uppercase mt-1">Galería</span>
                   </div>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100">
-                      <UploadCloud size={20} className="text-gray-900" />
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2 text-sm leading-tight">Haz clic para subir o<br/>arrastra y suelta</h3>
-                    <p className="text-xs text-gray-500 mb-6 font-medium">SVG, PNG, JPG or GIF<br/>(max. 800x400px)</p>
-                    <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors text-gray-700 shadow-sm">
-                      Buscar Archivos
+                  <p className="text-xs text-gray-400 mb-4 font-medium">La primera imagen es la principal. Podés agregar hasta 5 fotos (producto, tabla nutricional, etc.).</p>
+
+                  <div className="space-y-3">
+                    {form.imagenes.map((url, index) => (
+                      <div key={index} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-bold text-gray-500 flex-shrink-0">
+                            {index === 0 ? 'Principal' : `Foto ${index + 1}`}
+                          </span>
+                          {form.imagenes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => eliminarImagenSlot(index)}
+                              className="ml-auto text-red-400 hover:text-red-600 text-xs font-bold"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                        {url && url !== '' && (
+                          <img src={url} alt={`preview ${index}`} className="w-full h-28 object-contain rounded mb-2 bg-white border border-gray-100" />
+                        )}
+                        <input
+                          type="text"
+                          value={url}
+                          onChange={(e) => handleImagenChange(index, e.target.value)}
+                          placeholder="/img/producto.png o pegar URL"
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#00e69e] outline-none font-medium mb-2"
+                        />
+                        <label className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors text-gray-600 cursor-pointer flex items-center justify-center gap-1">
+                          <UploadCloud size={13} />
+                          Subir desde archivo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImagenFile(index, e.target.files[0])}
+                          />
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  {form.imagenes.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={agregarImagenSlot}
+                      className="mt-3 w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs font-bold text-gray-500 hover:border-[#00e69e] hover:text-[#00c98a] transition-colors"
+                    >
+                      + Agregar otra imagen
                     </button>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

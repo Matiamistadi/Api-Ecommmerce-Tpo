@@ -23,7 +23,11 @@ const DetalleProducto = () => {
     );
   }
 
-  const imagenes = [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean);
+  const imagenes = (
+    Array.isArray(producto.imagenes) && producto.imagenes.length > 0
+      ? producto.imagenes
+      : [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean)
+  );
 
   const disminuir = () => setCantidad((c) => Math.max(1, c - 1));
   const aumentar = () => setCantidad((c) => c + 1);

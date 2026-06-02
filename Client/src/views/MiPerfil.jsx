@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, MapPin, ShoppingBag, Zap } from 'lucide-react';
+import { User, MapPin, ShoppingBag } from 'lucide-react';
 import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAddresses } from '../context/AddressContext';
 
 const PEDIDOS_MOCK = [
   {
@@ -30,6 +31,7 @@ const PEDIDOS_MOCK = [
 ];
 
 const MiPerfil = () => {
+  const { direccionesFormateadas, establecerPrincipal } = useAddresses();
   const [perfil, setPerfil] = useState({
     nombre: 'Atleta Élite',
     email: 'atleta@gymstore.com',
@@ -49,21 +51,7 @@ const MiPerfil = () => {
         <header className="perfil__header">
           <div className="perfil__header-left">
             <h1 className="perfil__titulo">Mi Cuenta</h1>
-            <p className="perfil__subtitulo">Gestión de perfil, pedidos y lealtad.</p>
-          </div>
-
-          {/* Tarjeta de Lealtad */}
-          <div className="perfil__loyalty-card">
-            <div className="perfil__loyalty-icon-container">
-              <Zap className="perfil__loyalty-icon" size={20} fill="#0c0d14" stroke="#0c0d14" />
-            </div>
-            <div className="perfil__loyalty-info">
-              <span className="perfil__loyalty-label">NIVEL PRO</span>
-              <div className="perfil__loyalty-value-row">
-                <span className="perfil__loyalty-pts">1,250</span>
-                <span className="perfil__loyalty-unit">Pts</span>
-              </div>
-            </div>
+            <p className="perfil__subtitulo">Gestión de perfil, pedidos y direcciones.</p>
           </div>
         </header>
 
@@ -127,17 +115,37 @@ const MiPerfil = () => {
                 <h2 className="perfil__card-title">Direcciones de Envío</h2>
               </div>
 
-              <div className="perfil__address-box">
-                <div className="perfil__address-header">
-                  <span className="perfil__address-tag">Principal (Casa)</span>
-                  <span className="perfil__address-badge">Predeterminada</span>
+              {direccionesFormateadas.map((dir) => (
+                <div key={dir.id} className="perfil__address-box">
+                  <div className="perfil__address-header">
+                    <span className="perfil__address-tag">
+                      {dir.principal ? 'Principal' : 'Dirección'}
+                    </span>
+                    {dir.principal
+                      ? <span className="perfil__address-badge">Predeterminada</span>
+                      : (
+                        <button
+                          type="button"
+                          onClick={() => establecerPrincipal(dir.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#00c98a', fontWeight: 600 }}
+                        >
+                          Establecer como principal
+                        </button>
+                      )
+                    }
+                  </div>
+                  <p className="perfil__address-text">
+                    {dir.calle} {dir.numero}{dir.piso ? `, ${dir.piso}` : ''}<br />
+                    {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
+                    {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
+                    {dir.referencia ? <><br /><em>{dir.referencia}</em></> : null}
+                  </p>
                 </div>
-                <p className="perfil__address-text">
-                  Av. de la Fuerza 45, Portal 2, 4A<br />
-                  Madrid, 28001<br />
-                  España
-                </p>
-              </div>
+              ))}
+
+              {direccionesFormateadas.length === 0 && (
+                <p style={{ color: '#888', fontSize: '0.875rem', margin: '0 0 1rem' }}>Todavía no tenés direcciones guardadas.</p>
+              )}
 
               <Link to="/agregar-direccion" style={{ textDecoration: 'none' }}>
                 <Button variant="outline" className="perfil__btn-add-address h-auto">
@@ -158,9 +166,6 @@ const MiPerfil = () => {
                   <ShoppingBag size={20} className="perfil__card-icon" />
                   <h2 className="perfil__card-title">Historial de Pedidos</h2>
                 </div>
-                <Link to="/pedidos" className="perfil__card-action">
-                  Ver todos
-                </Link>
               </div>
 
               <div style={{ overflowX: 'auto' }}>

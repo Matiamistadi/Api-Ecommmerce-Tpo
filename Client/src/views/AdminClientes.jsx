@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useCommerce } from '../context/CommerceContext';
+import { AdminSidebar } from '../components/AdminSidebar';
 import './Admin.css';
 
 const filtros = ['Todos', 'Activo', 'Suspendido'];
@@ -23,6 +24,9 @@ const AdminClientes = () => {
   const siguienteEstado = (estado) => (estado === 'Activo' ? 'Suspendido' : 'Activo');
 
   return (
+    <div className="flex h-full bg-[#fafafa] font-sans w-full">
+      <AdminSidebar />
+      <main className="flex-1 ml-64 h-screen overflow-y-auto">
     <section className="admin-panel">
       <header className="admin-panel__header">
         <div>
@@ -103,6 +107,8 @@ const AdminClientes = () => {
         </div>
       </section>
     </section>
+      </main>
+    </div>
   );
 };
 

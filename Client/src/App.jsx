@@ -14,6 +14,8 @@ import AdminProductos from './views/Admin';
 import AdminDashboard from './views/AdminDashboard';
 import AdminPedidos from './views/AdminPedidos';
 import AdminClientes from './views/AdminClientes';
+import AdminAnaliticas from './views/AdminAnaliticas';
+import AdminAjustes from './views/AdminAjustes';
 import AgregarDireccion from './views/AgregarDireccion';
 import AgregarProducto from './views/AgregarProducto';
 import NotFound from './views/NotFound';
@@ -47,6 +49,8 @@ function App() {
           <Route path="/admin/pedidos" element={<AdminPedidos />} />
           <Route path="/admin/clientes" element={<AdminClientes />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/analiticas" element={<AdminAnaliticas />} />
+          <Route path="/admin/ajustes" element={<AdminAjustes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
