@@ -101,15 +101,6 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="login__hero">
-        <div className="login__hero-overlay"></div>
-        <div className="login__hero-content">
-          <h2 className="login__hero-title">Nutrición de Élite</h2>
-          <p className="login__hero-text">
-            Suplementos diseñados para maximizar tu rendimiento.
-          </p>
-        </div>
-      </div>
     </div>
   );
 };

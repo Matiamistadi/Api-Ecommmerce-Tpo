@@ -1,7 +1,8 @@
 .login {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 68px); /* Height minus sticky header */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 68px);
   background-color: var(--color-bg);
 }
 
@@ -11,8 +12,7 @@
   justify-content: center;
   padding: 64px 80px;
   background-color: var(--color-surface);
-  max-width: 580px;
-  margin: 0 auto;
+  max-width: 520px;
   width: 100%;
 }
 
