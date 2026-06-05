@@ -49,7 +49,7 @@ const Header = () => {
             🛒
             {totalItems > 0 && <span className="header__badge">{totalItems}</span>}
           </Link>
-          <Link to="/perfil" className="header__icon" aria-label="Perfil">👤</Link>
+          <Link to="/login" className="header__icon" aria-label="Perfil">👤</Link>
           <Link to="/admin" className="header__admin-link" aria-label="Admin">Admin</Link>
         </div>
       </div>

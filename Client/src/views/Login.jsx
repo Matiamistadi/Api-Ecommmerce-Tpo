@@ -28,7 +28,7 @@ const Login = () => {
     console.log('Login intentado:', { email, password });
     setError('');
     alert(`¡Bienvenido de nuevo, ${email}! (Sesión simulada)`);
-    navigate('/');
+    navigate('/perfil');
   };
 
   const handleAdminLogin = (e) => {
