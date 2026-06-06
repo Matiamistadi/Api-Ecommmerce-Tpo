@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useProducts } from '../context/ProductsContext';
 import { AdminSidebar } from '../components/AdminSidebar';
 import {
-  Search, Plus, SlidersHorizontal, Download, Edit2, Trash2,
+  Search, Plus, SlidersHorizontal, Download, Edit2, Eye, EyeOff, Trash2, AlertTriangle,
   Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown
 } from 'lucide-react';
 
-const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza', 'Vitaminas'];
+const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 
 const formVacio = {
   nombre: '',
@@ -22,7 +22,7 @@ const formVacio = {
 };
 
 const Admin = () => {
-  const { productos, agregarProducto, actualizarProducto, eliminarProducto } = useProducts();
+  const { productos, agregarProducto, actualizarProducto, eliminarProducto, toggleActivo } = useProducts();
   const [busqueda, setBusqueda] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -31,6 +31,9 @@ const Admin = () => {
   const [filtroCategoria, setFiltroCategoria] = useState('Todas');
   const [filtroStock, setFiltroStock] = useState(false);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null);
+  const [confirmarToggle, setConfirmarToggle] = useState(null);
+  const [seleccionados, setSeleccionados] = useState(new Set());
 
   const filtrados = productos.filter((producto) => {
     const matchBusqueda = (
@@ -42,6 +45,31 @@ const Admin = () => {
     const matchStock = !filtroStock || producto.stock < 15;
     return matchBusqueda && matchCategoria && matchStock;
   });
+
+  const todosSeleccionados = filtrados.length > 0 && filtrados.every((p) => seleccionados.has(p.id));
+  const algunoSeleccionado = filtrados.some((p) => seleccionados.has(p.id)) && !todosSeleccionados;
+
+  const toggleSeleccionAll = () => {
+    setSeleccionados(todosSeleccionados
+      ? new Set()
+      : new Set(filtrados.map((p) => p.id))
+    );
+  };
+
+  const toggleSeleccion = (id) => {
+    setSeleccionados((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const checkboxAllRef = useRef(null);
+  useEffect(() => {
+    if (checkboxAllRef.current) {
+      checkboxAllRef.current.indeterminate = algunoSeleccionado;
+    }
+  }, [algunoSeleccionado]);
 
   const exportarCSV = () => {
     const encabezado = ['ID', 'Nombre', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock', 'Estado'];
@@ -156,7 +184,7 @@ const Admin = () => {
 
   return (
     <div className="flex h-full bg-[#fafafa] font-sans w-full">
-      <AdminSidebar onAddClick={abrirAgregar} />
+      <AdminSidebar />
 
       <main className="flex-1 ml-64 h-screen overflow-y-auto">
         {!isAdding ? (
@@ -300,7 +328,15 @@ const Admin = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#1a1f2e] text-white text-sm">
-                      <th className="py-4 px-6 w-12"><input type="checkbox" className="w-4 h-4 rounded border-gray-500 bg-transparent" /></th>
+                      <th className="py-4 px-6 w-12">
+                        <input
+                          ref={checkboxAllRef}
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-500 bg-transparent accent-[#00e69e] cursor-pointer"
+                          checked={todosSeleccionados}
+                          onChange={toggleSeleccionAll}
+                        />
+                      </th>
                       <th className="py-4 px-6 font-semibold">Nombre del Producto</th>
                       <th className="py-4 px-6 font-semibold">Categoría</th>
                       <th className="py-4 px-6 font-semibold">Precio</th>
@@ -312,7 +348,14 @@ const Admin = () => {
                   <tbody className="text-sm">
                     {filtrados.map((producto) => (
                       <tr key={producto.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-5 px-6"><input type="checkbox" className="w-4 h-4 rounded border-gray-300" /></td>
+                        <td className="py-5 px-6">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 accent-[#00e69e] cursor-pointer"
+                            checked={seleccionados.has(producto.id)}
+                            onChange={() => toggleSeleccion(producto.id)}
+                          />
+                        </td>
                         <td className="py-5 px-6 font-bold text-gray-900">
                           <div className="flex items-center gap-3">
                             <img src={producto.imagenUrl} alt={producto.nombre} className="w-10 h-10 object-contain rounded" />
@@ -327,7 +370,11 @@ const Admin = () => {
                           {producto.stock}
                         </td>
                         <td className="py-5 px-6">
-                          {producto.stock > 0 ? (
+                          {producto.activo === false ? (
+                            <span className="flex items-center gap-2 text-orange-500 font-bold text-xs">
+                              <span className="w-2 h-2 rounded-full bg-orange-400"></span>Inactivo
+                            </span>
+                          ) : producto.stock > 0 ? (
                             <span className="flex items-center gap-2 text-[#016b53] font-bold text-xs">
                               <span className="w-2 h-2 rounded-full bg-[#016b53]"></span>En Stock
                             </span>
@@ -339,8 +386,21 @@ const Admin = () => {
                         </td>
                         <td className="py-5 px-6 text-right">
                           <div className="flex justify-end gap-4 text-gray-500">
-                            <button className="hover:text-gray-900 transition-colors" onClick={() => abrirEditar(producto)}><Edit2 size={16} /></button>
-                            <button className="hover:text-red-500 transition-colors" onClick={() => eliminarProducto(producto.id)}><Trash2 size={16} /></button>
+                            <button className="hover:text-gray-900 transition-colors" onClick={() => abrirEditar(producto)} title="Editar"><Edit2 size={16} /></button>
+                            <button
+                              className={`transition-colors ${producto.activo === false ? 'text-orange-400 hover:text-[#016b53]' : 'hover:text-orange-500'}`}
+                              onClick={() => setConfirmarToggle(producto)}
+                              title={producto.activo === false ? 'Activar producto' : 'Desactivar producto'}
+                            >
+                              {producto.activo === false ? <Eye size={16} /> : <EyeOff size={16} />}
+                            </button>
+                            <button
+                              className="hover:text-red-500 transition-colors"
+                              onClick={() => setConfirmarEliminar(producto)}
+                              title="Eliminar producto"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -426,7 +486,7 @@ const Admin = () => {
                   <h2 className="text-lg font-bold text-gray-900 mb-6">Detalles del Producto</h2>
                   <div className="grid grid-cols-2 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio Base ($)</label>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio con Descuento ($)</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
                         <input
@@ -442,7 +502,7 @@ const Admin = () => {
                       {errores.precio && <p className="text-red-500 text-xs mt-1 font-medium">{errores.precio}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio Original ($)</label>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio ($)</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
                         <input
@@ -560,6 +620,85 @@ const Admin = () => {
           </div>
         )}
       </main>
+
+      {/* Modal confirmación toggle activo/inactivo */}
+      {confirmarToggle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 animate-[toast-slide-up_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${confirmarToggle.activo === false ? 'bg-green-100' : 'bg-orange-100'}`}>
+                <AlertTriangle size={20} className={confirmarToggle.activo === false ? 'text-green-600' : 'text-orange-500'} />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">
+                {confirmarToggle.activo === false ? 'Activar producto' : 'Desactivar producto'}
+              </h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              ¿Estás seguro de que querés{' '}
+              <span className="font-bold text-gray-900">
+                {confirmarToggle.activo === false ? 'activar' : 'desactivar'}
+              </span>{' '}
+              <span className="font-bold text-gray-900">{confirmarToggle.nombre}</span>?
+            </p>
+            <p className="text-xs text-orange-500 font-medium mb-6">
+              {confirmarToggle.activo === false
+                ? 'El producto volverá a ser visible en la tienda.'
+                : 'El producto dejará de aparecer en la tienda para los clientes.'}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmarToggle(null)}
+                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { toggleActivo(confirmarToggle.id); setConfirmarToggle(null); }}
+                className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                  confirmarToggle.activo === false
+                    ? 'bg-[#00e69e] hover:bg-[#00c98a] text-black'
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                }`}
+              >
+                {confirmarToggle.activo === false ? 'Sí, activar' : 'Sí, desactivar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmación eliminar */}
+      {confirmarEliminar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 animate-[toast-slide-up_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={20} className="text-red-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Eliminar producto</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              ¿Estás seguro de que querés eliminar{' '}
+              <span className="font-bold text-gray-900">{confirmarEliminar.nombre}</span>?
+            </p>
+            <p className="text-xs text-red-500 font-medium mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmarEliminar(null)}
+                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { eliminarProducto(confirmarEliminar.id); setConfirmarEliminar(null); }}
+                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold transition-colors"
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

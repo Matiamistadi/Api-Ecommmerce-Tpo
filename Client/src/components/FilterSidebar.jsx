@@ -1,6 +1,6 @@
 import './FilterSidebar.css';
 
-const categorias = ['Todas', 'Proteína', 'Energía', 'Recuperación', 'Fuerza', 'Vitaminas'];
+const categorias = ['Todas', 'Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 
 const FilterSidebar = ({ categoriaSeleccionada, onCategoriaChange, onClose }) => {
   return (

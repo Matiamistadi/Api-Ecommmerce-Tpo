@@ -43,8 +43,9 @@ const HERO_BG_IMAGE =
 
 const Home = () => {
   const { productos } = useProducts();
-  const destacados = productos.filter((p) => p.precioOriginal).slice(0, 3);
-  const ofertas = destacados.length >= 3 ? destacados : productos.slice(0, 3);
+  const productosActivos = productos.filter((p) => p.activo !== false);
+  const destacados = productosActivos.filter((p) => p.precioOriginal).slice(0, 3);
+  const ofertas = destacados.length >= 3 ? destacados : productosActivos.slice(0, 3);
   const [suscripto, setSuscripto] = useState(false);
 
   const handleSuscribirse = (e) => {

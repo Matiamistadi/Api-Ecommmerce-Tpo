@@ -26,6 +26,9 @@ public class Producto {
     private Double precio;
     private Integer stock;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean activo = true;
+
     @ManyToOne
     @JoinColumn(name = "id_categoria")
     private Categoria categoria;

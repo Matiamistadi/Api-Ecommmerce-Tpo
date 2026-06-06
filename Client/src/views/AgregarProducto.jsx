@@ -17,7 +17,7 @@ const initialForm = {
   oferta: false,
 };
 
-const categorias = ['Proteína', 'Energía', 'Recuperación', 'Fuerza', 'Vitaminas'];
+const categorias = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 
 const AgregarProducto = () => {
   const navigate = useNavigate();

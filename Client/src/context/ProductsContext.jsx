@@ -29,8 +29,14 @@ export const ProductsProvider = ({ children }) => {
     setProductos(prev => prev.filter(p => p.id !== id));
   };
 
+  const toggleActivo = (id) => {
+    setProductos(prev =>
+      prev.map(p => p.id === id ? { ...p, activo: p.activo === false ? true : false } : p)
+    );
+  };
+
   return (
-    <ProductsContext.Provider value={{ productos, agregarProducto, actualizarProducto, eliminarProducto }}>
+    <ProductsContext.Provider value={{ productos, agregarProducto, actualizarProducto, eliminarProducto, toggleActivo }}>
       {children}
     </ProductsContext.Provider>
   );

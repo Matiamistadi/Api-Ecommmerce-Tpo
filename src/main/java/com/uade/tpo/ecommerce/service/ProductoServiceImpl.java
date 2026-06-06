@@ -51,9 +51,18 @@ public class ProductoServiceImpl implements ProductoService {
             p.setDescripcion(productoActualizado.getDescripcion());
             p.setPrecio(productoActualizado.getPrecio());
             p.setStock(productoActualizado.getStock());
+            p.setActivo(productoActualizado.isActivo());
             p.setCategoria(productoActualizado.getCategoria());
             p.setMarca(productoActualizado.getMarca());
             p.setVendedor(productoActualizado.getVendedor());
+            return productoRepository.save(p);
+        });
+    }
+
+    @Override
+    public Optional<Producto> toggleActivo(Long id) {
+        return productoRepository.findById(id).map(p -> {
+            p.setActivo(!p.isActivo());
             return productoRepository.save(p);
         });
     }

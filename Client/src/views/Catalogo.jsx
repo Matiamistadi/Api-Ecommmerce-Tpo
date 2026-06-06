@@ -9,10 +9,12 @@ const Catalogo = () => {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
+  const productosActivos = productos.filter((p) => p.activo !== false);
+
   const productosFiltrados =
     categoriaSeleccionada === 'Todas'
-      ? productos
-      : productos.filter((p) => p.categoria === categoriaSeleccionada);
+      ? productosActivos
+      : productosActivos.filter((p) => p.categoria === categoriaSeleccionada);
 
   return (
     <main className="catalogo">

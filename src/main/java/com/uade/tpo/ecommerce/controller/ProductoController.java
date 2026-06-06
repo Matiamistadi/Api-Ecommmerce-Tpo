@@ -51,6 +51,13 @@ public class ProductoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/{id}/toggle-activo")
+    public ResponseEntity<Producto> toggleActivo(@PathVariable Long id) {
+        return productoService.toggleActivo(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
         if (productoService.eliminar(id)) {

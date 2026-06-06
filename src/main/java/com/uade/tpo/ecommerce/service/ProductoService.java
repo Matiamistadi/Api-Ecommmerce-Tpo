@@ -13,6 +13,7 @@ public interface ProductoService {
     List<Producto> obtenerPorMarca(Long marcaId);
     Producto crear(Producto producto);
     Optional<Producto> actualizar(Long id, Producto productoActualizado);
+    Optional<Producto> toggleActivo(Long id);
     boolean eliminar(Long id);
     ImagenProducto agregarImagen(Long productoId, ImagenProducto imagen);
     boolean eliminarImagen(Long productoId, Long imagenId);

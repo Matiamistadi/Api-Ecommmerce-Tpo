@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Package, ShoppingBag, Users, TrendingUp, Settings, Plus, Monitor } from 'lucide-react';
+import { Home, Package, ShoppingBag, Users, TrendingUp, Settings, Monitor } from 'lucide-react';
 
 const sidebarItems = [
   { icon: Home, label: 'Ir a la Home', path: '/' },
@@ -10,11 +10,11 @@ const sidebarItems = [
   { icon: Settings, label: 'Ajustes', path: '/admin/ajustes' },
 ];
 
-export const AdminSidebar = ({ onAddClick }) => {
+export const AdminSidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-[#f4f4f5] h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col justify-between z-10">
+    <aside className="w-64 bg-[#f4f4f5] h-screen fixed left-0 top-0 border-r border-gray-200 flex flex-col z-10">
       <div>
         <div className="flex items-center gap-3 p-6 mb-4">
           <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-800">
@@ -49,15 +49,6 @@ export const AdminSidebar = ({ onAddClick }) => {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
-        <button
-          onClick={onAddClick}
-          className="w-full bg-[#00e69e] hover:bg-[#00c98a] text-black font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
-        >
-          <Plus size={20} />
-          Agregar Producto
-        </button>
-      </div>
     </aside>
   );
 };
