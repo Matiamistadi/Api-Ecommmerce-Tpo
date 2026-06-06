@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Dumbbell, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import './Registro.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,29 +9,40 @@ import { Label } from '@/components/ui/label';
 const Registro = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmar: '' });
-  const [error, setError] = useState('');
+  const [errores, setErrores] = useState({});
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const validarTodo = () => {
+    const e = {};
+    if (!form.nombre) {
+      e.nombre = 'Ingresá tu nombre completo.';
+    }
+    if (!form.email || !form.email.includes('@')) {
+      e.email = 'Ingresá un correo electrónico válido.';
+    }
+    if (!form.password) {
+      e.password = 'Ingresá tu contraseña.';
+    } else if (form.password.length < 6) {
+      e.password = 'La contraseña debe tener al menos 6 caracteres.';
+    }
+    if (!form.confirmar) {
+      e.confirmar = 'Confirmá tu contraseña.';
+    } else if (form.password !== form.confirmar) {
+      e.confirmar = 'Las contraseñas no coinciden.';
+    }
+
+    setErrores(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.nombre || !form.email || !form.password || !form.confirmar) {
-      setError('Por favor completá todos los campos.');
+    if (!validarTodo()) {
       return;
     }
-    if (!form.email.includes('@')) {
-      setError('Ingresá un email válido.');
-      return;
-    }
-    if (form.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-    if (form.password !== form.confirmar) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
-    setError('');
+
+    setErrores({});
     alert(`¡Cuenta creada con éxito! Bienvenido, ${form.nombre}.`);
     navigate('/login');
   };
@@ -50,39 +61,45 @@ const Registro = () => {
             <Label htmlFor="nombre" className="registro__label">Nombre completo</Label>
             <Input
               id="nombre" name="nombre" type="text"
-              className="registro__input h-auto" placeholder="Juan Pérez"
+              className={`registro__input h-auto ${errores.nombre ? 'registro__input--error' : ''}`}
+              placeholder="Juan Pérez"
               value={form.nombre} onChange={handleChange}
             />
+            {errores.nombre && <span className="registro__field-error">{errores.nombre}</span>}
           </div>
 
           <div className="registro__field">
             <Label htmlFor="email" className="registro__label">Correo electrónico</Label>
             <Input
               id="email" name="email" type="email"
-              className="registro__input h-auto" placeholder="juan@ejemplo.com"
+              className={`registro__input h-auto ${errores.email ? 'registro__input--error' : ''}`}
+              placeholder="juan@ejemplo.com"
               value={form.email} onChange={handleChange}
             />
+            {errores.email && <span className="registro__field-error">{errores.email}</span>}
           </div>
 
           <div className="registro__field">
             <Label htmlFor="password" className="registro__label">Contraseña</Label>
             <Input
               id="password" name="password" type="password"
-              className="registro__input h-auto" placeholder="••••••••"
+              className={`registro__input h-auto ${errores.password ? 'registro__input--error' : ''}`}
+              placeholder="••••••••"
               value={form.password} onChange={handleChange}
             />
+            {errores.password && <span className="registro__field-error">{errores.password}</span>}
           </div>
 
           <div className="registro__field">
             <Label htmlFor="confirmar" className="registro__label">Confirmar contraseña</Label>
             <Input
               id="confirmar" name="confirmar" type="password"
-              className="registro__input h-auto" placeholder="••••••••"
+              className={`registro__input h-auto ${errores.confirmar ? 'registro__input--error' : ''}`}
+              placeholder="••••••••"
               value={form.confirmar} onChange={handleChange}
             />
+            {errores.confirmar && <span className="registro__field-error">{errores.confirmar}</span>}
           </div>
-
-          {error && <p className="registro__error">{error}</p>}
 
           <Button type="submit" className="registro__submit h-auto w-full">
             REGISTRARSE <ArrowRight size={18} />
@@ -94,7 +111,7 @@ const Registro = () => {
         </p>
       </div>
 
-      <div className="registro__hero">
+      {/* <div className="registro__hero">
         <div className="registro__hero-image"></div>
         <div className="registro__hero-overlay"></div>
         <div className="registro__hero-content">
@@ -106,7 +123,7 @@ const Registro = () => {
             Equipamiento de grado profesional para atletas que exigen lo mejor en cada entrenamiento.
           </p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -10,24 +10,30 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errores, setErrores] = useState({});
+
+  const validarTodo = () => {
+    const e = {};
+    if (!email || !email.includes('@')) {
+      e.email = 'Ingresá un correo electrónico válido.';
+    }
+    if (!password) {
+      e.password = 'Ingresá tu contraseña.';
+    }
+
+    setErrores(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError('Por favor completá todos los campos.');
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setError('Ingresá un email válido.');
+    if (!validarTodo()) {
       return;
     }
 
     console.log('Login intentado:', { email, password });
-    setError('');
-    alert(`¡Bienvenido de nuevo, ${email}! (Sesión simulada)`);
+    setErrores({});
     navigate('/perfil');
   };
 
@@ -54,11 +60,12 @@ const Login = () => {
             <Input
               id="email"
               type="email"
-              className="login__input h-auto"
+              className={`login__input h-auto ${errores.email ? 'login__input--error' : ''}`}
               placeholder="athlete@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {errores.email && <span className="login__field-error">{errores.email}</span>}
           </div>
 
           <div className="login__field">
@@ -69,14 +76,13 @@ const Login = () => {
             <Input
               id="password"
               type="password"
-              className="login__input h-auto"
+              className={`login__input h-auto ${errores.password ? 'login__input--error' : ''}`}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            {errores.password && <span className="login__field-error">{errores.password}</span>}
           </div>
-
-          {error && <p className="login__error">{error}</p>}
 
           <Button type="submit" className="login__submit h-auto w-full">
             INICIAR SESIÓN <ArrowRight size={18} />
