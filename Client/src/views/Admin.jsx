@@ -110,8 +110,8 @@ const Admin = () => {
     setForm({
       nombre: producto.nombre || '',
       descripcion: producto.descripcion || '',
-      precio: producto.precio || '',
-      precioOriginal: producto.precioOriginal || '',
+      precio: producto.precioOriginal ? producto.precio : '',
+      precioOriginal: producto.precioOriginal || producto.precio || '',
       stock: producto.stock || '',
       categoria: producto.categoria || 'Proteína',
       marca: producto.marca || 'GymStore',
@@ -156,7 +156,7 @@ const Admin = () => {
   const handleSave = () => {
     const nuevosErrores = {};
     if (!form.nombre.trim()) nuevosErrores.nombre = 'El nombre es obligatorio';
-    if (!form.precio) nuevosErrores.precio = 'El precio es obligatorio';
+    if (!form.precioOriginal) nuevosErrores.precioOriginal = 'El precio es obligatorio';
     if (!form.stock) nuevosErrores.stock = 'El stock es obligatorio';
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
@@ -164,10 +164,12 @@ const Admin = () => {
     }
     setErrores({});
     const imagenesValidas = form.imagenes.filter((url) => url.trim() !== '');
+    const precioFinal = form.precio ? Number(form.precio) : Number(form.precioOriginal);
+    const precioBase = form.precio ? Number(form.precioOriginal) : null;
     const datos = {
       ...form,
-      precio: Number(form.precio),
-      precioOriginal: form.precioOriginal ? Number(form.precioOriginal) : null,
+      precio: precioFinal,
+      precioOriginal: precioBase,
       stock: Number(form.stock),
       imagenes: imagenesValidas.length > 0 ? imagenesValidas : ['/img/BannerNexa.png'],
       imagenUrl: imagenesValidas[0] || '/img/BannerNexa.png',
@@ -486,22 +488,6 @@ const Admin = () => {
                   <h2 className="text-lg font-bold text-gray-900 mb-6">Detalles del Producto</h2>
                   <div className="grid grid-cols-2 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio con Descuento ($)</label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
-                        <input
-                          type="number"
-                          name="precio"
-                          value={form.precio}
-                          onChange={handleChange}
-                          placeholder="0.00"
-                          step="0.01"
-                          className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.precio ? 'border-red-400' : 'border-gray-100'}`}
-                        />
-                      </div>
-                      {errores.precio && <p className="text-red-500 text-xs mt-1 font-medium">{errores.precio}</p>}
-                    </div>
-                    <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">Precio ($)</label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
@@ -509,6 +495,22 @@ const Admin = () => {
                           type="number"
                           name="precioOriginal"
                           value={form.precioOriginal}
+                          onChange={handleChange}
+                          placeholder="0.00"
+                          step="0.01"
+                          className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.precioOriginal ? 'border-red-400' : 'border-gray-100'}`}
+                        />
+                      </div>
+                      {errores.precioOriginal && <p className="text-red-500 text-xs mt-1 font-medium">{errores.precioOriginal}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">Precio con Descuento ($) <span className="text-gray-400 font-normal">(opcional)</span></label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                        <input
+                          type="number"
+                          name="precio"
+                          value={form.precio}
                           onChange={handleChange}
                           placeholder="0.00"
                           step="0.01"
