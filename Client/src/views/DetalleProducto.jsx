@@ -8,10 +8,28 @@ const DetalleProducto = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCart();
-  const { productos } = useProducts();
+  const { productos, loading, error } = useProducts();
   const producto = productos.find((p) => p.id === parseInt(id));
   const [cantidad, setCantidad] = useState(1);
   const [imgActiva, setImgActiva] = useState(0);
+
+  if (loading) {
+    return (
+      <div className="placeholder">
+        <h1 className="placeholder__title">Cargando producto...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="placeholder">
+        <h1 className="placeholder__title">Error de conexión</h1>
+        <p className="placeholder__text">No se pudo conectar con el servidor. Verificá que el backend esté corriendo.</p>
+        <Link to="/productos" className="home__cta">Ver catálogo</Link>
+      </div>
+    );
+  }
 
   if (!producto) {
     return (

@@ -1,9 +1,10 @@
 package com.uade.tpo.ecommerce.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.ImagenProducto;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.service.ProductoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos")
+@RequiredArgsConstructor
 public class ProductoController {
 
-    @Autowired
-    private ProductoService productoService;
+    private final ProductoService productoService;
 
     @GetMapping
     public ResponseEntity<List<Producto>> listarProductos() {

@@ -1,8 +1,9 @@
 package com.uade.tpo.ecommerce.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Marca;
 import com.uade.tpo.ecommerce.service.MarcaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,10 +12,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/marcas")
+@RequiredArgsConstructor
 public class MarcaController {
 
-    @Autowired
-    private MarcaService marcaService;
+    private final MarcaService marcaService;
 
     @GetMapping
     public ResponseEntity<List<Marca>> listarMarcas() {

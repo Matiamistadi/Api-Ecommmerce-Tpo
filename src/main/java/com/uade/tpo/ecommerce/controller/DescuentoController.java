@@ -1,9 +1,10 @@
 package com.uade.tpo.ecommerce.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Descuento;
 import com.uade.tpo.ecommerce.entity.ProductoDescuento;
 import com.uade.tpo.ecommerce.service.DescuentoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/descuentos")
+@RequiredArgsConstructor
 public class DescuentoController {
 
-    @Autowired
-    private DescuentoService descuentoService;
+    private final DescuentoService descuentoService;
 
     @GetMapping
     public ResponseEntity<List<Descuento>> listarDescuentos() {

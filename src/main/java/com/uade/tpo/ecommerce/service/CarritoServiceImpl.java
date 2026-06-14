@@ -1,8 +1,9 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.*;
 import com.uade.tpo.ecommerce.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,22 +13,18 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CarritoServiceImpl implements CarritoService {
 
-    @Autowired
-    private CarritoRepository carritoRepository;
+    private final CarritoRepository carritoRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
 
-    @Autowired
-    private OrdenRepository ordenRepository;
+    private final OrdenRepository ordenRepository;
 
-    @Autowired
-    private DireccionRepository direccionRepository;
+    private final DireccionRepository direccionRepository;
 
     @Override
     public Optional<Carrito> obtenerPorId(Long id) {

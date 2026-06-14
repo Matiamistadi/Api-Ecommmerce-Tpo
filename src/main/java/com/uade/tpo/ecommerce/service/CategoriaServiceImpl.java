@@ -1,18 +1,19 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Categoria;
 import com.uade.tpo.ecommerce.repository.CategoriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CategoriaServiceImpl implements CategoriaService {
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
+    private final CategoriaRepository categoriaRepository;
 
     @Override
     public List<Categoria> obtenerTodas() {

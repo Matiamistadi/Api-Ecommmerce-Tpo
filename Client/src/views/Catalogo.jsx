@@ -5,7 +5,7 @@ import { useProducts } from '../context/ProductsContext';
 import './Catalogo.css';
 
 const Catalogo = () => {
-  const { productos } = useProducts();
+  const { productos, loading, error, recargarProductos } = useProducts();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
@@ -42,20 +42,37 @@ const Catalogo = () => {
         </div>
 
         <section className="catalogo__content">
-          <p className="catalogo__count">
-            Mostrando {productosFiltrados.length} productos
-          </p>
+          {loading && (
+            <p className="catalogo__count">Cargando productos...</p>
+          )}
 
-          {productosFiltrados.length === 0 ? (
-            <p className="catalogo__empty">
-              No hay productos en esta categoría.
-            </p>
-          ) : (
-            <div className="catalogo__grid">
-              {productosFiltrados.map((producto) => (
-                <ProductCard key={producto.id} producto={producto} />
-              ))}
+          {!loading && error && (
+            <div className="catalogo__empty">
+              <p>No se pudo conectar con el servidor. Verificá que el backend esté corriendo.</p>
+              <button type="button" className="catalogo__filtros-toggle" onClick={recargarProductos}>
+                Reintentar
+              </button>
             </div>
+          )}
+
+          {!loading && !error && (
+            <>
+              <p className="catalogo__count">
+                Mostrando {productosFiltrados.length} productos
+              </p>
+
+              {productosFiltrados.length === 0 ? (
+                <p className="catalogo__empty">
+                  No hay productos en esta categoría.
+                </p>
+              ) : (
+                <div className="catalogo__grid">
+                  {productosFiltrados.map((producto) => (
+                    <ProductCard key={producto.id} producto={producto} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>

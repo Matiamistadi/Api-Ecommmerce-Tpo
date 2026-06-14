@@ -1,23 +1,23 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.EstadoPago;
 import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Pago;
 import com.uade.tpo.ecommerce.repository.OrdenRepository;
 import com.uade.tpo.ecommerce.repository.PagoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PagoServiceImpl implements PagoService {
 
-    @Autowired
-    private PagoRepository pagoRepository;
+    private final PagoRepository pagoRepository;
 
-    @Autowired
-    private OrdenRepository ordenRepository;
+    private final OrdenRepository ordenRepository;
 
     @Override
     public Optional<Pago> obtenerPorId(Long id) {

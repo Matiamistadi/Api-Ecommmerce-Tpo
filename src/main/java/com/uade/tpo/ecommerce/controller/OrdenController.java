@@ -1,11 +1,12 @@
 package com.uade.tpo.ecommerce.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.EstadoOrden;
 import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Rol;
 import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.service.OrdenService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ordenes")
+@RequiredArgsConstructor
 public class OrdenController {
 
-    @Autowired
-    private OrdenService ordenService;
+    private final OrdenService ordenService;
 
     @GetMapping
     public ResponseEntity<List<Orden>> listarOrdenes() {

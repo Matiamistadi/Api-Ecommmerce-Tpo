@@ -1,18 +1,19 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Marca;
 import com.uade.tpo.ecommerce.repository.MarcaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class MarcaServiceImpl implements MarcaService {
 
-    @Autowired
-    private MarcaRepository marcaRepository;
+    private final MarcaRepository marcaRepository;
 
     @Override
     public List<Marca> obtenerTodas() {

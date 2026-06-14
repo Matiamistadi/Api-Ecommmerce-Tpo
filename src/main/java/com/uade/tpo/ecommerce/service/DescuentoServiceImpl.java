@@ -1,12 +1,13 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Descuento;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.entity.ProductoDescuento;
 import com.uade.tpo.ecommerce.repository.DescuentoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoDescuentoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,16 +15,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DescuentoServiceImpl implements DescuentoService {
 
-    @Autowired
-    private DescuentoRepository descuentoRepository;
+    private final DescuentoRepository descuentoRepository;
 
-    @Autowired
-    private ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
 
-    @Autowired
-    private ProductoDescuentoRepository productoDescuentoRepository;
+    private final ProductoDescuentoRepository productoDescuentoRepository;
 
     @Override
     public List<Descuento> obtenerTodos() {

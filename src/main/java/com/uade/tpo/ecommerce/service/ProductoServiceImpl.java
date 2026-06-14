@@ -1,23 +1,23 @@
 package com.uade.tpo.ecommerce.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.ImagenProducto;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.ImagenProductoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductoServiceImpl implements ProductoService {
 
-    @Autowired
-    private ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
 
-    @Autowired
-    private ImagenProductoRepository imagenProductoRepository;
+    private final ImagenProductoRepository imagenProductoRepository;
 
     @Override
     public List<Producto> obtenerTodos() {

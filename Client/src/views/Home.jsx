@@ -42,7 +42,7 @@ const HERO_BG_IMAGE =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1920&q=80';
 
 const Home = () => {
-  const { productos } = useProducts();
+  const { productos, loading, error } = useProducts();
   const productosActivos = productos.filter((p) => p.activo !== false);
   const destacados = productosActivos.filter((p) => p.precioOriginal).slice(0, 3);
   const ofertas = destacados.length >= 3 ? destacados : productosActivos.slice(0, 3);
@@ -154,11 +154,23 @@ const Home = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 justify-items-center gap-7 md:grid-cols-2 lg:grid-cols-3">
-          {ofertas.map((producto) => (
-            <ProductCard key={producto.id} producto={producto} variant="home" />
-          ))}
-        </div>
+        {loading && (
+          <p className="text-sm text-gym-text-muted">Cargando productos...</p>
+        )}
+
+        {!loading && error && (
+          <p className="text-sm text-gym-text-muted">
+            No se pudo conectar con el servidor. Verificá que el backend esté corriendo.
+          </p>
+        )}
+
+        {!loading && !error && (
+          <div className="grid grid-cols-1 justify-items-center gap-7 md:grid-cols-2 lg:grid-cols-3">
+            {ofertas.map((producto) => (
+              <ProductCard key={producto.id} producto={producto} variant="home" />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Newsletter */}

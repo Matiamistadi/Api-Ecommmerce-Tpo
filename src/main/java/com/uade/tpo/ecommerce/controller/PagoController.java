@@ -1,12 +1,13 @@
 package com.uade.tpo.ecommerce.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Pago;
 import com.uade.tpo.ecommerce.entity.Rol;
 import com.uade.tpo.ecommerce.entity.Usuario;
 import com.uade.tpo.ecommerce.service.OrdenService;
 import com.uade.tpo.ecommerce.service.PagoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,13 +17,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pagos")
+@RequiredArgsConstructor
 public class PagoController {
 
-    @Autowired
-    private PagoService pagoService;
+    private final PagoService pagoService;
 
-    @Autowired
-    private OrdenService ordenService;
+    private final OrdenService ordenService;
 
     private boolean esMismoUsuarioOAdmin(Long usuarioId, Usuario usuarioAutenticado) {
         return usuarioAutenticado != null

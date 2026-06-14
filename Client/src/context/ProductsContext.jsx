@@ -1,10 +1,32 @@
-import { createContext, useContext, useState } from 'react';
-import { productos as productosIniciales } from '../data/productos';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { getProductos } from '../services/productosService';
 
 const ProductsContext = createContext();
 
 export const ProductsProvider = ({ children }) => {
-  const [productos, setProductos] = useState(productosIniciales);
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchProductos = () => {
+    getProductos()
+      .then((data) => {
+        setProductos(data);
+        setError(null);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProductos();
+  }, []);
+
+  const recargarProductos = () => {
+    setLoading(true);
+    setError(null);
+    fetchProductos();
+  };
 
   const agregarProducto = (productoNuevo) => {
     const nuevoProducto = {
@@ -36,7 +58,18 @@ export const ProductsProvider = ({ children }) => {
   };
 
   return (
-    <ProductsContext.Provider value={{ productos, agregarProducto, actualizarProducto, eliminarProducto, toggleActivo }}>
+    <ProductsContext.Provider
+      value={{
+        productos,
+        loading,
+        error,
+        recargarProductos,
+        agregarProducto,
+        actualizarProducto,
+        eliminarProducto,
+        toggleActivo,
+      }}
+    >
       {children}
     </ProductsContext.Provider>
   );
