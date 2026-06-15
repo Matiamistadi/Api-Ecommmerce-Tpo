@@ -14,7 +14,7 @@ public class UsuarioUpdateRequest {
     @Email(message = "El email no tiene un formato válido")
     private String email;
 
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;
 
     private Boolean activo;

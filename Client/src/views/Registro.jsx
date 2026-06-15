@@ -26,8 +26,8 @@ const Registro = () => {
     }
     if (!form.password) {
       e.password = 'Ingresá tu contraseña.';
-    } else if (form.password.length < 6) {
-      e.password = 'La contraseña debe tener al menos 6 caracteres.';
+    } else if (form.password.length < 8) {
+      e.password = 'La contraseña debe tener al menos 8 caracteres.';
     }
     if (!form.confirmar) {
       e.confirmar = 'Confirmá tu contraseña.';

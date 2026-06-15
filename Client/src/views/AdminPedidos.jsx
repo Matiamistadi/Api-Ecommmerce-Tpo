@@ -1,6 +1,6 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
-import { X, AlertTriangle, Package, MapPin, User, ChevronDown } from 'lucide-react';
+import { X, AlertTriangle, Package, MapPin, User } from 'lucide-react';
 import { getTodasLasOrdenes, actualizarEstadoOrden } from '../services/ordenService';
 import { formatPrecio } from '@/lib/formato';
 import './Admin.css';
@@ -27,8 +27,6 @@ const AdminPedidos = () => {
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { pedido, nuevoEstado }
-  const [dropdownAbierto, setDropdownAbierto] = useState(null);
-  const dropdownRef = useRef(null);
 
   // Traemos todas las órdenes reales del backend al montar el panel
   useEffect(() => {
@@ -66,18 +64,7 @@ const AdminPedidos = () => {
     { label: 'Pedidos pendientes', value: metrics.pedidosPendientes, sub: 'Para aprobar' },
   ];
 
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownAbierto(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   const solicitarCambioEstado = (pedido, nuevoEstado) => {
-    setDropdownAbierto(null);
     if (nuevoEstado === pedido.estado) return;
     setConfirmarCambio({ pedido, nuevoEstado });
   };
@@ -166,7 +153,7 @@ const AdminPedidos = () => {
                         </span>
                       </td>
                       <td>
-                        <div className="admin-panel__actions" ref={dropdownAbierto === pedido.id ? dropdownRef : null}>
+                        <div className="admin-panel__actions">
                           <button
                             type="button"
                             className="admin-panel__button"
@@ -175,34 +162,15 @@ const AdminPedidos = () => {
                             Ver detalle
                           </button>
 
-                          <div className="relative">
-                            <button
-                              type="button"
-                              className="admin-panel__button flex items-center gap-1"
-                              onClick={() => setDropdownAbierto(dropdownAbierto === pedido.id ? null : pedido.id)}
-                            >
-                              Cambiar estado
-                              <ChevronDown size={13} />
-                            </button>
-
-                            {dropdownAbierto === pedido.id && (
-                              <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-30 overflow-hidden">
-                                {ESTADOS_PEDIDO.map((estado) => (
-                                  <button
-                                    key={estado}
-                                    type="button"
-                                    onClick={() => solicitarCambioEstado(pedido, estado)}
-                                    className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-gray-50 ${
-                                      pedido.estado === estado ? 'text-[#00c98a] font-bold bg-[#f0fff9]' : 'text-gray-700'
-                                    }`}
-                                  >
-                                    {formatEstado(estado)}
-                                    {pedido.estado === estado && <span className="ml-1 text-xs">✓</span>}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          <select
+                            className="admin-panel__estado-select"
+                            value={pedido.estado}
+                            onChange={(e) => solicitarCambioEstado(pedido, e.target.value)}
+                          >
+                            {ESTADOS_PEDIDO.map((estado) => (
+                              <option key={estado} value={estado}>{formatEstado(estado)}</option>
+                            ))}
+                          </select>
                         </div>
                       </td>
                     </tr>

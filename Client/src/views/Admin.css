@@ -238,6 +238,25 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-panel__estado-select {
+  padding: 7px 12px;
+  border: 1px solid var(--color-outline);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.admin-panel__estado-select:focus {
+  outline: none;
+  border-color: #00e69e;
 }
 
 .admin__btn-editar,

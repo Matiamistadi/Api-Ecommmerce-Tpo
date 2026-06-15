@@ -44,7 +44,7 @@ const ProductCard = ({ producto, variant }) => {
           <div
             className={cn(
               'relative mt-3 flex aspect-4/3 items-center justify-center p-6',
-              'bg-gradient-to-br from-gym-primary to-[#0d0d14]'
+              'rounded-xl bg-gym-surface-low'
             )}
           >
             {discount > 0 && (

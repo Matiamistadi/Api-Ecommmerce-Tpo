@@ -97,7 +97,11 @@ const DetalleProducto = () => {
               </span>
             )}
             <span className="detalle__stock">
-              {sinStock ? '✕ Sin stock' : `✓ ${producto.stock} en stock`}
+              {sinStock
+                ? '✕ Sin stock'
+                : producto.stock <= 5
+                  ? '⚠ ¡Últimas unidades!'
+                  : '✓ Hay stock'}
             </span>
           </div>
 

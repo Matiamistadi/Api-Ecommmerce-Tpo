@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductsContext';
 import { realizarCheckout } from '../services/checkoutService';
 import { formatPrecio } from '@/lib/formato';
 import { CreditCard, Lock } from 'lucide-react';
@@ -13,6 +14,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { carrito, subtotal, vaciarCarrito } = useCart();
   const { usuario } = useAuth();
+  const { recargarProductos } = useProducts();
   const isCheckingOut = useRef(false);
 
   const [form, setForm] = useState({
@@ -135,6 +137,8 @@ const Checkout = () => {
 
       isCheckingOut.current = true;
       vaciarCarrito();
+      // Refrescamos los productos para que el stock en pantalla quede actualizado
+      recargarProductos();
       navigate('/confirmacion');
     } catch (err) {
       // Si algo falla (sin stock, sesión vencida, etc.) lo mostramos sin romper la app

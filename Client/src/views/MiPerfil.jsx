@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, MapPin, ShoppingBag, LogOut } from 'lucide-react';
+import { User, MapPin, ShoppingBag, LogOut, Lock } from 'lucide-react';
 import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '../context/AuthContext';
 import { getDirecciones } from '../services/direccionService';
 import { getOrdenesPorUsuario } from '../services/ordenService';
+import { actualizarUsuario } from '../services/usuarioService';
 import { formatPrecio } from '@/lib/formato';
 
 const MiPerfil = () => {
@@ -54,6 +55,38 @@ const MiPerfil = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Estado del cambio de contraseña
+  const [nuevaPassword, setNuevaPassword] = useState('');
+  const [confirmarPassword, setConfirmarPassword] = useState('');
+  const [errorPassword, setErrorPassword] = useState('');
+  const [guardandoPassword, setGuardandoPassword] = useState(false);
+
+  const handleCambiarPassword = async (e) => {
+    e.preventDefault();
+    if (nuevaPassword.length < 8) {
+      setErrorPassword('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (nuevaPassword !== confirmarPassword) {
+      setErrorPassword('Las contraseñas no coinciden.');
+      return;
+    }
+
+    setGuardandoPassword(true);
+    setErrorPassword('');
+    try {
+      // El backend (PUT /api/usuarios/{id}) deja que cada usuario se edite a sí mismo
+      await actualizarUsuario(usuario.id, { password: nuevaPassword });
+      setNuevaPassword('');
+      setConfirmarPassword('');
+      alert('Contraseña actualizada correctamente.');
+    } catch (err) {
+      setErrorPassword(err.message);
+    } finally {
+      setGuardandoPassword(false);
+    }
   };
 
   return (
@@ -120,6 +153,48 @@ const MiPerfil = () => {
 
                 <Button type="submit" className="perfil__btn-guardar-cambios h-auto">
                   Guardar Cambios
+                </Button>
+              </form>
+            </section>
+
+            {/* Tarjeta de Cambio de Contraseña */}
+            <section className="perfil__card">
+              <div className="perfil__card-header">
+                <Lock size={20} className="perfil__card-icon" />
+                <h2 className="perfil__card-title">Cambiar contraseña</h2>
+              </div>
+
+              <form onSubmit={handleCambiarPassword} className="perfil__form">
+                <div className="perfil__form-field">
+                  <Label htmlFor="nuevaPassword" className="perfil__form-label">Nueva contraseña</Label>
+                  <Input
+                    id="nuevaPassword"
+                    type="password"
+                    className="perfil__form-input h-auto"
+                    placeholder="Mínimo 8 caracteres"
+                    value={nuevaPassword}
+                    onChange={(e) => setNuevaPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="perfil__form-field">
+                  <Label htmlFor="confirmarPassword" className="perfil__form-label">Confirmar contraseña</Label>
+                  <Input
+                    id="confirmarPassword"
+                    type="password"
+                    className="perfil__form-input h-auto"
+                    placeholder="••••••••"
+                    value={confirmarPassword}
+                    onChange={(e) => setConfirmarPassword(e.target.value)}
+                  />
+                </div>
+
+                {errorPassword && (
+                  <span style={{ color: '#dc2626', fontSize: '0.8rem' }}>{errorPassword}</span>
+                )}
+
+                <Button type="submit" className="perfil__btn-guardar-cambios h-auto" disabled={guardandoPassword}>
+                  {guardandoPassword ? 'Guardando...' : 'Actualizar contraseña'}
                 </Button>
               </form>
             </section>

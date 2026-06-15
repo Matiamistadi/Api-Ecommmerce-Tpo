@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import './FilterSidebar.css';
 
 const categorias = ['Todas', 'Proteína', 'Energía', 'Recuperación', 'Fuerza'];
@@ -30,12 +31,42 @@ const FilterSidebar = ({
   const [minInput, setMinInput] = useState(precioMin);
   const [maxInput, setMaxInput] = useState(precioMax);
 
+  // Qué secciones están abiertas (acordeón). Solo Categorías arranca abierta.
+  const [abiertos, setAbiertos] = useState({ categoria: true, marca: false, sabor: false, precio: false });
+  const toggle = (clave) => setAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
+
+  const [errorPrecio, setErrorPrecio] = useState('');
+
   // Si el rango cambia desde afuera (un chip o "Limpiar"), sincronizamos los inputs
   useEffect(() => setMinInput(precioMin), [precioMin]);
   useEffect(() => setMaxInput(precioMax), [precioMax]);
 
-  const aplicarCustom = () => onPrecioChange(minInput, maxInput);
+  const aplicarCustom = () => {
+    // No permitimos un máximo menor que el mínimo (ej: mín 100, máx 10)
+    if (minInput !== '' && maxInput !== '' && Number(maxInput) < Number(minInput)) {
+      setErrorPrecio('El máximo no puede ser menor que el mínimo.');
+      return;
+    }
+    setErrorPrecio('');
+    onPrecioChange(minInput, maxInput);
+  };
   const rangoActivo = (rango) => precioMin === rango.min && precioMax === rango.max;
+
+  // Encabezado clickeable de cada sección
+  const SectionHeader = ({ clave, titulo }) => (
+    <button
+      type="button"
+      className="filter-sidebar__section-toggle"
+      onClick={() => toggle(clave)}
+      aria-expanded={abiertos[clave]}
+    >
+      <span>{titulo}</span>
+      <ChevronDown
+        size={16}
+        className={`filter-sidebar__chevron ${abiertos[clave] ? 'filter-sidebar__chevron--open' : ''}`}
+      />
+    </button>
+  );
 
   return (
     <aside className="filter-sidebar">
@@ -51,106 +82,122 @@ const FilterSidebar = ({
 
       {/* Categorías */}
       <div className="filter-sidebar__section">
-        <h4 className="filter-sidebar__section-title">Categorías</h4>
-        <ul className="filter-sidebar__list">
-          {categorias.map((cat) => (
-            <li key={cat}>
-              <label className="filter-sidebar__option">
-                <input
-                  type="radio"
-                  name="categoria"
-                  value={cat}
-                  checked={categoriaSeleccionada === cat}
-                  onChange={(e) => onCategoriaChange(e.target.value)}
-                />
-                <span>{cat}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        <SectionHeader clave="categoria" titulo="Categorías" />
+        {abiertos.categoria && (
+          <ul className="filter-sidebar__list">
+            {categorias.map((cat) => (
+              <li key={cat}>
+                <label className="filter-sidebar__option">
+                  <input
+                    type="radio"
+                    name="categoria"
+                    value={cat}
+                    checked={categoriaSeleccionada === cat}
+                    onChange={(e) => onCategoriaChange(e.target.value)}
+                  />
+                  <span>{cat}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Marcas */}
       <div className="filter-sidebar__section">
-        <h4 className="filter-sidebar__section-title">Marcas</h4>
-        <ul className="filter-sidebar__list">
-          {marcas.map((m) => (
-            <li key={m}>
-              <label className="filter-sidebar__option">
-                <input
-                  type="radio"
-                  name="marca"
-                  value={m}
-                  checked={marcaSeleccionada === m}
-                  onChange={(e) => onMarcaChange(e.target.value)}
-                />
-                <span>{m}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        <SectionHeader clave="marca" titulo="Marcas" />
+        {abiertos.marca && (
+          <ul className="filter-sidebar__list">
+            {marcas.map((m) => (
+              <li key={m}>
+                <label className="filter-sidebar__option">
+                  <input
+                    type="radio"
+                    name="marca"
+                    value={m}
+                    checked={marcaSeleccionada === m}
+                    onChange={(e) => onMarcaChange(e.target.value)}
+                  />
+                  <span>{m}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Gusto / sabor */}
       {sabores.length > 1 && (
         <div className="filter-sidebar__section">
-          <h4 className="filter-sidebar__section-title">Gusto</h4>
-          <ul className="filter-sidebar__list">
-            {sabores.map((s) => (
-              <li key={s}>
-                <label className="filter-sidebar__option">
-                  <input
-                    type="radio"
-                    name="sabor"
-                    value={s}
-                    checked={saborSeleccionado === s}
-                    onChange={(e) => onSaborChange(e.target.value)}
-                  />
-                  <span>{s}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
+          <SectionHeader clave="sabor" titulo="Sabores" />
+          {abiertos.sabor && (
+            <ul className="filter-sidebar__list">
+              {sabores.map((s) => (
+                <li key={s}>
+                  <label className="filter-sidebar__option">
+                    <input
+                      type="radio"
+                      name="sabor"
+                      value={s}
+                      checked={saborSeleccionado === s}
+                      onChange={(e) => onSaborChange(e.target.value)}
+                    />
+                    <span>{s}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
       {/* Precio */}
       <div className="filter-sidebar__section">
-        <h4 className="filter-sidebar__section-title">Precio</h4>
-        <ul className="filter-sidebar__list">
-          {rangosPrecio.map((rango) => (
-            <li key={rango.label}>
-              <button
-                type="button"
-                className={`filter-sidebar__range ${rangoActivo(rango) ? 'filter-sidebar__range--active' : ''}`}
-                onClick={() => onPrecioChange(rango.min, rango.max)}
-              >
-                {rango.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SectionHeader clave="precio" titulo="Precio" />
+        {abiertos.precio && (
+          <>
+            <ul className="filter-sidebar__list">
+              {rangosPrecio.map((rango) => (
+                <li key={rango.label}>
+                  <button
+                    type="button"
+                    className={`filter-sidebar__range ${rangoActivo(rango) ? 'filter-sidebar__range--active' : ''}`}
+                    onClick={() => onPrecioChange(rango.min, rango.max)}
+                  >
+                    {rango.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-        <div className="filter-sidebar__price-custom">
-          <input
-            type="number"
-            className="filter-sidebar__price-input"
-            placeholder="Mínimo"
-            value={minInput}
-            onChange={(e) => setMinInput(e.target.value)}
-          />
-          <span className="filter-sidebar__price-dash">–</span>
-          <input
-            type="number"
-            className="filter-sidebar__price-input"
-            placeholder="Máximo"
-            value={maxInput}
-            onChange={(e) => setMaxInput(e.target.value)}
-          />
-          <button type="button" className="filter-sidebar__price-apply" onClick={aplicarCustom}>
-            Aplicar
-          </button>
-        </div>
+            <div className="filter-sidebar__price-custom">
+              <input
+                type="text"
+                inputMode="numeric"
+                className="filter-sidebar__price-input"
+                placeholder="Mínimo"
+                value={minInput}
+                onChange={(e) => setMinInput(e.target.value.replace(/\D/g, ''))}
+              />
+              <span className="filter-sidebar__price-dash">–</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                className="filter-sidebar__price-input"
+                placeholder="Máximo"
+                value={maxInput}
+                onChange={(e) => setMaxInput(e.target.value.replace(/\D/g, ''))}
+              />
+              <button type="button" className="filter-sidebar__price-apply" onClick={aplicarCustom}>
+                Aplicar
+              </button>
+            </div>
+
+            {errorPrecio && (
+              <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '8px' }}>{errorPrecio}</p>
+            )}
+          </>
+        )}
       </div>
     </aside>
   );
