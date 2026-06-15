@@ -1,15 +1,31 @@
-import { useMemo, useState } from 'react';
-import { useCommerce } from '../context/CommerceContext';
+import { useMemo, useState, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { AlertTriangle } from 'lucide-react';
+import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
+import { actualizarUsuario } from '../services/usuarioService';
 import './Admin.css';
 
 const filtros = ['Todos', 'Activo', 'Suspendido'];
 
 const AdminClientes = () => {
-  const { clientes, metrics, cambiarEstadoCliente } = useCommerce();
+  const [clientes, setClientes] = useState([]);
+  const [metrics, setMetrics] = useState(METRICS_VACIAS);
   const [filtro, setFiltro] = useState('Todos');
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { cliente, nuevoEstado }
+
+  // Trae usuarios reales (+ sus estadísticas de compra) del backend
+  const cargar = () => {
+    getResumenAdmin()
+      .then((resumen) => {
+        setClientes(resumen.clientes);
+        setMetrics(resumen.metrics);
+      })
+      .catch(() => setClientes([]));
+  };
+
+  useEffect(() => {
+    cargar();
+  }, []);
 
   const clientesFiltrados = useMemo(() => (
     filtro === 'Todos' ? clientes : clientes.filter((c) => c.estado === filtro)
@@ -28,9 +44,18 @@ const AdminClientes = () => {
     setConfirmarCambio({ cliente, nuevoEstado });
   };
 
-  const confirmarCambioEstado = () => {
-    cambiarEstadoCliente(confirmarCambio.cliente.id, confirmarCambio.nuevoEstado);
-    setConfirmarCambio(null);
+  // Suspende/reactiva en el backend (PUT activo) y recarga la lista
+  const confirmarCambioEstado = async () => {
+    try {
+      await actualizarUsuario(confirmarCambio.cliente.id, {
+        activo: confirmarCambio.nuevoEstado === 'Activo',
+      });
+      cargar();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setConfirmarCambio(null);
+    }
   };
 
   return (

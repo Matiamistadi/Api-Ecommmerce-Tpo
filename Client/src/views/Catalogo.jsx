@@ -7,14 +7,36 @@ import './Catalogo.css';
 const Catalogo = () => {
   const { productos, loading, error, recargarProductos } = useProducts();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState('Todas');
+  const [precioMin, setPrecioMin] = useState('');
+  const [precioMax, setPrecioMax] = useState('');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
   const productosActivos = productos.filter((p) => p.activo !== false);
 
-  const productosFiltrados =
-    categoriaSeleccionada === 'Todas'
-      ? productosActivos
-      : productosActivos.filter((p) => p.categoria === categoriaSeleccionada);
+  // Lista de marcas a partir de los productos (sin repetir), con "Todas" al inicio
+  const marcas = ['Todas', ...Array.from(new Set(productos.map((p) => p.marca).filter(Boolean)))];
+
+  // Aplicamos todos los filtros juntos: categoría + marca + rango de precio
+  const productosFiltrados = productosActivos.filter((p) => {
+    const okCategoria = categoriaSeleccionada === 'Todas' || p.categoria === categoriaSeleccionada;
+    const okMarca = marcaSeleccionada === 'Todas' || p.marca === marcaSeleccionada;
+    const okMin = precioMin === '' || p.precio >= Number(precioMin);
+    const okMax = precioMax === '' || p.precio <= Number(precioMax);
+    return okCategoria && okMarca && okMin && okMax;
+  });
+
+  const aplicarRangoPrecio = (min, max) => {
+    setPrecioMin(min);
+    setPrecioMax(max);
+  };
+
+  const limpiarFiltros = () => {
+    setCategoriaSeleccionada('Todas');
+    setMarcaSeleccionada('Todas');
+    setPrecioMin('');
+    setPrecioMax('');
+  };
 
   return (
     <main className="catalogo">
@@ -37,6 +59,13 @@ const Catalogo = () => {
           <FilterSidebar
             categoriaSeleccionada={categoriaSeleccionada}
             onCategoriaChange={setCategoriaSeleccionada}
+            marcas={marcas}
+            marcaSeleccionada={marcaSeleccionada}
+            onMarcaChange={setMarcaSeleccionada}
+            precioMin={precioMin}
+            precioMax={precioMax}
+            onPrecioChange={aplicarRangoPrecio}
+            onLimpiar={limpiarFiltros}
             onClose={() => setFiltrosAbiertos(false)}
           />
         </div>

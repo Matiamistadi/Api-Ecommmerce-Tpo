@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
 const Header = () => {
   const { totalItems } = useCart();
+  const { esAdmin, estaLogueado } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -49,8 +51,12 @@ const Header = () => {
             🛒
             {totalItems > 0 && <span className="header__badge">{totalItems}</span>}
           </Link>
-          <Link to="/login" className="header__icon" aria-label="Perfil">👤</Link>
-          <Link to="/admin" className="header__admin-link" aria-label="Admin">Admin</Link>
+          {/* Si ya inició sesión, el ícono lleva a su perfil; si no, al login */}
+          <Link to={estaLogueado ? '/perfil' : '/login'} className="header__icon" aria-label="Perfil">👤</Link>
+          {/* El botón Admin solo aparece si el usuario logueado tiene rol ADMIN */}
+          {esAdmin && (
+            <Link to="/admin" className="header__admin-link" aria-label="Admin">Admin</Link>
+          )}
         </div>
       </div>
     </header>

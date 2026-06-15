@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getProductos } from '../services/productosService';
+import {
+  getProductos,
+  crearProducto,
+  actualizarProducto as actualizarProductoService,
+  eliminarProducto as eliminarProductoService,
+  toggleActivoProducto,
+} from '../services/productosService';
 
 const ProductsContext = createContext();
 
@@ -28,33 +34,30 @@ export const ProductsProvider = ({ children }) => {
     fetchProductos();
   };
 
-  const agregarProducto = (productoNuevo) => {
-    const nuevoProducto = {
-      ...productoNuevo,
-      id: productoNuevo.id || Math.max(...productos.map((producto) => producto.id), 0) + 1,
-      precio: Number(productoNuevo.precio) || 0,
-      precioOriginal: productoNuevo.precioOriginal ? Number(productoNuevo.precioOriginal) : null,
-      stock: Number(productoNuevo.stock) || 0,
-    };
-
-    setProductos((prev) => [nuevoProducto, ...prev]);
-    return nuevoProducto;
+  // Crea el producto en el backend (POST) y lo agrega al estado con el id real
+  const agregarProducto = async (productoNuevo) => {
+    const creado = await crearProducto(productoNuevo);
+    setProductos((prev) => [creado, ...prev]);
+    return creado;
   };
 
-  const actualizarProducto = (productoActualizado) => {
-    setProductos(prev =>
-      prev.map(p => p.id === productoActualizado.id ? productoActualizado : p)
-    );
+  // Actualiza el producto en el backend (PUT) y refresca el estado con la respuesta
+  const actualizarProducto = async (productoActualizado) => {
+    const actualizado = await actualizarProductoService(productoActualizado.id, productoActualizado);
+    setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
+    return actualizado;
   };
 
-  const eliminarProducto = (id) => {
-    setProductos(prev => prev.filter(p => p.id !== id));
+  // Borra el producto en el backend (DELETE) y recién ahí lo saca del estado
+  const eliminarProducto = async (id) => {
+    await eliminarProductoService(id);
+    setProductos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const toggleActivo = (id) => {
-    setProductos(prev =>
-      prev.map(p => p.id === id ? { ...p, activo: p.activo === false ? true : false } : p)
-    );
+  // Activa/desactiva en el backend (PATCH) y actualiza con la respuesta
+  const toggleActivo = async (id) => {
+    const actualizado = await toggleActivoProducto(id);
+    setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
   };
 
   return (

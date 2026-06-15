@@ -1,46 +1,58 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, MapPin, ShoppingBag } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, MapPin, ShoppingBag, LogOut } from 'lucide-react';
 import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAddresses } from '../context/AddressContext';
-
-const PEDIDOS_MOCK = [
-  {
-    id: 1,
-    nombre: 'Proteína Whey 100%',
-    descripcion: 'Sabor Vainilla • 2kg',
-    categoria: 'Musculación',
-    fecha: '24 Oct 2023',
-    estado: 'En camino',
-    total: '€54.99',
-    imagen: '/img/ProteVainilla.png'
-  },
-  {
-    id: 2,
-    nombre: 'Pre-Entreno Explosivo',
-    descripcion: 'Sabor Sandía • 300g',
-    categoria: 'Energía',
-    fecha: '10 Oct 2023',
-    estado: 'Entregado',
-    total: '€29.50',
-    imagen: '/img/PreworkSandia.png'
-  }
-];
+import { useAuth } from '../context/AuthContext';
+import { getDirecciones } from '../services/direccionService';
+import { getOrdenesPorUsuario } from '../services/ordenService';
 
 const MiPerfil = () => {
-  const { direccionesFormateadas, establecerPrincipal } = useAddresses();
+  const navigate = useNavigate();
+  const { usuario, logout } = useAuth();
+  const [direcciones, setDirecciones] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [perfil, setPerfil] = useState({
-    nombre: 'Atleta Élite',
-    email: 'atleta@gymstore.com',
-    telefono: '+34 600 000 000',
+    nombre: '',
+    email: usuario?.email || '',
+    telefono: '',
   });
+
+  // Al entrar al perfil, traemos las direcciones reales del usuario desde el backend
+  useEffect(() => {
+    if (usuario?.id) {
+      getDirecciones(usuario.id)
+        .then((dirs) => {
+          setDirecciones(dirs);
+          // El nombre y teléfono de "Mis Datos" salen de la dirección principal (o la primera)
+          const principal = dirs.find((d) => d.esPrincipal) || dirs[0];
+          if (principal) {
+            setPerfil((prev) => ({
+              ...prev,
+              nombre: principal.nombre || prev.nombre,
+              telefono: principal.telefono || prev.telefono,
+            }));
+          }
+        })
+        .catch(() => setDirecciones([]));
+
+      // Traemos también el historial de órdenes reales del usuario
+      getOrdenesPorUsuario(usuario.id)
+        .then(setPedidos)
+        .catch(() => setPedidos([]));
+    }
+  }, [usuario]);
 
   const handleSave = (e) => {
     e.preventDefault();
-    alert(`¡Cambios guardados con éxito para ${perfil.nombre}!`);
+    alert(`¡Cambios guardados con éxito para ${perfil.email}!`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -53,6 +65,9 @@ const MiPerfil = () => {
             <h1 className="perfil__titulo">Mi Cuenta</h1>
             <p className="perfil__subtitulo">Gestión de perfil, pedidos y direcciones.</p>
           </div>
+          <button type="button" className="perfil__btn-logout" onClick={handleLogout}>
+            <LogOut size={18} /> Cerrar sesión
+          </button>
         </header>
 
         {/* Layout en Grid */}
@@ -115,35 +130,23 @@ const MiPerfil = () => {
                 <h2 className="perfil__card-title">Direcciones de Envío</h2>
               </div>
 
-              {direccionesFormateadas.map((dir) => (
+              {direcciones.map((dir) => (
                 <div key={dir.id} className="perfil__address-box">
                   <div className="perfil__address-header">
                     <span className="perfil__address-tag">
-                      {dir.principal ? 'Principal' : 'Dirección'}
+                      {dir.esPrincipal ? 'Principal' : 'Dirección'}
                     </span>
-                    {dir.principal
-                      ? <span className="perfil__address-badge">Predeterminada</span>
-                      : (
-                        <button
-                          type="button"
-                          onClick={() => establecerPrincipal(dir.id)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#00c98a', fontWeight: 600 }}
-                        >
-                          Establecer como principal
-                        </button>
-                      )
-                    }
+                    {dir.esPrincipal && <span className="perfil__address-badge">Predeterminada</span>}
                   </div>
                   <p className="perfil__address-text">
-                    {dir.calle} {dir.numero}{dir.piso ? `, ${dir.piso}` : ''}<br />
+                    {dir.calle}<br />
                     {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
                     {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
-                    {dir.referencia ? <><br /><em>{dir.referencia}</em></> : null}
                   </p>
                 </div>
               ))}
 
-              {direccionesFormateadas.length === 0 && (
+              {direcciones.length === 0 && (
                 <p style={{ color: '#888', fontSize: '0.875rem', margin: '0 0 1rem' }}>Todavía no tenés direcciones guardadas.</p>
               )}
 
@@ -179,7 +182,7 @@ const MiPerfil = () => {
                     </tr>
                   </thead>
                   <tbody className="perfil__orders-tbody">
-                    {PEDIDOS_MOCK.map((pedido) => (
+                    {pedidos.map((pedido) => (
                       <tr key={pedido.id} className="perfil__orders-row">
 
                         <td>
@@ -187,14 +190,14 @@ const MiPerfil = () => {
                             <div className="perfil__product-img-box">
                               <img
                                 src={pedido.imagen}
-                                alt={pedido.nombre}
+                                alt={pedido.productoNombre}
                                 className="perfil__product-img"
                               />
                             </div>
                             <div className="perfil__product-info">
-                              <span className="perfil__product-name">{pedido.nombre}</span>
+                              <span className="perfil__product-name">{pedido.productoNombre}</span>
                               <span className="perfil__product-desc">{pedido.descripcion}</span>
-                              <span className="perfil__product-badge">{pedido.categoria}</span>
+                              <span className="perfil__product-badge">Orden {pedido.numero}</span>
                             </div>
                           </div>
                         </td>
@@ -204,16 +207,24 @@ const MiPerfil = () => {
                         </td>
 
                         <td>
-                          <span className={`perfil__status-badge perfil__status-badge--${pedido.estado.toLowerCase().replace(' ', '-')}`}>
-                            {pedido.estado === 'En camino' ? '🚚' : '✓'} {pedido.estado}
+                          <span className={`perfil__status-badge perfil__status-badge--${pedido.estado.toLowerCase()}`}>
+                            {pedido.estado}
                           </span>
                         </td>
 
                         <td className="perfil__total-cell">
-                          {pedido.total}
+                          ${pedido.total.toFixed(2)}
                         </td>
                       </tr>
                     ))}
+
+                    {pedidos.length === 0 && (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '32px', color: '#888' }}>
+                          Todavía no realizaste ninguna compra.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

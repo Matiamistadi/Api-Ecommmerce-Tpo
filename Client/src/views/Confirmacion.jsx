@@ -26,7 +26,10 @@ const MOCK_FALLBACK_ITEMS = [
 ];
 
 const Confirmacion = () => {
-  const [numeroOrden] = useState(() => '#GS-' + Math.floor(10000 + Math.random() * 90000));
+  // Usamos el número de orden real que devolvió el backend; si no hay, uno de respaldo
+  const [numeroOrden] = useState(
+    () => sessionStorage.getItem('ultimo_pedido_numero') || '#GS-' + Math.floor(10000 + Math.random() * 90000)
+  );
   const [items, setItems] = useState(MOCK_FALLBACK_ITEMS);
   const [total, setTotal] = useState('€84.49');
   const [subtotal, setSubtotal] = useState('€84.49');

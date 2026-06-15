@@ -1,11 +1,19 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCommerce } from '../context/CommerceContext';
 import { useProducts } from '../context/ProductsContext';
+import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
 import './Admin.css';
 
 const AdminDashboard = () => {
-  const { metrics } = useCommerce();
   const { productos } = useProducts();
+  const [metrics, setMetrics] = useState(METRICS_VACIAS);
+
+  // Traemos las métricas reales (órdenes + clientes) del backend
+  useEffect(() => {
+    getResumenAdmin()
+      .then((resumen) => setMetrics(resumen.metrics))
+      .catch(() => setMetrics(METRICS_VACIAS));
+  }, []);
 
   const tarjetas = [
     { label: 'Total pedidos', value: metrics.totalPedidos, sub: 'Historial activo' },

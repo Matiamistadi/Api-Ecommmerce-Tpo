@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { realizarCheckout } from '../services/checkoutService';
 import { CreditCard, Lock } from 'lucide-react';
 import './Checkout.css';
 import { Button } from '@/components/ui/button';
@@ -9,11 +11,13 @@ import { Input } from '@/components/ui/input';
 const Checkout = () => {
   const navigate = useNavigate();
   const { carrito, subtotal, vaciarCarrito } = useCart();
+  const { usuario } = useAuth();
   const isCheckingOut = useRef(false);
 
   const [form, setForm] = useState({
-    email: '',
+    email: usuario?.email || '',
     nombre: '',
+    telefono: '',
     direccion: '',
     ciudad: '',
     codigoPostal: '',
@@ -23,12 +27,20 @@ const Checkout = () => {
   });
 
   const [errores, setErrores] = useState({});
+  const [procesando, setProcesando] = useState(false);
 
   useEffect(() => {
     if (carrito.length === 0 && !isCheckingOut.current) {
       navigate('/carrito');
     }
   }, [carrito, navigate]);
+
+  // El checkout contra el backend requiere estar logueado (el carrito es por usuario)
+  useEffect(() => {
+    if (!usuario) {
+      navigate('/login');
+    }
+  }, [usuario, navigate]);
 
   const impuestos = subtotal * 0.08;
   const total = subtotal + impuestos;
@@ -56,6 +68,9 @@ const Checkout = () => {
     if (!form.nombre) {
       e.nombre = 'Ingresá tu nombre completo.';
     }
+    if (!form.telefono) {
+      e.telefono = 'Ingresá tu teléfono.';
+    }
     if (!form.direccion) {
       e.direccion = 'Ingresá tu dirección de facturación.';
     }
@@ -79,26 +94,53 @@ const Checkout = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validarTodo()) {
       return;
     }
 
-    sessionStorage.setItem('ultimo_pedido_items', JSON.stringify(carrito));
-    sessionStorage.setItem('ultimo_pedido_total', total.toFixed(2));
-    sessionStorage.setItem('ultimo_pedido_subtotal', subtotal.toFixed(2));
-    sessionStorage.setItem('ultimo_pedido_envio', 'Gratis');
-    sessionStorage.setItem('ultimo_pedido_direccion', JSON.stringify({
-      nombre: form.nombre,
-      direccion: form.direccion,
-      ciudad: form.ciudad,
-      codigoPostal: form.codigoPostal
-    }));
+    setProcesando(true);
+    setErrores({});
+    try {
+      // Llama al backend: crea dirección → carrito → items → confirma (genera la orden)
+      const orden = await realizarCheckout({
+        usuarioId: usuario.id,
+        items: carrito,
+        direccion: {
+          nombre: form.nombre,
+          telefono: form.telefono,
+          calle: form.direccion,
+          ciudad: form.ciudad,
+          provincia: '',
+          codigoPostal: form.codigoPostal,
+          // Queda como principal para que aparezca destacada en el perfil del usuario
+          esPrincipal: true,
+        },
+      });
 
-    isCheckingOut.current = true;
-    vaciarCarrito();
-    navigate('/confirmacion');
+      // Guardamos el resumen para la pantalla de confirmación
+      sessionStorage.setItem('ultimo_pedido_numero', `#${orden.id}`);
+      sessionStorage.setItem('ultimo_pedido_items', JSON.stringify(carrito));
+      sessionStorage.setItem('ultimo_pedido_total', total.toFixed(2));
+      sessionStorage.setItem('ultimo_pedido_subtotal', subtotal.toFixed(2));
+      sessionStorage.setItem('ultimo_pedido_envio', 'Gratis');
+      sessionStorage.setItem('ultimo_pedido_direccion', JSON.stringify({
+        nombre: form.nombre,
+        direccion: form.direccion,
+        ciudad: form.ciudad,
+        codigoPostal: form.codigoPostal,
+      }));
+
+      isCheckingOut.current = true;
+      vaciarCarrito();
+      navigate('/confirmacion');
+    } catch (err) {
+      // Si algo falla (sin stock, sesión vencida, etc.) lo mostramos sin romper la app
+      setErrores({ general: err.message });
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const isStep1Active = true;
@@ -160,6 +202,18 @@ const Checkout = () => {
                   onChange={handleChange}
                 />
                 {errores.nombre && <span className="checkout__field-error">{errores.nombre}</span>}
+              </div>
+
+              <div className="checkout__field">
+                <Input
+                  name="telefono"
+                  type="tel"
+                  placeholder="Teléfono"
+                  className={`checkout__input h-auto ${errores.telefono ? 'checkout__input--error' : ''}`}
+                  value={form.telefono}
+                  onChange={handleChange}
+                />
+                {errores.telefono && <span className="checkout__field-error">{errores.telefono}</span>}
               </div>
 
               <div className="checkout__field">
@@ -257,11 +311,14 @@ const Checkout = () => {
           </section>
 
           <div className="checkout__acciones">
+            {errores.general && <span className="checkout__field-error">{errores.general}</span>}
+
             <Button
               type="submit"
               className="checkout__btn-confirm h-auto w-full"
+              disabled={procesando}
             >
-              FINALIZAR PEDIDO • ${total.toFixed(2)}
+              {procesando ? 'PROCESANDO...' : `FINALIZAR PEDIDO • $${total.toFixed(2)}`}
             </Button>
 
             <p className="checkout__seguridad">

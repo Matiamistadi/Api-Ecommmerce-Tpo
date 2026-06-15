@@ -38,6 +38,30 @@
   margin: 0;
 }
 
+/* Botón Cerrar sesión */
+.perfil__btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--color-text);
+  border: 1.5px solid var(--color-outline);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.perfil__btn-logout:hover {
+  border-color: #e5484d;
+  color: #e5484d;
+  background-color: rgba(229, 72, 77, 0.06);
+}
+
 /* Loyalty Card */
 .perfil__loyalty-card {
   background-color: #0c0d14;
@@ -413,8 +437,30 @@
 }
 
 .perfil__status-badge--entregado {
-  background-color: #f3f3f5;
-  color: #666666;
+  background-color: rgba(0, 212, 170, 0.12);
+  color: #00956f;
+}
+
+/* Estados reales de la orden (backend: EstadoOrden) */
+.perfil__status-badge--pendiente {
+  background-color: #fff4e0;
+  color: #b76e00;
+}
+
+.perfil__status-badge--aprobado {
+  background-color: rgba(0, 212, 170, 0.1);
+  color: #00b894;
+}
+
+.perfil__status-badge--enviado {
+  background-color: #e7f0ff;
+  color: #1d6fd6;
+}
+
+.perfil__status-badge--rechazado,
+.perfil__status-badge--cancelado {
+  background-color: rgba(229, 72, 77, 0.1);
+  color: #c0353a;
 }
 
 .perfil__total-cell {

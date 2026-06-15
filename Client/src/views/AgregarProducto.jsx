@@ -1,28 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../context/ProductsContext';
+import { getCategorias, getMarcas } from '../services/catalogoService';
 import './AgregarProducto.css';
 
 const initialForm = {
   nombre: '',
-  marca: 'GymStore',
-  categoria: 'Fuerza',
+  marcaId: '',
+  categoriaId: '',
   precio: '',
-  stock: '',
   precioOriginal: '',
+  stock: '',
   imagenUrl: '/img/BannerNexa.png',
   imagenDetalleUrl: '/img/BannerNexa.png',
   descripcion: '',
   activo: true,
-  oferta: false,
 };
-
-const categorias = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 
 const AgregarProducto = () => {
   const navigate = useNavigate();
   const { agregarProducto } = useProducts();
   const [form, setForm] = useState(initialForm);
+  const [categorias, setCategorias] = useState([]);
+  const [marcas, setMarcas] = useState([]);
+  const [error, setError] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+
+  // Al montar, traemos las categorías y marcas reales del backend para los <select>
+  useEffect(() => {
+    getCategorias().then(setCategorias).catch((err) => setError(err.message));
+    getMarcas().then(setMarcas).catch((err) => setError(err.message));
+  }, []);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -32,22 +40,26 @@ const AgregarProducto = () => {
     }));
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!form.nombre || !form.precio || !form.stock) {
+      setError('Completá nombre, precio y stock.');
       return;
     }
 
-    const nuevoProducto = agregarProducto({
-      ...form,
-      precio: Number(form.precio),
-      precioOriginal: form.precioOriginal ? Number(form.precioOriginal) : null,
-      stock: Number(form.stock),
-      imagenUrl: form.imagenUrl || '/img/BannerNexa.png',
-      imagenDetalleUrl: form.imagenDetalleUrl || form.imagenUrl || '/img/BannerNexa.png',
-      descripcion: form.descripcion || `${form.nombre} · ${form.categoria}`,
-    });
-
-    navigate(`/productos/${nuevoProducto.id}`);
+    setGuardando(true);
+    setError(null);
+    try {
+      const nuevoProducto = await agregarProducto({
+        ...form,
+        descripcion: form.descripcion || `${form.nombre}`,
+      });
+      navigate(`/productos/${nuevoProducto.id}`);
+    } catch (err) {
+      // Si no sos admin (403) o el backend falla, mostramos el error sin romper la app
+      setError(err.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -73,13 +85,19 @@ const AgregarProducto = () => {
               </label>
               <label className="agregar-producto__field">
                 <span>Marca</span>
-                <input name="marca" type="text" value={form.marca} onChange={handleChange} placeholder="GymStore" />
+                <select name="marcaId" value={form.marcaId} onChange={handleChange}>
+                  <option value="">Sin marca</option>
+                  {marcas.map((marca) => (
+                    <option key={marca.id} value={marca.id}>{marca.nombre}</option>
+                  ))}
+                </select>
               </label>
               <label className="agregar-producto__field">
                 <span>Categoría</span>
-                <select name="categoria" value={form.categoria} onChange={handleChange}>
+                <select name="categoriaId" value={form.categoriaId} onChange={handleChange}>
+                  <option value="">Sin categoría</option>
                   {categorias.map((categoria) => (
-                    <option key={categoria} value={categoria}>{categoria}</option>
+                    <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
                   ))}
                 </select>
               </label>
@@ -92,7 +110,7 @@ const AgregarProducto = () => {
                 <input name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="35" />
               </label>
               <label className="agregar-producto__field">
-                <span>Precio original</span>
+                <span>Precio original (opcional)</span>
                 <input name="precioOriginal" type="number" step="0.01" value={form.precioOriginal} onChange={handleChange} placeholder="29.99" />
               </label>
               <label className="agregar-producto__field">
@@ -114,15 +132,15 @@ const AgregarProducto = () => {
                 <input name="activo" type="checkbox" checked={form.activo} onChange={handleChange} />
                 <span>Producto activo</span>
               </label>
-              <label className="agregar-producto__toggle">
-                <input name="oferta" type="checkbox" checked={form.oferta} onChange={handleChange} />
-                <span>Destacar como oferta</span>
-              </label>
             </div>
+
+            {error && <p className="agregar-producto__error" style={{ color: '#dc2626' }}>{error}</p>}
 
             <div className="agregar-producto__actions">
               <Link to="/admin/productos" className="agregar-producto__btn agregar-producto__btn--secondary">Cancelar</Link>
-              <button type="button" className="agregar-producto__btn agregar-producto__btn--primary" onClick={guardar}>Guardar producto</button>
+              <button type="button" className="agregar-producto__btn agregar-producto__btn--primary" onClick={guardar} disabled={guardando}>
+                {guardando ? 'Guardando...' : 'Guardar producto'}
+              </button>
             </div>
           </form>
 
@@ -133,7 +151,7 @@ const AgregarProducto = () => {
                 <div className="agregar-producto__preview-box">img</div>
                 <div className="agregar-producto__preview-copy">
                   <strong>{form.nombre || 'Creatina Monohidratada'}</strong>
-                  <span>{form.marca} · {form.categoria}</span>
+                  <span>{marcas.find((m) => String(m.id) === form.marcaId)?.nombre || 'Sin marca'} · {categorias.find((c) => String(c.id) === form.categoriaId)?.nombre || 'Sin categoría'}</span>
                 </div>
               </div>
               <div className="agregar-producto__preview-stats">

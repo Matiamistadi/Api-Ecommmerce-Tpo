@@ -1,63 +1,46 @@
+import { useEffect, useState } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
-import { TrendingUp, ShoppingBag, Users, DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Users, DollarSign } from 'lucide-react';
 import { useProducts } from '../context/ProductsContext';
-import { useCommerce } from '../context/CommerceContext';
-
-const VENTAS_MENSUALES = [
-  { mes: 'Ene', ventas: 4200 },
-  { mes: 'Feb', ventas: 5800 },
-  { mes: 'Mar', ventas: 4900 },
-  { mes: 'Abr', ventas: 7100 },
-  { mes: 'May', ventas: 6300 },
-  { mes: 'Jun', ventas: 8500 },
-];
-
-const maxVenta = Math.max(...VENTAS_MENSUALES.map((v) => v.ventas));
+import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
 
 const AdminAnaliticas = () => {
   const { productos } = useProducts();
-  const { metrics, pedidos } = useCommerce();
+  const [metrics, setMetrics] = useState(METRICS_VACIAS);
+  const [pedidos, setPedidos] = useState([]);
+  const [ventasMensuales, setVentasMensuales] = useState([]);
+
+  // Traemos órdenes + métricas + ventas por mes reales del backend
+  useEffect(() => {
+    getResumenAdmin()
+      .then((resumen) => {
+        setMetrics(resumen.metrics);
+        setPedidos(resumen.pedidos);
+        setVentasMensuales(resumen.ventasMensuales);
+      })
+      .catch(() => {
+        setMetrics(METRICS_VACIAS);
+        setPedidos([]);
+        setVentasMensuales([]);
+      });
+  }, []);
+
+  // El valor más alto, para escalar las barras (mínimo 1 para no dividir por cero)
+  const maxVenta = Math.max(1, ...ventasMensuales.map((v) => v.ventas));
 
   const topProductos = [...productos]
     .sort((a, b) => b.precio * (b.stock || 1) - a.precio * (a.stock || 1))
     .slice(0, 5);
 
-  const ingresosTotales = pedidos.reduce((acc, p) => acc + p.total, 0);
-  const ticketPromedio = pedidos.length ? ingresosTotales / pedidos.length : 0;
+  const ventasValidas = pedidos.filter((p) => !['RECHAZADO', 'CANCELADO'].includes(p.estado));
+  const ingresosTotales = ventasValidas.reduce((acc, p) => acc + p.total, 0);
+  const ticketPromedio = ventasValidas.length ? ingresosTotales / ventasValidas.length : 0;
 
   const kpis = [
-    {
-      label: 'Ingresos totales',
-      value: `$${ingresosTotales.toFixed(0)}`,
-      sub: 'Acumulado del período',
-      icon: DollarSign,
-      trend: '+12%',
-      up: true,
-    },
-    {
-      label: 'Pedidos totales',
-      value: metrics.totalPedidos,
-      sub: 'Registrados en el sistema',
-      icon: ShoppingBag,
-      trend: '+8%',
-      up: true,
-    },
-    {
-      label: 'Clientes activos',
-      value: metrics.clientesActivos,
-      sub: 'Con actividad reciente',
-      icon: Users,
-      trend: '+5%',
-      up: true,
-    },
-    {
-      label: 'Ticket promedio',
-      value: `$${ticketPromedio.toFixed(2)}`,
-      sub: 'Por pedido',
-      icon: TrendingUp,
-      trend: '-2%',
-      up: false,
-    },
+    { label: 'Ingresos totales', value: `$${ingresosTotales.toFixed(0)}`, sub: 'Acumulado (ventas válidas)', icon: DollarSign },
+    { label: 'Pedidos totales', value: metrics.totalPedidos, sub: 'Registrados en el sistema', icon: ShoppingBag },
+    { label: 'Clientes activos', value: metrics.clientesActivos, sub: 'Sin suspensión', icon: Users },
+    { label: 'Ticket promedio', value: `$${ticketPromedio.toFixed(2)}`, sub: 'Por pedido', icon: TrendingUp },
   ];
 
   return (
@@ -84,11 +67,7 @@ const AdminAnaliticas = () => {
                   </div>
                   <div className="text-3xl font-bold text-gray-900 mb-1">{kpi.value}</div>
                   <div className="flex items-center gap-1">
-                    {kpi.up
-                      ? <ArrowUp size={12} className="text-[#00c98a]" />
-                      : <ArrowDown size={12} className="text-red-400" />}
-                    <span className={`text-xs font-bold ${kpi.up ? 'text-[#00c98a]' : 'text-red-400'}`}>{kpi.trend}</span>
-                    <span className="text-xs text-gray-400 ml-1">{kpi.sub}</span>
+                    <span className="text-xs text-gray-400">{kpi.sub}</span>
                   </div>
                 </div>
               );
@@ -100,14 +79,14 @@ const AdminAnaliticas = () => {
             <div className="col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-900 mb-6">Ventas mensuales</h2>
               <div className="flex items-end gap-4 h-40">
-                {VENTAS_MENSUALES.map((v) => {
+                {ventasMensuales.map((v) => {
                   const height = Math.round((v.ventas / maxVenta) * 100);
                   return (
                     <div key={v.mes} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-xs font-bold text-gray-500">${(v.ventas / 1000).toFixed(1)}k</span>
+                      <span className="text-xs font-bold text-gray-500">${Math.round(v.ventas)}</span>
                       <div
                         className="w-full rounded-t-md bg-[#00e69e] transition-all"
-                        style={{ height: `${height}%` }}
+                        style={{ height: `${height}%`, minHeight: v.ventas > 0 ? '4px' : '0' }}
                       />
                       <span className="text-xs font-semibold text-gray-400">{v.mes}</span>
                     </div>

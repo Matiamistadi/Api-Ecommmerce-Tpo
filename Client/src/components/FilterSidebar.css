@@ -58,6 +58,14 @@
   border-radius: 999px;
 }
 
+.filter-sidebar__section {
+  margin-bottom: 24px;
+}
+
+.filter-sidebar__section:last-child {
+  margin-bottom: 0;
+}
+
 .filter-sidebar__section-title {
   font-family: var(--font-heading);
   font-size: 12px;
@@ -66,6 +74,78 @@
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* Rangos de precio predefinidos (estilo MELI) */
+.filter-sidebar__range {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text);
+  transition: color 0.15s;
+}
+
+.filter-sidebar__range:hover {
+  color: var(--color-accent);
+}
+
+.filter-sidebar__range--active {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* Rango personalizado: mín - máx + aplicar */
+.filter-sidebar__price-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.filter-sidebar__price-input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text);
+  background-color: #fafafa;
+}
+
+.filter-sidebar__price-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: var(--color-surface);
+}
+
+.filter-sidebar__price-dash {
+  color: var(--color-text-muted);
+}
+
+.filter-sidebar__price-apply {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background-color: var(--color-accent);
+  color: var(--color-gym-primary, #0c0d14);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.filter-sidebar__price-apply:hover {
+  opacity: 0.85;
 }
 
 .filter-sidebar__list {

@@ -5,11 +5,14 @@ import './Registro.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '../context/AuthContext';
 
 const Registro = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmar: '' });
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -36,15 +39,24 @@ const Registro = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validarTodo()) {
       return;
     }
 
-    setErrores({});
-    alert(`¡Cuenta creada con éxito! Bienvenido, ${form.nombre}.`);
-    navigate('/login');
+    setCargando(true);
+    try {
+      // El backend solo necesita email y password (el nombre es solo del front).
+      // register() crea el usuario y ya devuelve el token, así que queda logueado.
+      await register(form.email, form.password);
+      setErrores({});
+      navigate('/perfil');
+    } catch (err) {
+      setErrores({ general: err.message });
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -101,8 +113,10 @@ const Registro = () => {
             {errores.confirmar && <span className="registro__field-error">{errores.confirmar}</span>}
           </div>
 
-          <Button type="submit" className="registro__submit h-auto w-full">
-            REGISTRARSE <ArrowRight size={18} />
+          {errores.general && <span className="registro__field-error">{errores.general}</span>}
+
+          <Button type="submit" className="registro__submit h-auto w-full" disabled={cargando}>
+            {cargando ? 'CREANDO CUENTA...' : <>REGISTRARSE <ArrowRight size={18} /></>}
           </Button>
         </form>
 

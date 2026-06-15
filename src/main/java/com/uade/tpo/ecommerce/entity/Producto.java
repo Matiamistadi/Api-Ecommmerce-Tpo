@@ -24,6 +24,11 @@ public class Producto {
     private String nombre;
     private String descripcion;
     private Double precio;
+
+    // Precio anterior (para mostrar el descuento tachado). Null si no está en oferta.
+    @Column(name = "precio_original")
+    private Double precioOriginal;
+
     private Integer stock;
 
     @Column(nullable = false, columnDefinition = "boolean default true")

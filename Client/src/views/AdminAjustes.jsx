@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { Store, Truck, Bell, Lock, CheckCircle2, X, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { actualizarUsuario } from '../services/usuarioService';
 
 const NOTIF_CONFIG = [
   {
@@ -24,6 +26,7 @@ const NOTIF_CONFIG = [
 ];
 
 const AdminAjustes = () => {
+  const { usuario } = useAuth();
   const [tienda, setTienda] = useState({
     nombre: 'GymStore',
     descripcion: 'Tu tienda de suplementos y equipamiento deportivo.',
@@ -44,7 +47,7 @@ const AdminAjustes = () => {
   });
 
   const [cuenta, setCuenta] = useState({
-    emailAdmin: 'admin@gymstore.com',
+    emailAdmin: usuario?.email || '',
     passwordActual: '',
     passwordNuevo: '',
     passwordConfirm: '',
@@ -115,10 +118,17 @@ const AdminAjustes = () => {
     setMostrarConfirmPassword(true);
   };
 
-  const confirmarCambioPassword = () => {
-    setMostrarConfirmPassword(false);
-    setCuenta((prev) => ({ ...prev, passwordActual: '', passwordNuevo: '', passwordConfirm: '' }));
-    setToast({ mensaje: 'Contraseña actualizada correctamente.' });
+  // Cambia la contraseña de verdad en el backend (PUT /api/usuarios/{id})
+  const confirmarCambioPassword = async () => {
+    try {
+      await actualizarUsuario(usuario.id, { password: cuenta.passwordNuevo });
+      setCuenta((prev) => ({ ...prev, passwordActual: '', passwordNuevo: '', passwordConfirm: '' }));
+      setToast({ mensaje: 'Contraseña actualizada correctamente.' });
+    } catch (err) {
+      setToast({ mensaje: err.message });
+    } finally {
+      setMostrarConfirmPassword(false);
+    }
   };
 
   const inputCls = 'w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium';
@@ -252,9 +262,10 @@ const AdminAjustes = () => {
                   type="email"
                   name="emailAdmin"
                   value={cuenta.emailAdmin}
-                  onChange={handleCuentaChange}
-                  className={inputCls}
+                  disabled
+                  className={`${inputCls} opacity-60 cursor-not-allowed`}
                 />
+                <p className="text-xs text-gray-400 mt-1">Tu email de sesión. No se puede editar acá.</p>
               </div>
               <div>
                 <label className={labelCls}>Contraseña actual</label>

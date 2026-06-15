@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import './Login.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
 
   const validarTodo = () => {
     const e = {};
@@ -25,24 +28,27 @@ const Login = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validarTodo()) {
       return;
     }
 
-    console.log('Login intentado:', { email, password });
-    setErrores({});
-    navigate('/perfil');
-  };
-
-  const handleAdminLogin = (e) => {
-    e.preventDefault();
-    setEmail('admin@gymstore.com');
-    setPassword('admin123');
-    alert('Ingresando como Administrador (Credenciales simuladas)');
-    navigate('/admin');
+    setCargando(true);
+    try {
+      // login() llama al backend (POST /api/v1/auth/authenticate) y guarda el token.
+      // Como es asincrónico, esperamos la respuesta con await sin congelar la app.
+      const sesion = await login(email, password);
+      setErrores({});
+      // Según el rol que devolvió el backend, redirigimos a admin o a perfil
+      navigate(sesion.rol === 'ADMIN' ? '/admin' : '/perfil');
+    } catch (err) {
+      // Si las credenciales son incorrectas o el backend falla, mostramos el error
+      setErrores({ general: err.message });
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -84,12 +90,10 @@ const Login = () => {
             {errores.password && <span className="login__field-error">{errores.password}</span>}
           </div>
 
-          <Button type="submit" className="login__submit h-auto w-full">
-            INICIAR SESIÓN <ArrowRight size={18} />
-          </Button>
-          
-          <Button type="button" onClick={handleAdminLogin} className="login__admin-submit h-auto w-full">
-            Iniciar como Administrador <Lock size={16} />
+          {errores.general && <span className="login__field-error">{errores.general}</span>}
+
+          <Button type="submit" className="login__submit h-auto w-full" disabled={cargando}>
+            {cargando ? 'INGRESANDO...' : <>INICIAR SESIÓN <ArrowRight size={18} /></>}
           </Button>
         </form>
 

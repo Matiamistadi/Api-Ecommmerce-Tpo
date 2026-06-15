@@ -24,6 +24,10 @@ public class Direccion {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
+    // Datos de contacto de envío (se cargan en el checkout y se ven en el perfil)
+    private String nombre;
+    private String telefono;
+
     private String calle;
     private String ciudad;
     private String provincia;

@@ -1,36 +1,67 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { useCommerce } from '../context/CommerceContext';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { X, AlertTriangle, Package, MapPin, User, ChevronDown } from 'lucide-react';
+import { getTodasLasOrdenes, actualizarEstadoOrden } from '../services/ordenService';
 import './Admin.css';
 
-const ESTADOS_PEDIDO = ['Pendiente', 'Activo', 'Completado', 'Cancelado'];
+// Estados reales de la orden en el backend (enum EstadoOrden)
+const ESTADOS_PEDIDO = ['PENDIENTE', 'APROBADO', 'RECHAZADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'];
 const filtros = ['Todos', ...ESTADOS_PEDIDO];
 
+// Cada estado del backend se pinta reusando las clases de badge que ya existen
 const BADGE_COLOR = {
-  activo: 'admin-panel__badge--activo',
-  pendiente: 'admin-panel__badge--pendiente',
-  completado: 'admin-panel__badge--completado',
-  cancelado: 'admin-panel__badge--cancelado',
+  PENDIENTE: 'admin-panel__badge--pendiente',
+  APROBADO: 'admin-panel__badge--activo',
+  ENVIADO: 'admin-panel__badge--activo',
+  ENTREGADO: 'admin-panel__badge--completado',
+  RECHAZADO: 'admin-panel__badge--cancelado',
+  CANCELADO: 'admin-panel__badge--cancelado',
 };
 
+// Muestra "PENDIENTE" como "Pendiente"
+const formatEstado = (estado) => estado.charAt(0) + estado.slice(1).toLowerCase();
+
 const AdminPedidos = () => {
-  const { pedidos, metrics, cambiarEstadoPedido } = useCommerce();
+  const [pedidos, setPedidos] = useState([]);
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { pedido, nuevoEstado }
   const [dropdownAbierto, setDropdownAbierto] = useState(null);
   const dropdownRef = useRef(null);
 
+  // Traemos todas las órdenes reales del backend al montar el panel
+  useEffect(() => {
+    getTodasLasOrdenes()
+      .then(setPedidos)
+      .catch(() => setPedidos([]));
+  }, []);
+
   const pedidosFiltrados = useMemo(() => (
     filtro === 'Todos' ? pedidos : pedidos.filter((p) => p.estado === filtro)
   ), [filtro, pedidos]);
+
+  // Métricas calculadas a partir de las órdenes reales
+  const metrics = useMemo(() => {
+    const enCurso = pedidos.filter((p) => ['PENDIENTE', 'APROBADO', 'ENVIADO'].includes(p.estado));
+    const cancelados = pedidos.filter((p) => ['RECHAZADO', 'CANCELADO'].includes(p.estado));
+    const pendientes = pedidos.filter((p) => p.estado === 'PENDIENTE');
+    const ingresos = pedidos
+      .filter((p) => !['RECHAZADO', 'CANCELADO'].includes(p.estado))
+      .reduce((acc, p) => acc + p.total, 0);
+    return {
+      totalPedidos: pedidos.length,
+      pedidosActivos: enCurso.length,
+      pedidosCancelados: cancelados.length,
+      pedidosPendientes: pendientes.length,
+      ingresosEstimados: ingresos,
+    };
+  }, [pedidos]);
 
   const estadisticas = [
     { label: 'Total pedidos', value: metrics.totalPedidos, sub: 'Registrados' },
     { label: 'Pedidos activos', value: metrics.pedidosActivos, sub: 'En curso' },
     { label: 'Pedidos cancelados', value: metrics.pedidosCancelados, sub: 'No procesados' },
-    { label: 'Ingresos estimados', value: `$${metrics.ingresosEstimados.toFixed(0)}`, sub: 'Sesión actual' },
+    { label: 'Ingresos estimados', value: `$${metrics.ingresosEstimados.toFixed(0)}`, sub: 'Ventas válidas' },
     { label: 'Pedidos pendientes', value: metrics.pedidosPendientes, sub: 'Para aprobar' },
   ];
 
@@ -50,9 +81,16 @@ const AdminPedidos = () => {
     setConfirmarCambio({ pedido, nuevoEstado });
   };
 
-  const confirmarCambioEstado = () => {
-    cambiarEstadoPedido(confirmarCambio.pedido.id, confirmarCambio.nuevoEstado);
-    setConfirmarCambio(null);
+  // Cambia el estado en el backend (PATCH) y refresca la fila con la respuesta
+  const confirmarCambioEstado = async () => {
+    try {
+      const actualizado = await actualizarEstadoOrden(confirmarCambio.pedido.id, confirmarCambio.nuevoEstado);
+      setPedidos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setConfirmarCambio(null);
+    }
   };
 
   return (
@@ -113,7 +151,7 @@ const AdminPedidos = () => {
                 <tbody>
                   {pedidosFiltrados.map((pedido) => (
                     <tr key={pedido.id}>
-                      <td>{pedido.id}</td>
+                      <td>#{pedido.id}</td>
                       <td>
                         <strong>{pedido.cliente}</strong>
                         <p className="admin-panel__muted">{pedido.email}</p>
@@ -122,8 +160,8 @@ const AdminPedidos = () => {
                       <td>{pedido.cantidadProductos}</td>
                       <td>${pedido.total.toFixed(2)}</td>
                       <td>
-                        <span className={`admin-panel__badge ${BADGE_COLOR[pedido.estado.toLowerCase()] ?? ''}`}>
-                          {pedido.estado}
+                        <span className={`admin-panel__badge ${BADGE_COLOR[pedido.estado] ?? ''}`}>
+                          {formatEstado(pedido.estado)}
                         </span>
                       </td>
                       <td>
@@ -157,7 +195,7 @@ const AdminPedidos = () => {
                                       pedido.estado === estado ? 'text-[#00c98a] font-bold bg-[#f0fff9]' : 'text-gray-700'
                                     }`}
                                   >
-                                    {estado}
+                                    {formatEstado(estado)}
                                     {pedido.estado === estado && <span className="ml-1 text-xs">✓</span>}
                                   </button>
                                 ))}
@@ -182,7 +220,7 @@ const AdminPedidos = () => {
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">Detalle del pedido</h2>
-                <p className="text-xs text-gray-500 mt-0.5 font-mono">{pedidoDetalle.id}</p>
+                <p className="text-xs text-gray-500 mt-0.5 font-mono">#{pedidoDetalle.id}</p>
               </div>
               <button onClick={() => setPedidoDetalle(null)} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <X size={20} />
@@ -200,8 +238,8 @@ const AdminPedidos = () => {
                   <p className="text-xs text-gray-500">{pedidoDetalle.email}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{pedidoDetalle.fecha}</p>
                 </div>
-                <span className={`ml-auto admin-panel__badge ${BADGE_COLOR[pedidoDetalle.estado.toLowerCase()] ?? ''}`}>
-                  {pedidoDetalle.estado}
+                <span className={`ml-auto admin-panel__badge ${BADGE_COLOR[pedidoDetalle.estado] ?? ''}`}>
+                  {formatEstado(pedidoDetalle.estado)}
                 </span>
               </div>
 
@@ -261,17 +299,17 @@ const AdminPedidos = () => {
               <h2 className="text-lg font-bold text-gray-900">Confirmar cambio de estado</h2>
             </div>
             <p className="text-sm text-gray-600 mb-1">
-              Pedido <span className="font-bold font-mono text-gray-900">{confirmarCambio.pedido.id}</span> de{' '}
+              Pedido <span className="font-bold font-mono text-gray-900">#{confirmarCambio.pedido.id}</span> de{' '}
               <span className="font-bold text-gray-900">{confirmarCambio.pedido.cliente}</span>.
             </p>
             <p className="text-sm text-gray-600 mb-4">
               Estado actual:{' '}
-              <span className={`admin-panel__badge ${BADGE_COLOR[confirmarCambio.pedido.estado.toLowerCase()] ?? ''}`}>
-                {confirmarCambio.pedido.estado}
+              <span className={`admin-panel__badge ${BADGE_COLOR[confirmarCambio.pedido.estado] ?? ''}`}>
+                {formatEstado(confirmarCambio.pedido.estado)}
               </span>
               {' '}→{' '}
-              <span className={`admin-panel__badge ${BADGE_COLOR[confirmarCambio.nuevoEstado.toLowerCase()] ?? ''}`}>
-                {confirmarCambio.nuevoEstado}
+              <span className={`admin-panel__badge ${BADGE_COLOR[confirmarCambio.nuevoEstado] ?? ''}`}>
+                {formatEstado(confirmarCambio.nuevoEstado)}
               </span>
             </p>
             <p className="text-xs text-orange-500 font-medium mb-6">Este cambio afecta el seguimiento del pedido del cliente.</p>

@@ -14,7 +14,6 @@ const Footer = () => {
           <Link to="/productos" className="footer__link">Productos</Link>
           <Link to="/carrito" className="footer__link">Carrito</Link>
           <Link to="/perfil" className="footer__link">Mi cuenta</Link>
-          <Link to="/admin" className="footer__link">Admin</Link>
         </nav>
       </div>
     </footer>
