@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import FilterSidebar from '../components/FilterSidebar';
 import { useProducts } from '../context/ProductsContext';
 import './Catalogo.css';
@@ -11,6 +13,8 @@ const Catalogo = () => {
   const [saborSeleccionado, setSaborSeleccionado] = useState('Todos');
   const [precioMin, setPrecioMin] = useState('');
   const [precioMax, setPrecioMax] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [orden, setOrden] = useState('destacados');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
   const productosActivos = productos.filter((p) => p.activo !== false);
@@ -19,14 +23,23 @@ const Catalogo = () => {
   const marcas = ['Todas', ...Array.from(new Set(productos.map((p) => p.marca).filter(Boolean)))];
   const sabores = ['Todos', ...Array.from(new Set(productos.map((p) => p.sabor).filter((s) => s && s !== 'Otro')))];
 
-  // Aplicamos todos los filtros juntos: categoría + marca + gusto + rango de precio
+  // Filtros combinados: búsqueda + categoría + marca + gusto + rango de precio
   const productosFiltrados = productosActivos.filter((p) => {
+    const okBusqueda = busqueda === '' || `${p.nombre} ${p.marca}`.toLowerCase().includes(busqueda.toLowerCase());
     const okCategoria = categoriaSeleccionada === 'Todas' || p.categoria === categoriaSeleccionada;
     const okMarca = marcaSeleccionada === 'Todas' || p.marca === marcaSeleccionada;
     const okSabor = saborSeleccionado === 'Todos' || p.sabor === saborSeleccionado;
     const okMin = precioMin === '' || p.precio >= Number(precioMin);
     const okMax = precioMax === '' || p.precio <= Number(precioMax);
-    return okCategoria && okMarca && okSabor && okMin && okMax;
+    return okBusqueda && okCategoria && okMarca && okSabor && okMin && okMax;
+  });
+
+  // Orden elegido por el usuario
+  const productosOrdenados = [...productosFiltrados].sort((a, b) => {
+    if (orden === 'precio-asc') return a.precio - b.precio;
+    if (orden === 'precio-desc') return b.precio - a.precio;
+    if (orden === 'nombre') return a.nombre.localeCompare(b.nombre);
+    return 0;
   });
 
   const aplicarRangoPrecio = (min, max) => {
@@ -49,6 +62,18 @@ const Catalogo = () => {
         <p className="catalogo__subtitle">
           Potencia tu rendimiento con nuestra selección premium.
         </p>
+
+        <div className="catalogo__search">
+          <Search size={18} className="catalogo__search-icon" />
+          <input
+            type="text"
+            className="catalogo__search-input"
+            placeholder="Buscar por nombre o marca..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+
         <button
           type="button"
           className="catalogo__filtros-toggle"
@@ -79,7 +104,11 @@ const Catalogo = () => {
 
         <section className="catalogo__content">
           {loading && (
-            <p className="catalogo__count">Cargando productos...</p>
+            <div className="catalogo__grid">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
           )}
 
           {!loading && error && (
@@ -93,17 +122,32 @@ const Catalogo = () => {
 
           {!loading && !error && (
             <>
-              <p className="catalogo__count">
-                Mostrando {productosFiltrados.length} productos
-              </p>
+              <div className="catalogo__toolbar">
+                <p className="catalogo__count">
+                  {productosOrdenados.length} {productosOrdenados.length === 1 ? 'producto' : 'productos'}
+                </p>
+                <label className="catalogo__sort-label">
+                  Ordenar por
+                  <select
+                    className="catalogo__sort"
+                    value={orden}
+                    onChange={(e) => setOrden(e.target.value)}
+                  >
+                    <option value="destacados">Destacados</option>
+                    <option value="precio-asc">Precio: menor a mayor</option>
+                    <option value="precio-desc">Precio: mayor a menor</option>
+                    <option value="nombre">Nombre (A-Z)</option>
+                  </select>
+                </label>
+              </div>
 
-              {productosFiltrados.length === 0 ? (
+              {productosOrdenados.length === 0 ? (
                 <p className="catalogo__empty">
-                  No hay productos en esta categoría.
+                  No encontramos productos con esos filtros. Probá ajustar la búsqueda.
                 </p>
               ) : (
                 <div className="catalogo__grid">
-                  {productosFiltrados.map((producto) => (
+                  {productosOrdenados.map((producto) => (
                     <ProductCard key={producto.id} producto={producto} />
                   ))}
                 </div>

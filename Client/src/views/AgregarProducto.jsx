@@ -4,6 +4,8 @@ import { useProducts } from '../context/ProductsContext';
 import { getCategorias, getMarcas } from '../services/catalogoService';
 import './AgregarProducto.css';
 
+const CATEGORIAS_PERMITIDAS = new Set(['Proteína', 'Energía', 'Recuperación', 'Fuerza']);
+
 const initialForm = {
   nombre: '',
   marcaId: '',
@@ -11,8 +13,6 @@ const initialForm = {
   precio: '',
   precioOriginal: '',
   stock: '',
-  imagenUrl: '/img/BannerNexa.png',
-  imagenDetalleUrl: '/img/BannerNexa.png',
   descripcion: '',
   activo: true,
 };
@@ -23,12 +23,17 @@ const AgregarProducto = () => {
   const [form, setForm] = useState(initialForm);
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
+  const [archivoPrincipal, setArchivoPrincipal] = useState(null);
+  const [archivoDetalle, setArchivoDetalle] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [error, setError] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
   // Al montar, traemos las categorías y marcas reales del backend para los <select>
   useEffect(() => {
-    getCategorias().then(setCategorias).catch((err) => setError(err.message));
+    getCategorias()
+      .then((data) => setCategorias(data.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre))))
+      .catch((err) => setError(err.message));
     getMarcas().then(setMarcas).catch((err) => setError(err.message));
   }, []);
 
@@ -40,6 +45,18 @@ const AgregarProducto = () => {
     }));
   };
 
+  // Guardamos el archivo elegido (no lo convertimos: se manda como FormData) y mostramos una vista previa
+  const handlePrincipal = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setArchivoPrincipal(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
+  const handleDetalle = (event) => {
+    setArchivoDetalle(event.target.files?.[0] || null);
+  };
+
   const guardar = async () => {
     if (!form.nombre || !form.precio || !form.stock) {
       setError('Completá nombre, precio y stock.');
@@ -49,10 +66,10 @@ const AgregarProducto = () => {
     setGuardando(true);
     setError(null);
     try {
-      const nuevoProducto = await agregarProducto({
-        ...form,
-        descripcion: form.descripcion || `${form.nombre}`,
-      });
+      const nuevoProducto = await agregarProducto(
+        { ...form, descripcion: form.descripcion || `${form.nombre}` },
+        { principal: archivoPrincipal, detalle: archivoDetalle }
+      );
       navigate(`/productos/${nuevoProducto.id}`);
     } catch (err) {
       // Si no sos admin (403) o el backend falla, mostramos el error sin romper la app
@@ -114,12 +131,12 @@ const AgregarProducto = () => {
                 <input name="precioOriginal" type="number" step="0.01" value={form.precioOriginal} onChange={handleChange} placeholder="29.99" />
               </label>
               <label className="agregar-producto__field">
-                <span>URL de imagen</span>
-                <input name="imagenUrl" type="text" value={form.imagenUrl} onChange={handleChange} placeholder="/img/BannerNexa.png" />
+                <span>Imagen principal</span>
+                <input type="file" accept="image/*" onChange={handlePrincipal} />
               </label>
               <label className="agregar-producto__field">
-                <span>Imagen detalle</span>
-                <input name="imagenDetalleUrl" type="text" value={form.imagenDetalleUrl} onChange={handleChange} placeholder="/img/BannerNexa.png" />
+                <span>Imagen de detalle (opcional)</span>
+                <input type="file" accept="image/*" onChange={handleDetalle} />
               </label>
               <label className="agregar-producto__field agregar-producto__field--full">
                 <span>Descripción</span>
@@ -148,7 +165,11 @@ const AgregarProducto = () => {
             <div className="agregar-producto__preview">
               <span className="agregar-producto__preview-chip">Vista previa</span>
               <div className="agregar-producto__preview-visual">
-                <div className="agregar-producto__preview-box">img</div>
+                <div className="agregar-producto__preview-box">
+                {preview
+                  ? <img src={preview} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  : 'img'}
+              </div>
                 <div className="agregar-producto__preview-copy">
                   <strong>{form.nombre || 'Creatina Monohidratada'}</strong>
                   <span>{marcas.find((m) => String(m.id) === form.marcaId)?.nombre || 'Sin marca'} · {categorias.find((c) => String(c.id) === form.categoriaId)?.nombre || 'Sin categoría'}</span>
@@ -170,7 +191,7 @@ const AgregarProducto = () => {
               <h2>Checklist rápido</h2>
               <ul>
                 <li>Usá nombres en español consistentes con el catálogo.</li>
-                <li>Subí una imagen cuadrada o vertical para mejor recorte.</li>
+                <li>Subí una imagen PNG o JPG; se guarda junto al producto.</li>
                 <li>Completá el precio original si querés mostrar descuento.</li>
               </ul>
             </div>

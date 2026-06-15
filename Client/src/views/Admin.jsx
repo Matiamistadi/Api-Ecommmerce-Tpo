@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useProducts } from '../context/ProductsContext';
 import { formatPrecio } from '@/lib/formato';
 import { AdminSidebar } from '../components/AdminSidebar';
+import { getCategorias, getMarcas } from '../services/catalogoService';
 import {
   Search, Plus, SlidersHorizontal, Download, Edit2, Eye, EyeOff, Trash2, AlertTriangle,
   Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown
 } from 'lucide-react';
 
 const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
+const CATEGORIAS_PERMITIDAS = new Set(CATEGORIAS);
 
 const formVacio = {
   nombre: '',
@@ -15,18 +17,19 @@ const formVacio = {
   precio: '',
   precioOriginal: '',
   stock: '',
-  categoria: 'Proteína',
-  marca: 'GymStore',
+  categoriaId: '',
+  marcaId: '',
   imagenes: [''],
   activo: true,
   oferta: false,
 };
 
 const Admin = () => {
-  const { productos, agregarProducto, actualizarProducto, eliminarProducto, toggleActivo } = useProducts();
+  const { productos, agregarProducto, actualizarProducto, reemplazarImagenProducto, eliminarProducto, toggleActivo } = useProducts();
   const [busqueda, setBusqueda] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [archivoImagen, setArchivoImagen] = useState(null);
   const [form, setForm] = useState(formVacio);
   const [errores, setErrores] = useState({});
   const [filtroCategoria, setFiltroCategoria] = useState('Todas');
@@ -35,6 +38,15 @@ const Admin = () => {
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
   const [confirmarToggle, setConfirmarToggle] = useState(null);
   const [seleccionados, setSeleccionados] = useState(new Set());
+  const [categorias, setCategorias] = useState([]);
+  const [marcas, setMarcas] = useState([]);
+
+  useEffect(() => {
+    getCategorias()
+      .then((data) => setCategorias(data.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre))))
+      .catch(() => setCategorias([]));
+    getMarcas().then(setMarcas).catch(() => setMarcas([]));
+  }, []);
 
   const filtrados = productos.filter((producto) => {
     const matchBusqueda = (
@@ -97,10 +109,12 @@ const Admin = () => {
   const abrirAgregar = () => {
     setForm(formVacio);
     setEditando(null);
+    setArchivoImagen(null);
     setIsAdding(true);
   };
 
   const abrirEditar = (producto) => {
+    setArchivoImagen(null);
     let imagenes;
     if (Array.isArray(producto.imagenes) && producto.imagenes.length > 0) {
       imagenes = [...producto.imagenes];
@@ -114,8 +128,8 @@ const Admin = () => {
       precio: producto.precioOriginal ? producto.precio : '',
       precioOriginal: producto.precioOriginal || producto.precio || '',
       stock: producto.stock || '',
-      categoria: producto.categoria || 'Proteína',
-      marca: producto.marca || 'GymStore',
+      categoriaId: categorias.find((categoria) => categoria.nombre === producto.categoria)?.id?.toString() || '',
+      marcaId: marcas.find((marca) => marca.nombre === producto.marca)?.id?.toString() || '',
       imagenes,
       activo: producto.activo !== false,
       oferta: producto.oferta || false,
@@ -140,7 +154,8 @@ const Admin = () => {
   const handleImagenFile = (index, file) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
-    handleImagenChange(index, url);
+    handleImagenChange(index, url); // preview temporal
+    setArchivoImagen(file); // guardamos el archivo real para subirlo por multipart al guardar
   };
 
   const agregarImagenSlot = () => {
@@ -154,7 +169,7 @@ const Admin = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const nuevosErrores = {};
     if (!form.nombre.trim()) nuevosErrores.nombre = 'El nombre es obligatorio';
     if (!form.precioOriginal) nuevosErrores.precioOriginal = 'El precio es obligatorio';
@@ -176,13 +191,21 @@ const Admin = () => {
       imagenUrl: imagenesValidas[0] || '/img/BannerNexa.png',
       imagenDetalleUrl: imagenesValidas[1] || imagenesValidas[0] || '/img/BannerNexa.png',
     };
-    if (editando) {
-      actualizarProducto({ ...editando, ...datos });
-    } else {
-      agregarProducto(datos);
+    try {
+      if (editando) {
+        await actualizarProducto({ ...editando, ...datos });
+        // Si elegiste una imagen nueva, la subimos por multipart y reemplaza la anterior
+        if (archivoImagen) await reemplazarImagenProducto(editando.id, archivoImagen);
+      } else {
+        // Al crear, la imagen se sube junto con el producto nuevo
+        await agregarProducto(datos, { principal: archivoImagen });
+      }
+      setArchivoImagen(null);
+      setIsAdding(false);
+      setEditando(null);
+    } catch (err) {
+      setErrores({ nombre: err.message });
     }
-    setIsAdding(false);
-    setEditando(null);
   };
 
   return (
@@ -462,14 +485,17 @@ const Admin = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">Marca</label>
-                      <input
-                        type="text"
-                        name="marca"
-                        value={form.marca}
+                      <select
+                        name="marcaId"
+                        value={form.marcaId}
                         onChange={handleChange}
-                        placeholder="GymStore"
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
-                      />
+                      >
+                        <option value="">Sin marca</option>
+                        {marcas.map((marca) => (
+                          <option key={marca.id} value={marca.id}>{marca.nombre}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">Descripción</label>
@@ -535,12 +561,15 @@ const Admin = () => {
                       <label className="block text-sm font-bold text-gray-900 mb-2">Categoría</label>
                       <div className="relative">
                         <select
-                          name="categoria"
-                          value={form.categoria}
+                          name="categoriaId"
+                          value={form.categoriaId}
                           onChange={handleChange}
                           className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none appearance-none text-gray-600 font-medium"
                         >
-                          {CATEGORIAS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                          <option value="">Sin categoría</option>
+                          {categorias.map((categoria) => (
+                            <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>
+                          ))}
                         </select>
                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                       </div>

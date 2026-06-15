@@ -2,23 +2,29 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { cn } from '@/lib/utils';
 import { formatPrecio } from '@/lib/formato';
+import { getRating } from '@/lib/rating';
+import StarRating from './StarRating';
 import './ProductCard.css';
 
 const ProductCard = ({ producto, variant }) => {
   const { agregarAlCarrito } = useCart();
+  const { mostrarToast } = useToast();
   const [agregado, setAgregado] = useState(false);
   const isHome = variant === 'home';
   const discount =
     producto.precioOriginal &&
     Math.round((1 - producto.precio / producto.precioOriginal) * 100);
   const sinStock = producto.stock <= 0;
+  const rating = getRating(producto.id);
 
   const handleAgregar = (e) => {
     e.preventDefault();
     agregarAlCarrito(producto, 1);
     setAgregado(true);
+    mostrarToast(`${producto.nombre} agregado al carrito`);
     setTimeout(() => setAgregado(false), 1500);
   };
 
@@ -113,6 +119,11 @@ const ProductCard = ({ producto, variant }) => {
         <p className="product-card__brand">{producto.marca}</p>
         <h3 className="product-card__name">{producto.nombre}</h3>
       </Link>
+
+      <div className="product-card__rating">
+        <StarRating valor={rating.estrellas} size={13} />
+        <span className="product-card__rating-count">({rating.opiniones})</span>
+      </div>
 
       <div className="product-card__price">
         <span className="product-card__price-current">{formatPrecio(producto.precio)}</span>

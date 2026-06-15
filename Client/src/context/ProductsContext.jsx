@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import {
   getProductos,
   crearProducto,
+  reemplazarImagen,
   actualizarProducto as actualizarProductoService,
   eliminarProducto as eliminarProductoService,
   toggleActivoProducto,
@@ -34,11 +35,18 @@ export const ProductsProvider = ({ children }) => {
     fetchProductos();
   };
 
-  // Crea el producto en el backend (POST) y lo agrega al estado con el id real
-  const agregarProducto = async (productoNuevo) => {
-    const creado = await crearProducto(productoNuevo);
+  // Crea el producto en el backend (POST) + sube las imágenes (multipart) y lo agrega al estado
+  const agregarProducto = async (productoNuevo, archivos) => {
+    const creado = await crearProducto(productoNuevo, archivos);
     setProductos((prev) => [creado, ...prev]);
     return creado;
+  };
+
+  // Reemplaza la imagen de un producto existente (para edición) y refresca su fila en el estado
+  const reemplazarImagenProducto = async (id, file) => {
+    const actualizado = await reemplazarImagen(id, file);
+    setProductos((prev) => prev.map((p) => (p.id === id ? actualizado : p)));
+    return actualizado;
   };
 
   // Actualiza el producto en el backend (PUT) y refresca el estado con la respuesta
@@ -68,6 +76,7 @@ export const ProductsProvider = ({ children }) => {
         error,
         recargarProductos,
         agregarProducto,
+        reemplazarImagenProducto,
         actualizarProducto,
         eliminarProducto,
         toggleActivo,

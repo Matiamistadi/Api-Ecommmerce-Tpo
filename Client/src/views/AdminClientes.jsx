@@ -4,11 +4,13 @@ import { AlertTriangle } from 'lucide-react';
 import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
 import { actualizarUsuario } from '../services/usuarioService';
 import { formatPrecio } from '@/lib/formato';
+import { useToast } from '../context/ToastContext';
 import './Admin.css';
 
 const filtros = ['Todos', 'Activo', 'Suspendido'];
 
 const AdminClientes = () => {
+  const { mostrarToast } = useToast();
   const [clientes, setClientes] = useState([]);
   const [metrics, setMetrics] = useState(METRICS_VACIAS);
   const [filtro, setFiltro] = useState('Todos');
@@ -52,8 +54,9 @@ const AdminClientes = () => {
         activo: confirmarCambio.nuevoEstado === 'Activo',
       });
       cargar();
+      mostrarToast(`Cliente ${confirmarCambio.nuevoEstado === 'Activo' ? 'reactivado' : 'suspendido'}.`);
     } catch (err) {
-      alert(err.message);
+      mostrarToast(err.message, 'error');
     } finally {
       setConfirmarCambio(null);
     }

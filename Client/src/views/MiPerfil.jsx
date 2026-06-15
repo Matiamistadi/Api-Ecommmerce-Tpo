@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { getDirecciones } from '../services/direccionService';
 import { getOrdenesPorUsuario } from '../services/ordenService';
 import { actualizarUsuario } from '../services/usuarioService';
@@ -14,6 +15,7 @@ import { formatPrecio } from '@/lib/formato';
 const MiPerfil = () => {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
+  const { mostrarToast } = useToast();
   const [direcciones, setDirecciones] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [perfil, setPerfil] = useState({
@@ -49,7 +51,7 @@ const MiPerfil = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    alert(`¡Cambios guardados con éxito para ${perfil.email}!`);
+    mostrarToast('Cambios guardados con éxito.');
   };
 
   const handleLogout = () => {
@@ -81,7 +83,7 @@ const MiPerfil = () => {
       await actualizarUsuario(usuario.id, { password: nuevaPassword });
       setNuevaPassword('');
       setConfirmarPassword('');
-      alert('Contraseña actualizada correctamente.');
+      mostrarToast('Contraseña actualizada correctamente.');
     } catch (err) {
       setErrorPassword(err.message);
     } finally {

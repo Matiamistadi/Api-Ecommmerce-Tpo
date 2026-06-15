@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useProducts } from '../context/ProductsContext';
 import ProductCard from '../components/ProductCard';
+import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import { cn } from '@/lib/utils';
 
 const ICON_CLASS = 'size-10';
@@ -41,11 +42,20 @@ const FEATURES = [
 const HERO_BG_IMAGE =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1920&q=80';
 
+const getDiscount = (producto) => {
+  if (!producto?.precioOriginal) return 0;
+  return Math.round((1 - producto.precio / producto.precioOriginal) * 100);
+};
+
 const Home = () => {
   const { productos, loading, error } = useProducts();
   const productosActivos = productos.filter((p) => p.activo !== false);
-  const destacados = productosActivos.filter((p) => p.precioOriginal).slice(0, 3);
-  const ofertas = destacados.length >= 3 ? destacados : productosActivos.slice(0, 3);
+  const ofertas = [...productosActivos]
+    .filter((p) => p.precioOriginal)
+    .sort((a, b) => getDiscount(b) - getDiscount(a))
+    .slice(0, 3);
+  const productosBase = productosActivos.slice(0, 3);
+  const productosParaMostrar = ofertas.length > 0 ? ofertas : productosBase;
   const [suscripto, setSuscripto] = useState(false);
 
   const handleSuscribirse = (e) => {
@@ -155,7 +165,11 @@ const Home = () => {
         </div>
 
         {loading && (
-          <p className="text-sm text-gym-text-muted">Cargando productos...</p>
+          <div className="grid grid-cols-1 justify-items-center gap-7 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
         )}
 
         {!loading && error && (
@@ -166,7 +180,7 @@ const Home = () => {
 
         {!loading && !error && (
           <div className="grid grid-cols-1 justify-items-center gap-7 md:grid-cols-2 lg:grid-cols-3">
-            {ofertas.map((producto) => (
+            {productosParaMostrar.map((producto) => (
               <ProductCard key={producto.id} producto={producto} variant="home" />
             ))}
           </div>

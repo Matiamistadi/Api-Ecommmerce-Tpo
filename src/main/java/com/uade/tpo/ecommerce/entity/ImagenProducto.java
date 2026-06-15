@@ -22,6 +22,7 @@ public class ImagenProducto {
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
+    // Guardamos la URL del archivo subido (ej: http://localhost:8080/uploads/abc.png)
     private String url;
     private String descripcion;
 }

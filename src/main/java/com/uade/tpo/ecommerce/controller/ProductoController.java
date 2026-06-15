@@ -8,6 +8,7 @@ import com.uade.tpo.ecommerce.service.ProductoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -67,10 +68,12 @@ public class ProductoController {
         return ResponseEntity.notFound().build();
     }
 
-    // Corrección 3: gestión de imágenes
+    // Subida de imagen del producto vía multipart/form-data (campo "file")
     @PostMapping("/{id}/imagenes")
-    public ResponseEntity<ImagenProducto> agregarImagen(@PathVariable Long id, @RequestBody ImagenProducto imagen) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productoService.agregarImagen(id, imagen));
+    public ResponseEntity<ImagenProducto> agregarImagen(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productoService.agregarImagen(id, file));
     }
 
     @DeleteMapping("/{productoId}/imagenes/{imagenId}")

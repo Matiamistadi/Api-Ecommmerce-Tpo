@@ -7,12 +7,15 @@ export function getToken() {
 
 export async function apiFetch(path, options = {}) {
   const token = getToken();
+  // Si mandamos un FormData (subida de archivos), NO ponemos Content-Type:
+  // el navegador lo arma solo con el boundary correcto del multipart.
+  const esFormData = options.body instanceof FormData;
 
   let response;
   try {
     response = await fetch(`${API_URL}${path}`, {
       headers: {
-        'Content-Type': 'application/json',
+        ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
         // Si hay token, lo mandamos en cada pedido para identificarnos
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,

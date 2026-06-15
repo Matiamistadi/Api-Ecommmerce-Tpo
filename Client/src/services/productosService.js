@@ -37,7 +37,8 @@ export function mapProducto(producto) {
 }
 
 // Traductor INVERSO: del formato plano de React al formato que espera el backend.
-// El backend pide categoria/marca como objetos con id, y las imágenes como lista.
+// El backend pide categoria/marca como objetos con id. Las imágenes NO van acá:
+// se suben aparte como archivo (multipart).
 function toBackend(producto) {
   return {
     nombre: producto.nombre,
@@ -48,9 +49,6 @@ function toBackend(producto) {
     activo: producto.activo ?? true,
     categoria: producto.categoriaId ? { id: Number(producto.categoriaId) } : null,
     marca: producto.marcaId ? { id: Number(producto.marcaId) } : null,
-    imagenes: [producto.imagenUrl, producto.imagenDetalleUrl]
-      .filter(Boolean)
-      .map((url) => ({ url })),
   };
 }
 
@@ -64,11 +62,40 @@ export async function getProductoById(id) {
   return mapProducto(data);
 }
 
-export async function crearProducto(producto) {
+// Sube una imagen a un producto usando multipart/form-data (campo "file")
+export async function subirImagen(productoId, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiFetch(`/api/productos/${productoId}/imagenes`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+// Reemplaza la imagen de un producto: borra las que tenía y sube la nueva
+export async function reemplazarImagen(productoId, file) {
+  const raw = await apiFetch(`/api/productos/${productoId}`);
+  for (const img of raw.imagenes || []) {
+    await apiFetch(`/api/productos/${productoId}/imagenes/${img.id}`, { method: 'DELETE' });
+  }
+  await subirImagen(productoId, file);
+  return getProductoById(productoId);
+}
+
+// Crea el producto (JSON) y, si vienen archivos, los sube y devuelve el producto ya con sus imágenes
+export async function crearProducto(producto, archivos = {}) {
   const data = await apiFetch('/api/productos', {
     method: 'POST',
     body: JSON.stringify(toBackend(producto)),
   });
+
+  if (archivos.principal) await subirImagen(data.id, archivos.principal);
+  if (archivos.detalle) await subirImagen(data.id, archivos.detalle);
+
+  // Si subimos imágenes, volvemos a traer el producto para tener las URLs ya asociadas
+  if (archivos.principal || archivos.detalle) {
+    return getProductoById(data.id);
+  }
   return mapProducto(data);
 }
 

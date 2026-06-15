@@ -7,9 +7,18 @@ import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.ImagenProductoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -78,11 +87,42 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public ImagenProducto agregarImagen(Long productoId, ImagenProducto imagen) {
+    public ImagenProducto agregarImagen(Long productoId, MultipartFile archivo) {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + productoId));
-        imagen.setProducto(producto);
-        return imagenProductoRepository.save(imagen);
+
+        if (archivo == null || archivo.isEmpty()) {
+            throw new IllegalArgumentException("El archivo de imagen está vacío");
+        }
+
+        try {
+            // 1) Carpeta uploads/ (se crea si no existe)
+            Path carpeta = Paths.get("uploads");
+            Files.createDirectories(carpeta);
+
+            // 2) Nombre único para no pisar archivos con el mismo nombre
+            String original = StringUtils.cleanPath(
+                    archivo.getOriginalFilename() == null ? "imagen" : archivo.getOriginalFilename());
+            String nombreArchivo = UUID.randomUUID() + "_" + original;
+
+            // 3) Guardamos el archivo físicamente en disco
+            Path destino = carpeta.resolve(nombreArchivo);
+            Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+            // 4) Armamos la URL pública para que el frontend pueda mostrar la imagen
+            String url = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/uploads/")
+                    .path(nombreArchivo)
+                    .toUriString();
+
+            // 5) Guardamos la imagen asociada al producto
+            ImagenProducto imagen = new ImagenProducto();
+            imagen.setUrl(url);
+            imagen.setProducto(producto);
+            return imagenProductoRepository.save(imagen);
+        } catch (IOException e) {
+            throw new RuntimeException("Error al guardar la imagen: " + e.getMessage(), e);
+        }
     }
 
     @Override

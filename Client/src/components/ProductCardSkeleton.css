@@ -1,0 +1,41 @@
+/* Animación de brillo para los skeletons */
+.skeleton {
+  background: linear-gradient(90deg, #ececef 25%, #f5f5f7 50%, #ececef 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  width: 100%;
+  max-width: 320px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.skeleton-card__image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 16px;
+}
+
+.skeleton-card__line {
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.skeleton-card__line--short {
+  width: 40%;
+}
+
+.skeleton-card__button {
+  height: 44px;
+  margin-top: 8px;
+}

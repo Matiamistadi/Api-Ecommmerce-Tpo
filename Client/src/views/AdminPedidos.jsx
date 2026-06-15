@@ -3,10 +3,11 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { X, AlertTriangle, Package, MapPin, User } from 'lucide-react';
 import { getTodasLasOrdenes, actualizarEstadoOrden } from '../services/ordenService';
 import { formatPrecio } from '@/lib/formato';
+import { useToast } from '../context/ToastContext';
 import './Admin.css';
 
 // Estados reales de la orden en el backend (enum EstadoOrden)
-const ESTADOS_PEDIDO = ['PENDIENTE', 'APROBADO', 'RECHAZADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'];
+const ESTADOS_PEDIDO = ['Pendiente', 'Aprobado', 'Rechazado', 'Enviado', 'Entregado', 'Cancelado'];
 const filtros = ['Todos', ...ESTADOS_PEDIDO];
 
 // Cada estado del backend se pinta reusando las clases de badge que ya existen
@@ -23,6 +24,7 @@ const BADGE_COLOR = {
 const formatEstado = (estado) => estado.charAt(0) + estado.slice(1).toLowerCase();
 
 const AdminPedidos = () => {
+  const { mostrarToast } = useToast();
   const [pedidos, setPedidos] = useState([]);
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
@@ -74,8 +76,9 @@ const AdminPedidos = () => {
     try {
       const actualizado = await actualizarEstadoOrden(confirmarCambio.pedido.id, confirmarCambio.nuevoEstado);
       setPedidos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
+      mostrarToast(`Pedido #${actualizado.id} actualizado a ${formatEstado(actualizado.estado)}.`);
     } catch (err) {
-      alert(err.message);
+      mostrarToast(err.message, 'error');
     } finally {
       setConfirmarCambio(null);
     }

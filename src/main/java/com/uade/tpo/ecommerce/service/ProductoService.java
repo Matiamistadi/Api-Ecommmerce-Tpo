@@ -2,6 +2,7 @@ package com.uade.tpo.ecommerce.service;
 
 import com.uade.tpo.ecommerce.entity.ImagenProducto;
 import com.uade.tpo.ecommerce.entity.Producto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,6 @@ public interface ProductoService {
     Optional<Producto> actualizar(Long id, Producto productoActualizado);
     Optional<Producto> toggleActivo(Long id);
     boolean eliminar(Long id);
-    ImagenProducto agregarImagen(Long productoId, ImagenProducto imagen);
+    ImagenProducto agregarImagen(Long productoId, MultipartFile archivo);
     boolean eliminarImagen(Long productoId, Long imagenId);
 }

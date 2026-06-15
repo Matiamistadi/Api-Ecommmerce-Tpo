@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './views/Home';
@@ -18,12 +19,20 @@ import AdminAnaliticas from './views/AdminAnaliticas';
 import AdminAjustes from './views/AdminAjustes';
 import AgregarDireccion from './views/AgregarDireccion';
 import AgregarProducto from './views/AgregarProducto';
+import SobreNosotros from './views/SobreNosotros';
+import Contacto from './views/Contacto';
+import FAQ from './views/FAQ';
+import Envios from './views/Envios';
 import NotFound from './views/NotFound';
 import './App.css';
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="app">
@@ -44,6 +53,10 @@ function App() {
           <Route path="/agregar-direccion" element={<AgregarDireccion />} />
           <Route path="/agregar-producto" element={<AgregarProducto />} />
           <Route path="/perfil" element={<MiPerfil />} />
+          <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/envios" element={<Envios />} />
           <Route path="/admin" element={<AdminProductos />} />
           <Route path="/admin/productos" element={<AdminProductos />} />
           <Route path="/admin/pedidos" element={<AdminPedidos />} />

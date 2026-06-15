@@ -36,6 +36,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/status").permitAll()
 
+                // Imágenes subidas de productos (visibles para todos)
+                .requestMatchers("/uploads/**").permitAll()
+
                 // Cualquiera puede ver el catálogo (vidriera del gym)
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()

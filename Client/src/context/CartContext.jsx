@@ -1,9 +1,20 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
+const CARRITO_KEY = 'carrito';
+
 export const CartProvider = ({ children }) => {
-  const [carrito, setCarrito] = useState([]);
+  // Recuperamos el carrito guardado al iniciar (sobrevive al recargar la página)
+  const [carrito, setCarrito] = useState(() => {
+    const guardado = localStorage.getItem(CARRITO_KEY);
+    return guardado ? JSON.parse(guardado) : [];
+  });
+
+  // Cada cambio del carrito se guarda en localStorage
+  useEffect(() => {
+    localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
+  }, [carrito]);
 
   const agregarAlCarrito = (producto, cantidad = 1) => {
     setCarrito(prev => {

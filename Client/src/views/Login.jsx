@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { mostrarToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});
@@ -77,7 +79,7 @@ const Login = () => {
           <div className="login__field">
             <div className="login__label-row">
               <Label htmlFor="password" className="login__label">Contraseña</Label>
-              <a href="#forgot" className="login__forgot" onClick={(e) => { e.preventDefault(); alert('Función de recuperación de contraseña simulada.'); }}>¿Olvidaste tu contraseña?</a>
+              <a href="#forgot" className="login__forgot" onClick={(e) => { e.preventDefault(); mostrarToast('Función de recuperación de contraseña próximamente.'); }}>¿Olvidaste tu contraseña?</a>
             </div>
             <Input
               id="password"
