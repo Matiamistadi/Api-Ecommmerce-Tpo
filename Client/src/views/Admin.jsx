@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useProducts } from '../context/ProductsContext';
+import { formatPrecio } from '@/lib/formato';
 import { AdminSidebar } from '../components/AdminSidebar';
 import {
   Search, Plus, SlidersHorizontal, Download, Edit2, Eye, EyeOff, Trash2, AlertTriangle,
@@ -262,7 +263,7 @@ const Admin = () => {
                   </div>
                 </div>
                 <div className="text-3xl font-bold text-[#00e69e] mb-2">
-                  ${productos.reduce((a, p) => a + p.precio * p.stock, 0).toFixed(0)}
+                  {formatPrecio(productos.reduce((a, p) => a + p.precio * p.stock, 0))}
                 </div>
                 <div className="text-xs font-semibold text-gray-500">Valor estimado del inventario</div>
               </div>
@@ -367,7 +368,7 @@ const Admin = () => {
                         <td className="py-5 px-6">
                           <span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold">{producto.categoria}</span>
                         </td>
-                        <td className="py-5 px-6 text-gray-600 font-medium">${producto.precio.toFixed(2)}</td>
+                        <td className="py-5 px-6 text-gray-600 font-medium">{formatPrecio(producto.precio)}</td>
                         <td className={`py-5 px-6 font-medium ${producto.stock < 15 ? 'text-red-500 font-bold' : 'text-gray-600'}`}>
                           {producto.stock}
                         </td>

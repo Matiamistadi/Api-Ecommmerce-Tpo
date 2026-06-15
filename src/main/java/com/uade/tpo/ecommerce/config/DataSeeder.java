@@ -135,20 +135,32 @@ public class DataSeeder implements CommandLineRunner {
                 .findFirst();
 
         if (existente.isPresent()) {
-            // Si ya existía pero sin precio original (de una siembra anterior), se lo completamos
             Producto p = existente.get();
-            if (p.getPrecioOriginal() == null && precioOriginal != null) {
-                p.setPrecioOriginal(precioOriginal);
-                productoRepository.save(p);
+            boolean cambios = false;
+            // Migración: si el precio está en escala vieja (dólares, < 1000), lo pasamos a pesos (x1000)
+            if (p.getPrecio() != null && p.getPrecio() < 1000) {
+                p.setPrecio(p.getPrecio() * 1000);
+                if (p.getPrecioOriginal() != null) {
+                    p.setPrecioOriginal(p.getPrecioOriginal() * 1000);
+                } else if (precioOriginal != null) {
+                    p.setPrecioOriginal(precioOriginal * 1000);
+                }
+                cambios = true;
+            } else if (p.getPrecioOriginal() == null && precioOriginal != null) {
+                // Solo completamos el precio original si faltaba (ya estaba en pesos)
+                p.setPrecioOriginal(precioOriginal * 1000);
+                cambios = true;
             }
+            if (cambios) productoRepository.save(p);
             return;
         }
 
         Producto producto = new Producto();
         producto.setNombre(nombre);
         producto.setDescripcion(descripcion);
-        producto.setPrecio(precio);
-        producto.setPrecioOriginal(precioOriginal);
+        // Los números del seeder están en escala dólar; los pasamos a pesos (x1000)
+        producto.setPrecio(precio * 1000);
+        producto.setPrecioOriginal(precioOriginal != null ? precioOriginal * 1000 : null);
         producto.setStock(stock);
         producto.setActivo(true);
         producto.setCategoria(categoria);

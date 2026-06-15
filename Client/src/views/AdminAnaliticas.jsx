@@ -3,6 +3,7 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { TrendingUp, ShoppingBag, Users, DollarSign } from 'lucide-react';
 import { useProducts } from '../context/ProductsContext';
 import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
+import { formatPrecio } from '@/lib/formato';
 
 const AdminAnaliticas = () => {
   const { productos } = useProducts();
@@ -37,10 +38,10 @@ const AdminAnaliticas = () => {
   const ticketPromedio = ventasValidas.length ? ingresosTotales / ventasValidas.length : 0;
 
   const kpis = [
-    { label: 'Ingresos totales', value: `$${ingresosTotales.toFixed(0)}`, sub: 'Acumulado (ventas válidas)', icon: DollarSign },
+    { label: 'Ingresos totales', value: formatPrecio(ingresosTotales), sub: 'Acumulado (ventas válidas)', icon: DollarSign },
     { label: 'Pedidos totales', value: metrics.totalPedidos, sub: 'Registrados en el sistema', icon: ShoppingBag },
     { label: 'Clientes activos', value: metrics.clientesActivos, sub: 'Sin suspensión', icon: Users },
-    { label: 'Ticket promedio', value: `$${ticketPromedio.toFixed(2)}`, sub: 'Por pedido', icon: TrendingUp },
+    { label: 'Ticket promedio', value: formatPrecio(ticketPromedio), sub: 'Por pedido', icon: TrendingUp },
   ];
 
   return (
@@ -83,7 +84,7 @@ const AdminAnaliticas = () => {
                   const height = Math.round((v.ventas / maxVenta) * 100);
                   return (
                     <div key={v.mes} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-xs font-bold text-gray-500">${Math.round(v.ventas)}</span>
+                      <span className="text-xs font-bold text-gray-500">{formatPrecio(v.ventas)}</span>
                       <div
                         className="w-full rounded-t-md bg-[#00e69e] transition-all"
                         style={{ height: `${height}%`, minHeight: v.ventas > 0 ? '4px' : '0' }}
@@ -105,7 +106,7 @@ const AdminAnaliticas = () => {
                       {i + 1}
                     </span>
                     <span className="text-sm font-medium text-gray-700 flex-1 truncate">{p.nombre}</span>
-                    <span className="text-sm font-bold text-gray-900">${p.precio}</span>
+                    <span className="text-sm font-bold text-gray-900">{formatPrecio(p.precio)}</span>
                   </li>
                 ))}
               </ul>

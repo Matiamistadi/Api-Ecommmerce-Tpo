@@ -3,6 +3,7 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { AlertTriangle } from 'lucide-react';
 import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
 import { actualizarUsuario } from '../services/usuarioService';
+import { formatPrecio } from '@/lib/formato';
 import './Admin.css';
 
 const filtros = ['Todos', 'Activo', 'Suspendido'];
@@ -125,7 +126,7 @@ const AdminClientes = () => {
                       </td>
                       <td>{cliente.pedidos}</td>
                       <td>{cliente.ultimaCompra}</td>
-                      <td>${cliente.totalGastado.toFixed(2)}</td>
+                      <td>{formatPrecio(cliente.totalGastado)}</td>
                       <td>
                         <div className="admin-panel__actions">
                           <button

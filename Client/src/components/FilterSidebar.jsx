@@ -3,12 +3,12 @@ import './FilterSidebar.css';
 
 const categorias = ['Todas', 'Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 
-// Rangos predefinidos estilo Mercado Libre. '' significa "sin límite".
+// Rangos predefinidos estilo Mercado Libre (en pesos). '' significa "sin límite".
 const rangosPrecio = [
-  { label: 'Hasta $25', min: '', max: '25' },
-  { label: '$25 a $35', min: '25', max: '35' },
-  { label: '$35 a $45', min: '35', max: '45' },
-  { label: 'Más de $45', min: '45', max: '' },
+  { label: 'Hasta $20.000', min: '', max: '20000' },
+  { label: '$20.000 a $30.000', min: '20000', max: '30000' },
+  { label: '$30.000 a $40.000', min: '30000', max: '40000' },
+  { label: 'Más de $40.000', min: '40000', max: '' },
 ];
 
 const FilterSidebar = ({
@@ -17,6 +17,9 @@ const FilterSidebar = ({
   marcas = ['Todas'],
   marcaSeleccionada,
   onMarcaChange,
+  sabores = ['Todos'],
+  saborSeleccionado,
+  onSaborChange,
   precioMin,
   precioMax,
   onPrecioChange,
@@ -87,6 +90,29 @@ const FilterSidebar = ({
           ))}
         </ul>
       </div>
+
+      {/* Gusto / sabor */}
+      {sabores.length > 1 && (
+        <div className="filter-sidebar__section">
+          <h4 className="filter-sidebar__section-title">Gusto</h4>
+          <ul className="filter-sidebar__list">
+            {sabores.map((s) => (
+              <li key={s}>
+                <label className="filter-sidebar__option">
+                  <input
+                    type="radio"
+                    name="sabor"
+                    value={s}
+                    checked={saborSeleccionado === s}
+                    onChange={(e) => onSaborChange(e.target.value)}
+                  />
+                  <span>{s}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Precio */}
       <div className="filter-sidebar__section">

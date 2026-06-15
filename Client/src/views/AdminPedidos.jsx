@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { X, AlertTriangle, Package, MapPin, User, ChevronDown } from 'lucide-react';
 import { getTodasLasOrdenes, actualizarEstadoOrden } from '../services/ordenService';
+import { formatPrecio } from '@/lib/formato';
 import './Admin.css';
 
 // Estados reales de la orden en el backend (enum EstadoOrden)
@@ -158,7 +159,7 @@ const AdminPedidos = () => {
                       </td>
                       <td>{pedido.fecha}</td>
                       <td>{pedido.cantidadProductos}</td>
-                      <td>${pedido.total.toFixed(2)}</td>
+                      <td>{formatPrecio(pedido.total)}</td>
                       <td>
                         <span className={`admin-panel__badge ${BADGE_COLOR[pedido.estado] ?? ''}`}>
                           {formatEstado(pedido.estado)}
@@ -270,8 +271,8 @@ const AdminPedidos = () => {
                         <p className="text-xs text-gray-500">Cantidad: {item.cantidad}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-gray-900">${(item.precio * item.cantidad).toFixed(2)}</p>
-                        <p className="text-xs text-gray-400">${item.precio.toFixed(2)} c/u</p>
+                        <p className="text-sm font-bold text-gray-900">{formatPrecio(item.precio * item.cantidad)}</p>
+                        <p className="text-xs text-gray-400">{formatPrecio(item.precio)} c/u</p>
                       </div>
                     </div>
                   ))}
@@ -281,7 +282,7 @@ const AdminPedidos = () => {
               {/* Total */}
               <div className="flex justify-between items-center border-t border-gray-100 pt-4">
                 <span className="text-sm font-bold text-gray-700">Total del pedido</span>
-                <span className="text-xl font-bold text-gray-900">${pedidoDetalle.total.toFixed(2)}</span>
+                <span className="text-xl font-bold text-gray-900">{formatPrecio(pedidoDetalle.total)}</span>
               </div>
             </div>
           </div>

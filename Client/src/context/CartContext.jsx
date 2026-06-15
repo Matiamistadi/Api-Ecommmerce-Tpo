@@ -8,14 +8,16 @@ export const CartProvider = ({ children }) => {
   const agregarAlCarrito = (producto, cantidad = 1) => {
     setCarrito(prev => {
       const existente = prev.find(item => item.id === producto.id);
+      // No dejamos superar el stock disponible del producto
+      const stock = producto.stock ?? Infinity;
       if (existente) {
         return prev.map(item =>
           item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + cantidad }
+            ? { ...item, cantidad: Math.min(item.cantidad + cantidad, stock) }
             : item
         );
       }
-      return [...prev, { ...producto, cantidad }];
+      return [...prev, { ...producto, cantidad: Math.min(cantidad, stock) }];
     });
   };
 
@@ -29,7 +31,12 @@ export const CartProvider = ({ children }) => {
       return;
     }
     setCarrito(prev =>
-      prev.map(item => item.id === id ? { ...item, cantidad } : item)
+      prev.map(item => {
+        if (item.id !== id) return item;
+        // Tope: no superar el stock guardado del producto
+        const stock = item.stock ?? Infinity;
+        return { ...item, cantidad: Math.min(cantidad, stock) };
+      })
     );
   };
 

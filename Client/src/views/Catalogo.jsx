@@ -8,22 +8,25 @@ const Catalogo = () => {
   const { productos, loading, error, recargarProductos } = useProducts();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('Todas');
+  const [saborSeleccionado, setSaborSeleccionado] = useState('Todos');
   const [precioMin, setPrecioMin] = useState('');
   const [precioMax, setPrecioMax] = useState('');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
   const productosActivos = productos.filter((p) => p.activo !== false);
 
-  // Lista de marcas a partir de los productos (sin repetir), con "Todas" al inicio
+  // Listas de marcas y gustos a partir de los productos (sin repetir)
   const marcas = ['Todas', ...Array.from(new Set(productos.map((p) => p.marca).filter(Boolean)))];
+  const sabores = ['Todos', ...Array.from(new Set(productos.map((p) => p.sabor).filter((s) => s && s !== 'Otro')))];
 
-  // Aplicamos todos los filtros juntos: categoría + marca + rango de precio
+  // Aplicamos todos los filtros juntos: categoría + marca + gusto + rango de precio
   const productosFiltrados = productosActivos.filter((p) => {
     const okCategoria = categoriaSeleccionada === 'Todas' || p.categoria === categoriaSeleccionada;
     const okMarca = marcaSeleccionada === 'Todas' || p.marca === marcaSeleccionada;
+    const okSabor = saborSeleccionado === 'Todos' || p.sabor === saborSeleccionado;
     const okMin = precioMin === '' || p.precio >= Number(precioMin);
     const okMax = precioMax === '' || p.precio <= Number(precioMax);
-    return okCategoria && okMarca && okMin && okMax;
+    return okCategoria && okMarca && okSabor && okMin && okMax;
   });
 
   const aplicarRangoPrecio = (min, max) => {
@@ -34,6 +37,7 @@ const Catalogo = () => {
   const limpiarFiltros = () => {
     setCategoriaSeleccionada('Todas');
     setMarcaSeleccionada('Todas');
+    setSaborSeleccionado('Todos');
     setPrecioMin('');
     setPrecioMax('');
   };
@@ -62,6 +66,9 @@ const Catalogo = () => {
             marcas={marcas}
             marcaSeleccionada={marcaSeleccionada}
             onMarcaChange={setMarcaSeleccionada}
+            sabores={sabores}
+            saborSeleccionado={saborSeleccionado}
+            onSaborChange={setSaborSeleccionado}
             precioMin={precioMin}
             precioMax={precioMax}
             onPrecioChange={aplicarRangoPrecio}

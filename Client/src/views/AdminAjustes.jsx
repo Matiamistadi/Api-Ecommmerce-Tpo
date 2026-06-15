@@ -35,8 +35,8 @@ const AdminAjustes = () => {
   });
 
   const [envio, setEnvio] = useState({
-    costoBase: '9.99',
-    minimoGratis: '89.99',
+    costoBase: '3500',
+    minimoGratis: '50000',
     zonas: 'Nacional',
   });
 

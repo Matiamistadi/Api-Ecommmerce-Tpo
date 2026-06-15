@@ -1,5 +1,20 @@
 import { apiFetch } from './api';
 
+// Deriva el "gusto" del producto a partir de su nombre (el backend no guarda un campo sabor)
+export function getSabor(nombre = '') {
+  const n = nombre.toLowerCase();
+  if (n.includes('vainilla')) return 'Vainilla';
+  if (n.includes('chocolate')) return 'Chocolate';
+  if (n.includes('manzana')) return 'Manzana';
+  if (n.includes('sandía') || n.includes('sandia')) return 'Sandía';
+  if (n.includes('limón') || n.includes('limon')) return 'Limón';
+  if (n.includes('lima')) return 'Lima';
+  if (n.includes('ponche')) return 'Ponche';
+  if (n.includes('azul')) return 'Frutal';
+  if (n.includes('sin sabor')) return 'Sin sabor';
+  return 'Otro';
+}
+
 // Traduce el formato del backend (Producto entity) al formato que ya
 // consumen los componentes del catálogo (ProductCard, FilterSidebar, etc.)
 export function mapProducto(producto) {
@@ -15,6 +30,7 @@ export function mapProducto(producto) {
     categoriaId: producto.categoria?.id ?? null,
     marca: producto.marca?.nombre ?? '',
     marcaId: producto.marca?.id ?? null,
+    sabor: getSabor(producto.nombre),
     imagenUrl: producto.imagenes?.[0]?.url ?? '/img/BannerNexa.png',
     imagenDetalleUrl: producto.imagenes?.[1]?.url ?? producto.imagenes?.[0]?.url,
   };

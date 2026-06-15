@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, Truck, Receipt, ClipboardList } from 'lucide-react';
 import './Confirmacion.css';
 import { Button } from '@/components/ui/button';
+import { formatPrecio } from '@/lib/formato';
 
 const MOCK_FALLBACK_ITEMS = [
   {
@@ -56,7 +57,7 @@ const Confirmacion = () => {
           nombre: item.nombre,
           descripcion: `Sabor: Vainilla • Cantidad: ${item.cantidad}`,
           categoria: 'Suplementos',
-          precio: `$${item.precio.toFixed(2)}`,
+          precio: formatPrecio(item.precio),
           cantidad: item.cantidad,
           imagen: item.imagenUrl || '/img/ProteVainilla.png'
         }));
@@ -66,8 +67,8 @@ const Confirmacion = () => {
       }
     }
 
-    if (cachedTotal) setTotal(`$${cachedTotal}`);
-    if (cachedSubtotal) setSubtotal(`$${cachedSubtotal}`);
+    if (cachedTotal) setTotal(formatPrecio(Number(cachedTotal)));
+    if (cachedSubtotal) setSubtotal(formatPrecio(Number(cachedSubtotal)));
     if (cachedEnvio) setEnvio(cachedEnvio);
 
     if (cachedDireccion) {

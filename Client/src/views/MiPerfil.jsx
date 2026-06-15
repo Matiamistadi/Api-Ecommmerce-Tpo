@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '../context/AuthContext';
 import { getDirecciones } from '../services/direccionService';
 import { getOrdenesPorUsuario } from '../services/ordenService';
+import { formatPrecio } from '@/lib/formato';
 
 const MiPerfil = () => {
   const navigate = useNavigate();
@@ -213,7 +214,7 @@ const MiPerfil = () => {
                         </td>
 
                         <td className="perfil__total-cell">
-                          ${pedido.total.toFixed(2)}
+                          {formatPrecio(pedido.total)}
                         </td>
                       </tr>
                     ))}

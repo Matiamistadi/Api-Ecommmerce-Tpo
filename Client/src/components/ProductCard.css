@@ -25,6 +25,7 @@
 }
 
 .product-card__image {
+  position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   background-color: var(--color-surface-low);
@@ -36,8 +37,29 @@
 .product-card__image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 12px;
   display: block;
+}
+
+/* Badge de descuento sobre la imagen */
+.product-card__discount {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background-color: #e63946;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.product-card__button:disabled {
+  background-color: var(--color-outline);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
 }
 
 .product-card__brand {

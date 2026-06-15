@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../context/ProductsContext';
 import { useCart } from '../context/CartContext';
+import { formatPrecio } from '@/lib/formato';
 import './DetalleProducto.css';
 
 const DetalleProducto = () => {
@@ -47,8 +48,14 @@ const DetalleProducto = () => {
       : [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean)
   );
 
+  const sinStock = producto.stock <= 0;
+  const discount =
+    producto.precioOriginal &&
+    Math.round((1 - producto.precio / producto.precioOriginal) * 100);
+
   const disminuir = () => setCantidad((c) => Math.max(1, c - 1));
-  const aumentar = () => setCantidad((c) => c + 1);
+  // No dejamos elegir más unidades que el stock disponible
+  const aumentar = () => setCantidad((c) => Math.min(producto.stock, c + 1));
 
   return (
     <main className="detalle">
@@ -78,8 +85,20 @@ const DetalleProducto = () => {
           <p className="detalle__descripcion">{producto.descripcion}</p>
 
           <div className="detalle__precio-row">
-            <span className="detalle__precio">${producto.precio.toFixed(2)}</span>
-            <span className="detalle__stock">✓ En Stock</span>
+            <span className="detalle__precio">{formatPrecio(producto.precio)}</span>
+            {producto.precioOriginal && (
+              <span style={{ textDecoration: 'line-through', color: 'var(--color-text-muted)', fontSize: '1rem' }}>
+                {formatPrecio(producto.precioOriginal)}
+              </span>
+            )}
+            {discount > 0 && (
+              <span style={{ background: '#e63946', color: '#fff', fontWeight: 800, fontSize: '0.8rem', padding: '2px 8px', borderRadius: '6px' }}>
+                -{discount}%
+              </span>
+            )}
+            <span className="detalle__stock">
+              {sinStock ? '✕ Sin stock' : `✓ ${producto.stock} en stock`}
+            </span>
           </div>
 
           <div className="detalle__cantidad">
@@ -87,15 +106,16 @@ const DetalleProducto = () => {
             <div className="detalle__cantidad-control">
               <button onClick={disminuir} className="detalle__cantidad-btn">−</button>
               <span className="detalle__cantidad-valor">{cantidad}</span>
-              <button onClick={aumentar} className="detalle__cantidad-btn">+</button>
+              <button onClick={aumentar} className="detalle__cantidad-btn" disabled={cantidad >= producto.stock}>+</button>
             </div>
           </div>
 
           <button
             className="detalle__agregar"
             onClick={() => { agregarAlCarrito(producto, cantidad); navigate('/carrito'); }}
+            disabled={sinStock}
           >
-            🛒 AGREGAR AL CARRITO ({cantidad})
+            {sinStock ? 'SIN STOCK' : `🛒 AGREGAR AL CARRITO (${cantidad})`}
           </button>
         </div>
       </div>

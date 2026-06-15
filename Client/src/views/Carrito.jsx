@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { formatPrecio } from '@/lib/formato';
 import './Carrito.css';
 
 const Carrito = () => {
@@ -45,10 +46,11 @@ const Carrito = () => {
                     <button
                       className="carrito__cantidad-btn"
                       onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
+                      disabled={item.cantidad >= (item.stock ?? Infinity)}
                     >+</button>
                   </div>
                   <p className="carrito__item-precio">
-                    ${(item.precio * item.cantidad).toFixed(2)}
+                    {formatPrecio(item.precio * item.cantidad)}
                   </p>
                   <button
                     className="carrito__item-eliminar"
@@ -63,17 +65,17 @@ const Carrito = () => {
           <div className="carrito__resumen">
             <h2 className="carrito__resumen-title">Resumen del Pedido</h2>
             <div className="carrito__resumen-row">
-              <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+              <span>Subtotal</span><span>{formatPrecio(subtotal)}</span>
             </div>
             <div className="carrito__resumen-row">
               <span>Envío</span>
               <span className="carrito__resumen-envio">Calculado al finalizar</span>
             </div>
             <div className="carrito__resumen-row">
-              <span>Impuestos (8%)</span><span>${impuestos.toFixed(2)}</span>
+              <span>Impuestos (8%)</span><span>{formatPrecio(impuestos)}</span>
             </div>
             <div className="carrito__resumen-total">
-              <span>Total</span><span>${total.toFixed(2)}</span>
+              <span>Total</span><span>{formatPrecio(total)}</span>
             </div>
             <button className="carrito__checkout-btn" onClick={() => navigate('/checkout')}>
               Proceder al Pago →

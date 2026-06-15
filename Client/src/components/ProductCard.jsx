@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { cn } from '@/lib/utils';
+import { formatPrecio } from '@/lib/formato';
 import './ProductCard.css';
 
 const ProductCard = ({ producto, variant }) => {
@@ -12,6 +13,7 @@ const ProductCard = ({ producto, variant }) => {
   const discount =
     producto.precioOriginal &&
     Math.round((1 - producto.precio / producto.precioOriginal) * 100);
+  const sinStock = producto.stock <= 0;
 
   const handleAgregar = (e) => {
     e.preventDefault();
@@ -63,11 +65,11 @@ const ProductCard = ({ producto, variant }) => {
 
         <div className="flex items-baseline gap-2 px-5 pb-4">
           <span className="font-gym-heading text-2xl font-bold text-gym-text">
-            ${producto.precio.toFixed(2)}
+            {formatPrecio(producto.precio)}
           </span>
           {producto.precioOriginal && (
             <span className="text-sm text-gym-text-muted line-through">
-              ${producto.precioOriginal.toFixed(2)}
+              {formatPrecio(producto.precioOriginal)}
             </span>
           )}
         </div>
@@ -105,6 +107,7 @@ const ProductCard = ({ producto, variant }) => {
 
       <Link to={`/productos/${producto.id}`} className="product-card__link">
         <div className="product-card__image">
+          {discount > 0 && <span className="product-card__discount">-{discount}%</span>}
           <img src={producto.imagenUrl} alt={producto.nombre} />
         </div>
         <p className="product-card__brand">{producto.marca}</p>
@@ -112,17 +115,18 @@ const ProductCard = ({ producto, variant }) => {
       </Link>
 
       <div className="product-card__price">
-        <span className="product-card__price-current">${producto.precio.toFixed(2)}</span>
+        <span className="product-card__price-current">{formatPrecio(producto.precio)}</span>
         {producto.precioOriginal && (
-          <span className="product-card__price-old">${producto.precioOriginal.toFixed(2)}</span>
+          <span className="product-card__price-old">{formatPrecio(producto.precioOriginal)}</span>
         )}
       </div>
 
       <button
         className={`product-card__button ${agregado ? 'product-card__button--ok' : ''}`}
         onClick={handleAgregar}
+        disabled={sinStock}
       >
-        {agregado ? '✓ Agregado' : 'Agregar'}
+        {sinStock ? 'Sin stock' : agregado ? '✓ Agregado' : 'Agregar'}
       </button>
     </div>
   );

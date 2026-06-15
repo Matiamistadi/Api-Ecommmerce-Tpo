@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { realizarCheckout } from '../services/checkoutService';
+import { formatPrecio } from '@/lib/formato';
 import { CreditCard, Lock } from 'lucide-react';
 import './Checkout.css';
 import { Button } from '@/components/ui/button';
@@ -122,8 +123,8 @@ const Checkout = () => {
       // Guardamos el resumen para la pantalla de confirmación
       sessionStorage.setItem('ultimo_pedido_numero', `#${orden.id}`);
       sessionStorage.setItem('ultimo_pedido_items', JSON.stringify(carrito));
-      sessionStorage.setItem('ultimo_pedido_total', total.toFixed(2));
-      sessionStorage.setItem('ultimo_pedido_subtotal', subtotal.toFixed(2));
+      sessionStorage.setItem('ultimo_pedido_total', String(total));
+      sessionStorage.setItem('ultimo_pedido_subtotal', String(subtotal));
       sessionStorage.setItem('ultimo_pedido_envio', 'Gratis');
       sessionStorage.setItem('ultimo_pedido_direccion', JSON.stringify({
         nombre: form.nombre,
@@ -318,7 +319,7 @@ const Checkout = () => {
               className="checkout__btn-confirm h-auto w-full"
               disabled={procesando}
             >
-              {procesando ? 'PROCESANDO...' : `FINALIZAR PEDIDO • $${total.toFixed(2)}`}
+              {procesando ? 'PROCESANDO...' : `FINALIZAR PEDIDO • ${formatPrecio(total)}`}
             </Button>
 
             <p className="checkout__seguridad">
