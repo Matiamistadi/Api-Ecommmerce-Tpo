@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAddresses } from '../context/AddressContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { crearDireccion } from '../services/direccionService';
 import './AgregarDireccion.css';
 
 const initialForm = {
@@ -15,21 +17,43 @@ const initialForm = {
 
 const AgregarDireccion = () => {
   const navigate = useNavigate();
-  const { agregarDireccion } = useAddresses();
+  const { usuario } = useAuth();
+  const { mostrarToast } = useToast();
   const [form, setForm] = useState(initialForm);
+  const [guardando, setGuardando] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!form.calle || !form.numero || !form.ciudad || !form.codigoPostal) {
+      mostrarToast('Completá calle, número, ciudad y código postal.', 'error');
+      return;
+    }
+    if (!usuario) {
+      navigate('/login');
       return;
     }
 
-    agregarDireccion(form);
-    navigate('/perfil');
+    setGuardando(true);
+    try {
+      // El backend guarda la calle completa (juntamos calle + número + piso)
+      await crearDireccion(usuario.id, {
+        calle: `${form.calle} ${form.numero}${form.piso ? `, ${form.piso}` : ''}`.trim(),
+        ciudad: form.ciudad,
+        provincia: form.provincia,
+        codigoPostal: form.codigoPostal,
+        esPrincipal: false,
+      });
+      mostrarToast('Dirección guardada.');
+      navigate('/perfil');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -81,7 +105,9 @@ const AgregarDireccion = () => {
 
             <div className="agregar-direccion__actions">
               <Link to="/perfil" className="agregar-direccion__btn agregar-direccion__btn--secondary">Cancelar</Link>
-              <button type="button" className="agregar-direccion__btn agregar-direccion__btn--primary" onClick={guardar}>Guardar dirección</button>
+              <button type="button" className="agregar-direccion__btn agregar-direccion__btn--primary" onClick={guardar} disabled={guardando}>
+                {guardando ? 'Guardando...' : 'Guardar dirección'}
+              </button>
             </div>
           </form>
         </section>

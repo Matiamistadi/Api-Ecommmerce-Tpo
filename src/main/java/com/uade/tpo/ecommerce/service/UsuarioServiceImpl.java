@@ -42,6 +42,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (request.getPassword() != null) {
                 u.setPasswordHash(passwordEncoder.encode(request.getPassword()));
             }
+            if (request.getNombre() != null) {
+                u.setNombre(request.getNombre());
+            }
+            if (request.getTelefono() != null) {
+                u.setTelefono(request.getTelefono());
+            }
             if (request.getActivo() != null) {
                 u.setActivo(request.getActivo());
             }

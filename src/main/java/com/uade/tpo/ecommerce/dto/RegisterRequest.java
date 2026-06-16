@@ -18,6 +18,9 @@ public class RegisterRequest {
     @Email(message = "El email no tiene un formato válido")
     private String email;
 
+    // Opcional: nombre que el usuario carga al registrarse
+    private String nombre;
+
     @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String password;

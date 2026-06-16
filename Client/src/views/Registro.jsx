@@ -49,7 +49,7 @@ const Registro = () => {
     try {
       // El backend solo necesita email y password (el nombre es solo del front).
       // register() crea el usuario y ya devuelve el token, así que queda logueado.
-      await register(form.email, form.password);
+      await register(form.email, form.password, form.nombre);
       setErrores({});
       navigate('/perfil');
     } catch (err) {

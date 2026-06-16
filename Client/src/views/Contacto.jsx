@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { getConfiguracion } from '../services/configuracionService';
 import './InfoPage.css';
 
 const Contacto = () => {
   const { mostrarToast } = useToast();
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
+  const [contacto, setContacto] = useState({ email: 'contacto@gymstore.com', telefono: '+54 11 5555-0000' });
+
+  // Traemos el email/teléfono reales que el admin configuró en Ajustes
+  useEffect(() => {
+    getConfiguracion()
+      .then((config) => setContacto({
+        email: config.emailContacto || 'contacto@gymstore.com',
+        telefono: config.telefono || '+54 11 5555-0000',
+      }))
+      .catch(() => {});
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -33,14 +45,14 @@ const Contacto = () => {
             <Mail className="contacto__info-icon" size={20} />
             <div>
               <strong>Email</strong>
-              <span>contacto@gymstore.com</span>
+              <span>{contacto.email}</span>
             </div>
           </div>
           <div className="contacto__info-item">
             <Phone className="contacto__info-icon" size={20} />
             <div>
               <strong>Teléfono</strong>
-              <span>+54 11 5555-0000</span>
+              <span>{contacto.telefono}</span>
             </div>
           </div>
           <div className="contacto__info-item">

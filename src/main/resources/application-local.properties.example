@@ -14,3 +14,16 @@ spring.datasource.password=TU_PASSWORD_DE_MYSQL
 # Si tu URL o user de MySQL son distintos, descomentá y editá:
 #spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce
 #spring.datasource.username=root
+
+# ─── Email (SMTP) — opcional ────────────────────────────────────────────────
+# Para que se manden mails de verdad (confirmación de compra), descomentá y completá.
+# Con Gmail: activá la verificación en 2 pasos y generá una "Contraseña de aplicación"
+# en https://myaccount.google.com/apppasswords (es de 16 letras, va sin espacios).
+# Si dejás esto comentado, la app funciona igual pero NO manda mails.
+#
+#spring.mail.host=smtp.gmail.com
+#spring.mail.port=587
+#spring.mail.username=tucuenta@gmail.com
+#spring.mail.password=tu_app_password_de_16_letras
+#spring.mail.properties.mail.smtp.auth=true
+#spring.mail.properties.mail.smtp.starttls.enable=true

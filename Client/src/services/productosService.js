@@ -92,11 +92,9 @@ export async function crearProducto(producto, archivos = {}) {
   if (archivos.principal) await subirImagen(data.id, archivos.principal);
   if (archivos.detalle) await subirImagen(data.id, archivos.detalle);
 
-  // Si subimos imágenes, volvemos a traer el producto para tener las URLs ya asociadas
-  if (archivos.principal || archivos.detalle) {
-    return getProductoById(data.id);
-  }
-  return mapProducto(data);
+  // Volvemos a traer el producto desde el backend para tener la categoría/marca
+  // con su nombre y las imágenes ya asociadas (la respuesta del POST no las trae completas).
+  return getProductoById(data.id);
 }
 
 export async function actualizarProducto(id, producto) {

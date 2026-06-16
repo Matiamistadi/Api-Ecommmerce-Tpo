@@ -16,10 +16,27 @@ function guardarSesion(data) {
   return sesion;
 }
 
-// Lee la sesión guardada al recargar la página (o null si no hay)
+// Decodifica el JWT y dice si ya venció (lee el claim "exp")
+function tokenVencido(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return !payload.exp || payload.exp * 1000 < Date.now();
+  } catch {
+    return true; // si no se puede leer, lo tratamos como inválido
+  }
+}
+
+// Lee la sesión guardada al recargar la página.
+// Si el token venció, la limpia y devuelve null (así no quedás en un estado roto).
 export function getSesionGuardada() {
   const raw = localStorage.getItem(SESION_KEY);
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  const sesion = JSON.parse(raw);
+  if (!sesion.token || tokenVencido(sesion.token)) {
+    logout();
+    return null;
+  }
+  return sesion;
 }
 
 // POST /api/v1/auth/authenticate  → inicia sesión con un usuario existente
@@ -32,10 +49,10 @@ export async function login(email, password) {
 }
 
 // POST /api/v1/auth/register  → crea un usuario nuevo (y ya queda logueado)
-export async function register(email, password) {
+export async function register(email, password, nombre) {
   const data = await apiFetch('/api/v1/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, nombre }),
   });
   return guardarSesion(data);
 }

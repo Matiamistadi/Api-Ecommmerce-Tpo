@@ -30,6 +30,9 @@ public class Usuario implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
+    private String nombre;
+    private String telefono;
+
     @JsonIgnore
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;

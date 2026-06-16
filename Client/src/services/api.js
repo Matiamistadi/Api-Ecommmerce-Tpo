@@ -27,11 +27,19 @@ export async function apiFetch(path, options = {}) {
   }
 
   if (!response.ok) {
+    // 401 = token ausente/vencido → limpiamos la sesión y avisamos a la app
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('sesion');
+      window.dispatchEvent(new Event('sesion-expirada'));
+    }
+
     // Intentamos leer el mensaje de error que manda el backend en el JSON
     let mensaje = `Error ${response.status} al consultar ${path}`;
     try {
       const errorBody = await response.json();
-      mensaje = errorBody.error || errorBody.message || mensaje;
+      // El backend manda el detalle en "mensaje"; "error" es solo el tipo (ej: "Bad Request")
+      mensaje = errorBody.mensaje || errorBody.error || errorBody.message || mensaje;
     } catch {
       // La respuesta no traía cuerpo JSON, dejamos el mensaje genérico
     }

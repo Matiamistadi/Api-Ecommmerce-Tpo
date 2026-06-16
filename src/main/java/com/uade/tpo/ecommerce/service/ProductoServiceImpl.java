@@ -5,8 +5,11 @@ import lombok.RequiredArgsConstructor;
 import com.uade.tpo.ecommerce.entity.ImagenProducto;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.ImagenProductoRepository;
+import com.uade.tpo.ecommerce.repository.ItemCarritoRepository;
+import com.uade.tpo.ecommerce.repository.ItemOrdenRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -27,6 +30,10 @@ public class ProductoServiceImpl implements ProductoService {
     private final ProductoRepository productoRepository;
 
     private final ImagenProductoRepository imagenProductoRepository;
+
+    private final ItemCarritoRepository itemCarritoRepository;
+
+    private final ItemOrdenRepository itemOrdenRepository;
 
     @Override
     public List<Producto> obtenerTodos() {
@@ -78,12 +85,22 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
+    @Transactional
     public boolean eliminar(Long id) {
-        if (productoRepository.existsById(id)) {
-            productoRepository.deleteById(id);
-            return true;
+        if (!productoRepository.existsById(id)) {
+            return false;
         }
-        return false;
+
+        // Si el producto está en alguna orden, NO lo borramos (hay que conservar el historial)
+        if (itemOrdenRepository.existsByProductoId(id)) {
+            throw new IllegalStateException(
+                    "No se puede eliminar: el producto tiene pedidos asociados. Desactivalo en su lugar.");
+        }
+
+        // Lo sacamos de cualquier carrito (los carritos son temporales) y recién ahí lo borramos
+        itemCarritoRepository.deleteByProductoId(id);
+        productoRepository.deleteById(id);
+        return true;
     }
 
     @Override

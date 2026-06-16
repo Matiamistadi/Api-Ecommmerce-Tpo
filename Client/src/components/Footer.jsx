@@ -73,7 +73,7 @@ const Footer = () => {
 
       <div className="footer__bottom">
         <p className="footer__copy">© {anio} GymStore. Todos los derechos reservados.</p>
-        <p className="footer__legal">Hecho con 💪 en Argentina</p>
+        <p className="footer__legal">Hecho en Argentina</p>
       </div>
     </footer>
   );

@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, MapPin, ShoppingBag, LogOut, Lock } from 'lucide-react';
+import { User, MapPin, ShoppingBag, LogOut, Lock, Trash2 } from 'lucide-react';
 import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getDirecciones } from '../services/direccionService';
+import { getDirecciones, eliminarDireccion } from '../services/direccionService';
 import { getOrdenesPorUsuario } from '../services/ordenService';
-import { actualizarUsuario } from '../services/usuarioService';
+import { actualizarUsuario, getUsuario } from '../services/usuarioService';
 import { formatPrecio } from '@/lib/formato';
 
 const MiPerfil = () => {
@@ -24,39 +24,57 @@ const MiPerfil = () => {
     telefono: '',
   });
 
-  // Al entrar al perfil, traemos las direcciones reales del usuario desde el backend
+  const [guardandoDatos, setGuardandoDatos] = useState(false);
+
+  // Al entrar al perfil, traemos los datos reales del usuario, sus direcciones y sus pedidos
   useEffect(() => {
     if (usuario?.id) {
+      // Datos personales (nombre, email, teléfono)
+      getUsuario(usuario.id)
+        .then((u) => setPerfil({
+          nombre: u.nombre || '',
+          email: u.email || '',
+          telefono: u.telefono || '',
+        }))
+        .catch(() => {});
+
       getDirecciones(usuario.id)
-        .then((dirs) => {
-          setDirecciones(dirs);
-          // El nombre y teléfono de "Mis Datos" salen de la dirección principal (o la primera)
-          const principal = dirs.find((d) => d.esPrincipal) || dirs[0];
-          if (principal) {
-            setPerfil((prev) => ({
-              ...prev,
-              nombre: principal.nombre || prev.nombre,
-              telefono: principal.telefono || prev.telefono,
-            }));
-          }
-        })
+        .then(setDirecciones)
         .catch(() => setDirecciones([]));
 
-      // Traemos también el historial de órdenes reales del usuario
       getOrdenesPorUsuario(usuario.id)
         .then(setPedidos)
         .catch(() => setPedidos([]));
     }
   }, [usuario]);
 
-  const handleSave = (e) => {
+  // Guarda nombre y teléfono en el backend (el email no se cambia acá para no invalidar la sesión)
+  const handleSave = async (e) => {
     e.preventDefault();
-    mostrarToast('Cambios guardados con éxito.');
+    setGuardandoDatos(true);
+    try {
+      await actualizarUsuario(usuario.id, { nombre: perfil.nombre, telefono: perfil.telefono });
+      mostrarToast('Datos guardados correctamente.');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    } finally {
+      setGuardandoDatos(false);
+    }
   };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleEliminarDireccion = async (id) => {
+    try {
+      await eliminarDireccion(usuario.id, id);
+      setDirecciones((prev) => prev.filter((d) => d.id !== id));
+      mostrarToast('Dirección eliminada.');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    }
   };
 
   // Estado del cambio de contraseña
@@ -136,9 +154,9 @@ const MiPerfil = () => {
                   <Input
                     id="email"
                     type="email"
-                    className="perfil__form-input h-auto"
+                    className="perfil__form-input h-auto opacity-60 cursor-not-allowed"
                     value={perfil.email}
-                    onChange={(e) => setPerfil({ ...perfil, email: e.target.value })}
+                    disabled
                   />
                 </div>
 
@@ -153,8 +171,8 @@ const MiPerfil = () => {
                   />
                 </div>
 
-                <Button type="submit" className="perfil__btn-guardar-cambios h-auto">
-                  Guardar Cambios
+                <Button type="submit" className="perfil__btn-guardar-cambios h-auto" disabled={guardandoDatos}>
+                  {guardandoDatos ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
               </form>
             </section>
@@ -214,7 +232,18 @@ const MiPerfil = () => {
                     <span className="perfil__address-tag">
                       {dir.esPrincipal ? 'Principal' : 'Dirección'}
                     </span>
-                    {dir.esPrincipal && <span className="perfil__address-badge">Predeterminada</span>}
+                    <div className="perfil__address-actions">
+                      {dir.esPrincipal && <span className="perfil__address-badge">Predeterminada</span>}
+                      <button
+                        type="button"
+                        className="perfil__address-delete"
+                        onClick={() => handleEliminarDireccion(dir.id)}
+                        aria-label="Eliminar dirección"
+                        title="Eliminar dirección"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                   <p className="perfil__address-text">
                     {dir.calle}<br />

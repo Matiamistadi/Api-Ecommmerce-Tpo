@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface ItemCarritoRepository extends JpaRepository<ItemCarrito, Long> {
     List<ItemCarrito> findByCarritoId(Long carritoId);
+
+    // Para poder eliminar un producto: primero lo sacamos de los carritos
+    void deleteByProductoId(Long productoId);
 }

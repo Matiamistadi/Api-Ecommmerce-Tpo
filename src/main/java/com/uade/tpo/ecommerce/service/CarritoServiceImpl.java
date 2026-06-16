@@ -26,6 +26,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     private final DireccionRepository direccionRepository;
 
+    private final EmailService emailService;
+
     @Override
     public Optional<Carrito> obtenerPorId(Long id) {
         return carritoRepository.findById(id);
@@ -172,6 +174,9 @@ public class CarritoServiceImpl implements CarritoService {
         carrito.setEstado(EstadoCarrito.CONFIRMADO);
         carrito.setOrden(ordenGuardada);
         carritoRepository.save(carrito);
+
+        // Mail de confirmación al usuario (si falla o no está configurado, la compra igual se completa)
+        emailService.enviarConfirmacionOrden(carrito.getUsuario().getEmail(), ordenGuardada);
 
         return ordenGuardada;
     }

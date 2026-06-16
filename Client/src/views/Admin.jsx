@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useProducts } from '../context/ProductsContext';
+import { useToast } from '../context/ToastContext';
 import { formatPrecio } from '@/lib/formato';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { getCategorias, getMarcas } from '../services/catalogoService';
@@ -26,6 +27,7 @@ const formVacio = {
 
 const Admin = () => {
   const { productos, agregarProducto, actualizarProducto, reemplazarImagenProducto, eliminarProducto, toggleActivo } = useProducts();
+  const { mostrarToast } = useToast();
   const [busqueda, setBusqueda] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -37,7 +39,6 @@ const Admin = () => {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
   const [confirmarToggle, setConfirmarToggle] = useState(null);
-  const [seleccionados, setSeleccionados] = useState(new Set());
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);
 
@@ -58,31 +59,6 @@ const Admin = () => {
     const matchStock = !filtroStock || producto.stock < 15;
     return matchBusqueda && matchCategoria && matchStock;
   });
-
-  const todosSeleccionados = filtrados.length > 0 && filtrados.every((p) => seleccionados.has(p.id));
-  const algunoSeleccionado = filtrados.some((p) => seleccionados.has(p.id)) && !todosSeleccionados;
-
-  const toggleSeleccionAll = () => {
-    setSeleccionados(todosSeleccionados
-      ? new Set()
-      : new Set(filtrados.map((p) => p.id))
-    );
-  };
-
-  const toggleSeleccion = (id) => {
-    setSeleccionados((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const checkboxAllRef = useRef(null);
-  useEffect(() => {
-    if (checkboxAllRef.current) {
-      checkboxAllRef.current.indeterminate = algunoSeleccionado;
-    }
-  }, [algunoSeleccionado]);
 
   const exportarCSV = () => {
     const encabezado = ['ID', 'Nombre', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock', 'Estado'];
@@ -354,15 +330,6 @@ const Admin = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#1a1f2e] text-white text-sm">
-                      <th className="py-4 px-6 w-12">
-                        <input
-                          ref={checkboxAllRef}
-                          type="checkbox"
-                          className="w-4 h-4 rounded border-gray-500 bg-transparent accent-[#00e69e] cursor-pointer"
-                          checked={todosSeleccionados}
-                          onChange={toggleSeleccionAll}
-                        />
-                      </th>
                       <th className="py-4 px-6 font-semibold">Nombre del Producto</th>
                       <th className="py-4 px-6 font-semibold">Categoría</th>
                       <th className="py-4 px-6 font-semibold">Precio</th>
@@ -374,14 +341,6 @@ const Admin = () => {
                   <tbody className="text-sm">
                     {filtrados.map((producto) => (
                       <tr key={producto.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-5 px-6">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 accent-[#00e69e] cursor-pointer"
-                            checked={seleccionados.has(producto.id)}
-                            onChange={() => toggleSeleccion(producto.id)}
-                          />
-                        </td>
                         <td className="py-5 px-6 font-bold text-gray-900">
                           <div className="flex items-center gap-3">
                             <img src={producto.imagenUrl} alt={producto.nombre} className="w-10 h-10 object-contain rounded" />
@@ -722,7 +681,16 @@ const Admin = () => {
                 Cancelar
               </button>
               <button
-                onClick={() => { eliminarProducto(confirmarEliminar.id); setConfirmarEliminar(null); }}
+                onClick={async () => {
+                  const id = confirmarEliminar.id;
+                  setConfirmarEliminar(null);
+                  try {
+                    await eliminarProducto(id);
+                    mostrarToast('Producto eliminado.');
+                  } catch (err) {
+                    mostrarToast(err.message, 'error');
+                  }
+                }}
                 className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold transition-colors"
               >
                 Sí, eliminar

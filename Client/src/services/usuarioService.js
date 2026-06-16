@@ -5,6 +5,11 @@ export function getUsuarios() {
   return apiFetch('/api/usuarios');
 }
 
+// GET /api/usuarios/{id} → datos de un usuario (nombre, email, teléfono, etc.)
+export function getUsuario(id) {
+  return apiFetch(`/api/usuarios/${id}`);
+}
+
 // PUT /api/usuarios/{id} → actualiza datos del usuario (solo manda lo que pasamos).
 // Lo usamos para suspender/reactivar mandando { activo: true/false }.
 export function actualizarUsuario(id, datos) {

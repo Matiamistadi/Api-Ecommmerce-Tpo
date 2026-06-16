@@ -6,8 +6,9 @@ import { formatPrecio } from '@/lib/formato';
 import { useToast } from '../context/ToastContext';
 import './Admin.css';
 
-// Estados reales de la orden en el backend (enum EstadoOrden)
-const ESTADOS_PEDIDO = ['Pendiente', 'Aprobado', 'Rechazado', 'Enviado', 'Entregado', 'Cancelado'];
+// Estados reales de la orden en el backend (enum EstadoOrden). Se mandan en MAYÚSCULAS;
+// para mostrarlos lindos se usa formatEstado() ("PENDIENTE" -> "Pendiente").
+const ESTADOS_PEDIDO = ['PENDIENTE', 'APROBADO', 'RECHAZADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'];
 const filtros = ['Todos', ...ESTADOS_PEDIDO];
 
 // Cada estado del backend se pinta reusando las clases de badge que ya existen
@@ -115,7 +116,7 @@ const AdminPedidos = () => {
                 className={`admin-panel__filter ${filtro === opcion ? 'admin-panel__filter--active' : ''}`}
                 onClick={() => setFiltro(opcion)}
               >
-                {opcion}
+                {opcion === 'Todos' ? 'Todos' : formatEstado(opcion)}
               </button>
             ))}
           </div>

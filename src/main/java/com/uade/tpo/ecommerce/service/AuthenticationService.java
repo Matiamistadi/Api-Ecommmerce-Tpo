@@ -30,6 +30,7 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
         var usuario = Usuario.builder()
                 .email(request.getEmail())
+                .nombre(request.getNombre())
                 // Nunca guardamos contraseñas en texto plano
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .rol(Rol.CLIENTE)

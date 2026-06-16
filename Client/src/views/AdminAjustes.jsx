@@ -3,6 +3,7 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import { Store, Truck, Bell, Lock, CheckCircle2, X, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { actualizarUsuario } from '../services/usuarioService';
+import { getConfiguracion, actualizarConfiguracion } from '../services/configuracionService';
 
 const NOTIF_CONFIG = [
   {
@@ -56,12 +57,48 @@ const AdminAjustes = () => {
   const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
 
   const [toast, setToast] = useState(null);
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  // Al montar, cargamos la configuración real de la tienda
+  useEffect(() => {
+    getConfiguracion()
+      .then((config) => {
+        setTienda((prev) => ({
+          ...prev,
+          email: config.emailContacto ?? prev.email,
+          telefono: config.telefono ?? prev.telefono,
+        }));
+        setEnvio((prev) => ({
+          ...prev,
+          costoBase: config.costoEnvio != null ? String(config.costoEnvio) : prev.costoBase,
+          minimoGratis: config.montoEnvioGratis != null ? String(config.montoEnvioGratis) : prev.minimoGratis,
+        }));
+        setNotificaciones({
+          stockBajo: config.notifStockBajo,
+          nuevosPedidos: config.notifNuevosPedidos,
+          clientesNuevos: config.notifClientesNuevos,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  // Arma el payload completo de configuración a partir del estado actual
+  const construirConfig = (overrides = {}) => ({
+    emailContacto: tienda.email,
+    telefono: tienda.telefono,
+    costoEnvio: Number(envio.costoBase) || 0,
+    montoEnvioGratis: Number(envio.minimoGratis) || 0,
+    notifStockBajo: notificaciones.stockBajo,
+    notifNuevosPedidos: notificaciones.nuevosPedidos,
+    notifClientesNuevos: notificaciones.clientesNuevos,
+    ...overrides,
+  });
 
   const handleTiendaChange = (e) => {
     const { name, value } = e.target;
@@ -73,15 +110,26 @@ const AdminAjustes = () => {
     setEnvio((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleNotifToggle = (key) => {
-    const activando = !notificaciones[key];
-    setNotificaciones((prev) => ({ ...prev, [key]: activando }));
-    if (activando) {
-      const config = NOTIF_CONFIG.find((n) => n.key === key);
-      setToast({ mensaje: config.mensaje });
-    } else {
-      setToast(null);
+  // Guarda una sección de la configuración en el backend
+  const guardarConfig = async (overrides, mensaje) => {
+    setGuardando(true);
+    try {
+      await actualizarConfiguracion(construirConfig(overrides));
+      setToast({ mensaje });
+    } catch (err) {
+      setToast({ mensaje: err.message });
+    } finally {
+      setGuardando(false);
     }
+  };
+
+  const handleNotifToggle = (key) => {
+    const mapa = { stockBajo: 'notifStockBajo', nuevosPedidos: 'notifNuevosPedidos', clientesNuevos: 'notifClientesNuevos' };
+    const nuevo = !notificaciones[key];
+    const nuevasNotif = { ...notificaciones, [key]: nuevo };
+    setNotificaciones(nuevasNotif);
+    // Persistimos la preferencia en el backend
+    actualizarConfiguracion(construirConfig({ [mapa[key]]: nuevo })).catch(() => {});
   };
 
   const handleCuentaChange = (e) => {
@@ -155,11 +203,12 @@ const AdminAjustes = () => {
             <div className="space-y-4">
               <div>
                 <label className={labelCls}>Nombre de la tienda</label>
-                <input type="text" name="nombre" value={tienda.nombre} onChange={handleTiendaChange} className={inputCls} />
+                <input type="text" name="nombre" value={tienda.nombre} disabled className={`${inputCls} opacity-60 cursor-not-allowed`} />
+                <p className="text-xs text-gray-400 mt-1">El nombre y la descripción son fijos (marca).</p>
               </div>
               <div>
                 <label className={labelCls}>Descripción</label>
-                <textarea name="descripcion" rows={3} value={tienda.descripcion} onChange={handleTiendaChange} className={`${inputCls} resize-none`} />
+                <textarea name="descripcion" rows={3} value={tienda.descripcion} disabled className={`${inputCls} resize-none opacity-60 cursor-not-allowed`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -174,8 +223,9 @@ const AdminAjustes = () => {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setToast({ mensaje: 'Datos de la tienda guardados.' })}
-                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors"
+                  disabled={guardando}
+                  onClick={() => guardarConfig({ emailContacto: tienda.email, telefono: tienda.telefono }, 'Datos de contacto guardados.')}
+                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
                 >
                   Guardar cambios
                 </button>
@@ -211,8 +261,9 @@ const AdminAjustes = () => {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setToast({ mensaje: 'Configuración de envíos guardada.' })}
-                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors"
+                  disabled={guardando}
+                  onClick={() => guardarConfig({ costoEnvio: Number(envio.costoBase) || 0, montoEnvioGratis: Number(envio.minimoGratis) || 0 }, 'Configuración de envíos guardada.')}
+                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
                 >
                   Guardar cambios
                 </button>

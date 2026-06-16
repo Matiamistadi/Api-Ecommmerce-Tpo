@@ -39,6 +39,10 @@ public class SecurityConfig {
                 // Imágenes subidas de productos (visibles para todos)
                 .requestMatchers("/uploads/**").permitAll()
 
+                // Configuración: cualquiera la lee (para Contacto), solo ADMIN la modifica
+                .requestMatchers(HttpMethod.GET, "/api/configuracion").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/configuracion").hasRole("ADMIN")
+
                 // Cualquiera puede ver el catálogo (vidriera del gym)
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()

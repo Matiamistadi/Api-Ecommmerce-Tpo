@@ -271,6 +271,30 @@
   margin-bottom: 8px;
 }
 
+.perfil__address-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.perfil__address-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 2px;
+  border-radius: 6px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.perfil__address-delete:hover {
+  color: #e5484d;
+  background-color: rgba(229, 72, 77, 0.1);
+}
+
 .perfil__address-tag {
   font-size: 14px;
   font-weight: 700;
