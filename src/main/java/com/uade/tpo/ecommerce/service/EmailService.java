@@ -27,22 +27,60 @@ public class EmailService {
      * Envía el mail de confirmación de la compra.
      * Si el mail no está configurado o falla, NO interrumpe la compra (solo no manda nada).
      */
-    public void enviarConfirmacionOrden(String destino, Orden orden) {
-        JavaMailSender sender = mailSenderProvider.getIfAvailable();
-        if (sender == null || destino == null || destino.isBlank()) {
-            return; // mail no configurado → no hacemos nada
-        }
+    public void enviarBienvenida(String destino, String nombre) {
+        enviar(destino, "¡Bienvenido a GymStore!", """
+                ¡Hola %s!
 
+                Tu cuenta fue creada exitosamente. Ya podés explorar nuestro catálogo y hacer tu primera compra.
+
+                — El equipo de GymStore
+                """.formatted(nombre != null && !nombre.isBlank() ? nombre : ""));
+    }
+
+    public void enviarRecuperacionPassword(String destino, String token) {
+        enviar(destino, "GymStore — Recuperación de contraseña",
+                """
+                Recibimos una solicitud para restablecer tu contraseña.
+
+                Usá el siguiente código para crear una nueva (válido por 1 hora):
+
+                  %s
+
+                Si no solicitaste esto, ignorá este mail.
+
+                — El equipo de GymStore
+                """.formatted(token));
+    }
+
+    public void enviarCambioEstadoOrden(String destino, Long ordenId, String nuevoEstado) {
+        String mensaje = switch (nuevoEstado) {
+            case "ENVIADO"    -> "Tu pedido #%d ya fue enviado y está en camino. 🚚".formatted(ordenId);
+            case "ENTREGADO"  -> "Tu pedido #%d fue entregado. ¡Esperamos que lo disfrutes!".formatted(ordenId);
+            case "CANCELADO"  -> "Tu pedido #%d fue cancelado. Si tenés dudas, contactanos.".formatted(ordenId);
+            case "APROBADO"   -> "Tu pedido #%d fue aprobado y está siendo preparado.".formatted(ordenId);
+            case "RECHAZADO"  -> "Tu pedido #%d fue rechazado. Contactanos para más información.".formatted(ordenId);
+            default           -> "El estado de tu pedido #%d cambió a: %s".formatted(ordenId, nuevoEstado);
+        };
+        enviar(destino, "GymStore — Actualización de tu pedido #" + ordenId,
+                "Hola,\n\n" + mensaje + "\n\n— El equipo de GymStore");
+    }
+
+    public void enviarConfirmacionOrden(String destino, Orden orden) {
+        enviar(destino, "GymStore - Confirmación de tu pedido #" + orden.getId(), armarCuerpo(orden));
+    }
+
+    private void enviar(String destino, String asunto, String cuerpo) {
+        JavaMailSender sender = mailSenderProvider.getIfAvailable();
+        if (sender == null || destino == null || destino.isBlank()) return;
         try {
             SimpleMailMessage mensaje = new SimpleMailMessage();
             mensaje.setFrom(remitente);
             mensaje.setTo(destino);
-            mensaje.setSubject("GymStore - Confirmación de tu pedido #" + orden.getId());
-            mensaje.setText(armarCuerpo(orden));
+            mensaje.setSubject(asunto);
+            mensaje.setText(cuerpo);
             sender.send(mensaje);
         } catch (Exception e) {
-            // Nunca rompemos el checkout por un problema de email
-            System.err.println("No se pudo enviar el mail de confirmación: " + e.getMessage());
+            System.err.println("No se pudo enviar mail a " + destino + ": " + e.getMessage());
         }
     }
 

@@ -6,7 +6,9 @@ import { apiFetch } from './api';
 //   3) agrega cada producto al carrito
 //   4) confirma el carrito → esto genera la Orden en la base
 // Devuelve la Orden creada.
-export async function realizarCheckout({ usuarioId, items, direccion }) {
+import { API_URL } from './api';
+
+export async function realizarCheckout({ usuarioId, items, direccion, codigoCupon }) {
   // 1) Crear la dirección de envío del usuario
   const dir = await apiFetch(`/api/usuarios/${usuarioId}/direcciones`, {
     method: 'POST',
@@ -32,6 +34,15 @@ export async function realizarCheckout({ usuarioId, items, direccion }) {
     `/api/carritos/${carrito.id}/confirmar?direccionEnvioId=${dir.id}`,
     { method: 'POST' }
   );
+
+  // 5) Si hay cupón, registrar su uso
+  if (codigoCupon) {
+    try {
+      await fetch(`${API_URL}/api/cupones/aplicar?codigo=${encodeURIComponent(codigoCupon)}`, { method: 'POST' });
+    } catch {
+      // No interrumpimos la compra si falla el registro del cupón
+    }
+  }
 
   return orden;
 }

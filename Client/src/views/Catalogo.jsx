@@ -16,6 +16,7 @@ const Catalogo = () => {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState('destacados');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+  const [soloConStock, setSoloConStock] = useState(false);
 
   const productosActivos = productos.filter((p) => p.activo !== false);
 
@@ -31,7 +32,8 @@ const Catalogo = () => {
     const okSabor = saborSeleccionado === 'Todos' || p.sabor === saborSeleccionado;
     const okMin = precioMin === '' || p.precio >= Number(precioMin);
     const okMax = precioMax === '' || p.precio <= Number(precioMax);
-    return okBusqueda && okCategoria && okMarca && okSabor && okMin && okMax;
+    const okStock = !soloConStock || (p.stock != null && p.stock > 0);
+    return okBusqueda && okCategoria && okMarca && okSabor && okMin && okMax && okStock;
   });
 
   // Orden elegido por el usuario
@@ -53,6 +55,7 @@ const Catalogo = () => {
     setSaborSeleccionado('Todos');
     setPrecioMin('');
     setPrecioMax('');
+    setSoloConStock(false);
   };
 
   return (
@@ -126,19 +129,29 @@ const Catalogo = () => {
                 <p className="catalogo__count">
                   {productosOrdenados.length} {productosOrdenados.length === 1 ? 'producto' : 'productos'}
                 </p>
-                <label className="catalogo__sort-label">
-                  Ordenar por
-                  <select
-                    className="catalogo__sort"
-                    value={orden}
-                    onChange={(e) => setOrden(e.target.value)}
-                  >
-                    <option value="destacados">Destacados</option>
-                    <option value="precio-asc">Precio: menor a mayor</option>
-                    <option value="precio-desc">Precio: mayor a menor</option>
-                    <option value="nombre">Nombre (A-Z)</option>
-                  </select>
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.85rem', color: 'inherit' }}>
+                    <input
+                      type="checkbox"
+                      checked={soloConStock}
+                      onChange={(e) => setSoloConStock(e.target.checked)}
+                    />
+                    Solo con stock
+                  </label>
+                  <label className="catalogo__sort-label">
+                    Ordenar por
+                    <select
+                      className="catalogo__sort"
+                      value={orden}
+                      onChange={(e) => setOrden(e.target.value)}
+                    >
+                      <option value="destacados">Destacados</option>
+                      <option value="precio-asc">Precio: menor a mayor</option>
+                      <option value="precio-desc">Precio: mayor a menor</option>
+                      <option value="nombre">Nombre (A-Z)</option>
+                    </select>
+                  </label>
+                </div>
               </div>
 
               {productosOrdenados.length === 0 ? (

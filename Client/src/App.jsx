@@ -23,6 +23,8 @@ import SobreNosotros from './views/SobreNosotros';
 import Contacto from './views/Contacto';
 import FAQ from './views/FAQ';
 import Envios from './views/Envios';
+import OlvidePassword from './views/OlvidePassword';
+import ResetPassword from './views/ResetPassword';
 import NotFound from './views/NotFound';
 import './App.css';
 
@@ -46,6 +48,8 @@ function App() {
           <Route path="/producto/:id" element={<DetalleProducto />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/olvide-password" element={<OlvidePassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/carrito" element={<Carrito />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/confirmacion" element={<Confirmacion />} />

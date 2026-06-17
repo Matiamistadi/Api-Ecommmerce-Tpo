@@ -1,16 +1,11 @@
 package com.uade.tpo.ecommerce.controller;
 
-import com.uade.tpo.ecommerce.dto.AuthenticationRequest;
-import com.uade.tpo.ecommerce.dto.AuthenticationResponse;
-import com.uade.tpo.ecommerce.dto.RegisterRequest;
+import com.uade.tpo.ecommerce.dto.*;
 import com.uade.tpo.ecommerce.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -37,5 +32,17 @@ public class AuthController {
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authenticationService.iniciarRecuperacion(request.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authenticationService.resetearPassword(request.getToken(), request.getNuevaPassword());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import com.uade.tpo.ecommerce.entity.ImagenProducto;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.service.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,12 +43,12 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<Producto> crearProducto(@RequestBody Producto producto) {
+    public ResponseEntity<Producto> crearProducto(@Valid @RequestBody Producto producto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productoService.crear(producto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
+    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @Valid @RequestBody Producto producto) {
         return productoService.actualizar(id, producto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

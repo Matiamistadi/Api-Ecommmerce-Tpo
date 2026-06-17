@@ -1,5 +1,6 @@
 package com.uade.tpo.ecommerce.controller;
 
+import com.uade.tpo.ecommerce.dto.CambiarPasswordRequest;
 import com.uade.tpo.ecommerce.dto.CambiarRolRequest;
 import com.uade.tpo.ecommerce.dto.UsuarioUpdateRequest;
 import com.uade.tpo.ecommerce.entity.Rol;
@@ -56,6 +57,18 @@ public class UsuarioController {
         return usuarioService.cambiarRol(id, request.getRol())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/cambiar-password")
+    public ResponseEntity<Void> cambiarPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody CambiarPasswordRequest request,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
+        if (!usuarioAutenticado.getId().equals(id) && usuarioAutenticado.getRol() != Rol.ADMIN) {
+            return ResponseEntity.status(403).build();
+        }
+        usuarioService.cambiarPassword(id, request.getPasswordActual(), request.getPasswordNueva());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

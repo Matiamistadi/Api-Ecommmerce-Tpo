@@ -8,6 +8,7 @@ import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.OrdenRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
+import com.uade.tpo.ecommerce.service.EmailService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class OrdenServiceImpl implements OrdenService {
 
     private final OrdenRepository ordenRepository;
     private final ProductoRepository productoRepository;
+    private final EmailService emailService;
 
     @Override
     public List<Orden> obtenerTodas() {
@@ -55,7 +57,10 @@ public class OrdenServiceImpl implements OrdenService {
             }
 
             o.setEstado(nuevoEstado);
-            return ordenRepository.save(o);
+            Orden guardada = ordenRepository.save(o);
+            String emailUsuario = guardada.getUsuario().getEmail();
+            emailService.enviarCambioEstadoOrden(emailUsuario, guardada.getId(), nuevoEstado.name());
+            return guardada;
         });
     }
 

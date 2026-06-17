@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getDirecciones, eliminarDireccion } from '../services/direccionService';
 import { getOrdenesPorUsuario } from '../services/ordenService';
-import { actualizarUsuario, getUsuario } from '../services/usuarioService';
+import { actualizarUsuario, getUsuario, cambiarPassword } from '../services/usuarioService';
 import { formatPrecio } from '@/lib/formato';
 
 const MiPerfil = () => {
@@ -78,6 +78,7 @@ const MiPerfil = () => {
   };
 
   // Estado del cambio de contraseña
+  const [passwordActual, setPasswordActual] = useState('');
   const [nuevaPassword, setNuevaPassword] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
   const [errorPassword, setErrorPassword] = useState('');
@@ -85,20 +86,23 @@ const MiPerfil = () => {
 
   const handleCambiarPassword = async (e) => {
     e.preventDefault();
+    if (!passwordActual) {
+      setErrorPassword('Ingresá tu contraseña actual.');
+      return;
+    }
     if (nuevaPassword.length < 8) {
-      setErrorPassword('La contraseña debe tener al menos 8 caracteres.');
+      setErrorPassword('La nueva contraseña debe tener al menos 8 caracteres.');
       return;
     }
     if (nuevaPassword !== confirmarPassword) {
       setErrorPassword('Las contraseñas no coinciden.');
       return;
     }
-
     setGuardandoPassword(true);
     setErrorPassword('');
     try {
-      // El backend (PUT /api/usuarios/{id}) deja que cada usuario se edite a sí mismo
-      await actualizarUsuario(usuario.id, { password: nuevaPassword });
+      await cambiarPassword(usuario.id, passwordActual, nuevaPassword);
+      setPasswordActual('');
       setNuevaPassword('');
       setConfirmarPassword('');
       mostrarToast('Contraseña actualizada correctamente.');
@@ -185,6 +189,18 @@ const MiPerfil = () => {
               </div>
 
               <form onSubmit={handleCambiarPassword} className="perfil__form">
+                <div className="perfil__form-field">
+                  <Label htmlFor="passwordActual" className="perfil__form-label">Contraseña actual</Label>
+                  <Input
+                    id="passwordActual"
+                    type="password"
+                    className="perfil__form-input h-auto"
+                    placeholder="Tu contraseña actual"
+                    value={passwordActual}
+                    onChange={(e) => setPasswordActual(e.target.value)}
+                  />
+                </div>
+
                 <div className="perfil__form-field">
                   <Label htmlFor="nuevaPassword" className="perfil__form-label">Nueva contraseña</Label>
                   <Input

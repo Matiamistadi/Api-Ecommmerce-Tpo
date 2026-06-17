@@ -18,3 +18,11 @@ export function actualizarUsuario(id, datos) {
     body: JSON.stringify(datos),
   });
 }
+
+// PATCH /api/usuarios/{id}/cambiar-password → cambia contraseña verificando la actual
+export function cambiarPassword(id, passwordActual, passwordNueva) {
+  return apiFetch(`/api/usuarios/${id}/cambiar-password`, {
+    method: 'PATCH',
+    body: JSON.stringify({ passwordActual, passwordNueva }),
+  });
+}

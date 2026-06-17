@@ -65,6 +65,17 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public void cambiarPassword(Long id, String passwordActual, String passwordNueva) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (!passwordEncoder.matches(passwordActual, usuario.getPasswordHash())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+        usuario.setPasswordHash(passwordEncoder.encode(passwordNueva));
+        usuarioRepository.save(usuario);
+    }
+
+    @Override
     public boolean eliminar(Long id) {
         if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);

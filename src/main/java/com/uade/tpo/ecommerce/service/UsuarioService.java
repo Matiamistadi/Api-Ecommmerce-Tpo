@@ -13,5 +13,6 @@ public interface UsuarioService {
     Optional<Usuario> obtenerPorEmail(String email);
     Optional<Usuario> actualizar(Long id, UsuarioUpdateRequest request);
     Optional<Usuario> cambiarRol(Long id, Rol nuevoRol);
+    void cambiarPassword(Long id, String passwordActual, String passwordNueva);
     boolean eliminar(Long id);
 }

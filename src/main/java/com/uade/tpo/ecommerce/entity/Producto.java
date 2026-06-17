@@ -3,6 +3,7 @@ package com.uade.tpo.ecommerce.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,14 +22,21 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
+
     private String descripcion;
+
+    @NotNull(message = "El precio es obligatorio")
+    @Positive(message = "El precio debe ser mayor a 0")
     private Double precio;
 
-    // Precio anterior (para mostrar el descuento tachado). Null si no está en oferta.
+    @PositiveOrZero(message = "El precio original no puede ser negativo")
     @Column(name = "precio_original")
     private Double precioOriginal;
 
+    @NotNull(message = "El stock es obligatorio")
+    @PositiveOrZero(message = "El stock no puede ser negativo")
     private Integer stock;
 
     @Column(nullable = false, columnDefinition = "boolean default true")

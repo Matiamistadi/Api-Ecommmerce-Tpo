@@ -1,31 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../context/ProductsContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { formatPrecio } from '@/lib/formato';
-import { getRating } from '@/lib/rating';
 import StarRating from '../components/StarRating';
 import ProductCard from '../components/ProductCard';
 import '../components/ProductCardSkeleton.css';
 import './DetalleProducto.css';
-
-// Reseñas de ejemplo (visuales por ahora)
-const RESENAS = [
-  { nombre: 'Martín G.', estrellas: 5, texto: 'Excelente calidad, se disuelve perfecto y el sabor es muy bueno. Lo recomiendo.' },
-  { nombre: 'Lucía P.', estrellas: 4, texto: 'Muy bueno, llegó rápido. Repito seguro.' },
-  { nombre: 'Diego R.', estrellas: 5, texto: 'Relación precio-calidad inmejorable. Ya es mi marca de confianza.' },
-];
+import { API_URL, apiFetch } from '../services/api';
 
 const DetalleProducto = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { agregarAlCarrito } = useCart();
   const { mostrarToast } = useToast();
+  const { usuario } = useAuth();
   const { productos, loading, error } = useProducts();
   const producto = productos.find((p) => p.id === parseInt(id));
   const [cantidad, setCantidad] = useState(1);
   const [imgActiva, setImgActiva] = useState(0);
+
+  // Reseñas reales
+  const [resenas, setResenas] = useState([]);
+  const [formResena, setFormResena] = useState({ calificacion: 5, comentario: '' });
+  const [enviandoResena, setEnviandoResena] = useState(false);
+  const [errorResena, setErrorResena] = useState('');
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${API_URL}/api/productos/${id}/resenas`)
+      .then(r => r.ok ? r.json() : [])
+      .then(setResenas)
+      .catch(() => {});
+  }, [id]);
+
+  const promedioEstrellas = resenas.length
+    ? (resenas.reduce((acc, r) => acc + r.calificacion, 0) / resenas.length).toFixed(1)
+    : null;
+
+  const handleEnviarResena = async (e) => {
+    e.preventDefault();
+    if (!usuario) { navigate('/login'); return; }
+    setEnviandoResena(true);
+    setErrorResena('');
+    try {
+      const nueva = await apiFetch(`/api/productos/${id}/resenas`, {
+        method: 'POST',
+        body: JSON.stringify(formResena),
+      });
+      setResenas(prev => [nueva, ...prev]);
+      setFormResena({ calificacion: 5, comentario: '' });
+      mostrarToast('¡Gracias por tu reseña!');
+    } catch (err) {
+      setErrorResena(err.message);
+    } finally {
+      setEnviandoResena(false);
+    }
+  };
+
+  const yoResene = usuario && resenas.some(r => r.usuario?.id === usuario.id);
 
   if (loading) {
     return (
@@ -75,7 +110,6 @@ const DetalleProducto = () => {
   const discount =
     producto.precioOriginal &&
     Math.round((1 - producto.precio / producto.precioOriginal) * 100);
-  const rating = getRating(producto.id);
 
   // Productos de la misma categoría (sin el actual)
   const relacionados = productos
@@ -118,10 +152,12 @@ const DetalleProducto = () => {
           <span className="detalle__chip">{producto.categoria}</span>
           <h1 className="detalle__nombre">{producto.nombre}</h1>
 
-          <div className="detalle__rating">
-            <StarRating valor={rating.estrellas} size={16} />
-            <span className="detalle__rating-text">{rating.estrellas} · {rating.opiniones} opiniones</span>
-          </div>
+          {promedioEstrellas && (
+            <div className="detalle__rating">
+              <StarRating valor={parseFloat(promedioEstrellas)} size={16} />
+              <span className="detalle__rating-text">{promedioEstrellas} · {resenas.length} opiniones</span>
+            </div>
+          )}
 
           <p className="detalle__descripcion">{producto.descripcion}</p>
 
@@ -168,21 +204,55 @@ const DetalleProducto = () => {
       {/* Opiniones */}
       <section className="detalle__reseñas">
         <h2 className="detalle__seccion-titulo">Opiniones</h2>
-        <div className="detalle__reseñas-resumen">
-          <span className="detalle__reseñas-nota">{rating.estrellas}</span>
-          <div>
-            <StarRating valor={rating.estrellas} size={18} />
-            <p className="detalle__reseñas-cantidad">Basado en {rating.opiniones} opiniones</p>
+
+        {promedioEstrellas && (
+          <div className="detalle__reseñas-resumen">
+            <span className="detalle__reseñas-nota">{promedioEstrellas}</span>
+            <div>
+              <StarRating valor={parseFloat(promedioEstrellas)} size={18} />
+              <p className="detalle__reseñas-cantidad">Basado en {resenas.length} opiniones</p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Formulario para dejar reseña */}
+        {usuario && !yoResene && (
+          <form onSubmit={handleEnviarResena} style={{ margin: '1.5rem 0', display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 480 }}>
+            <strong style={{ color: 'var(--gym-text, #f1f5f9)' }}>Dejá tu opinión</strong>
+            <div style={{ display: 'flex', gap: '0.25rem' }}>
+              {[1,2,3,4,5].map(n => (
+                <button key={n} type="button"
+                  onClick={() => setFormResena(f => ({ ...f, calificacion: n }))}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.4rem', color: n <= formResena.calificacion ? '#f59e0b' : '#4b5563' }}>
+                  ★
+                </button>
+              ))}
+            </div>
+            <textarea
+              placeholder="Contanos tu experiencia (opcional)"
+              value={formResena.comentario}
+              onChange={e => setFormResena(f => ({ ...f, comentario: e.target.value }))}
+              maxLength={1000}
+              rows={3}
+              style={{ padding: '0.6rem', borderRadius: 8, border: '1px solid #374151', background: '#1f2937', color: '#f1f5f9', resize: 'vertical' }}
+            />
+            {errorResena && <span style={{ color: '#dc2626', fontSize: '0.85rem' }}>{errorResena}</span>}
+            <button type="submit" disabled={enviandoResena}
+              style={{ alignSelf: 'flex-start', padding: '0.5rem 1.25rem', background: 'var(--gym-accent, #10b981)', color: '#0a0a0a', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>
+              {enviandoResena ? 'Enviando...' : 'Publicar reseña'}
+            </button>
+          </form>
+        )}
+
         <div className="detalle__reseñas-lista">
-          {RESENAS.map((r, i) => (
-            <div key={i} className="detalle__reseña">
+          {resenas.length === 0 && <p style={{ color: '#9ca3af' }}>Aún no hay opiniones. ¡Sé el primero!</p>}
+          {resenas.map((r) => (
+            <div key={r.id} className="detalle__reseña">
               <div className="detalle__reseña-header">
-                <strong>{r.nombre}</strong>
-                <StarRating valor={r.estrellas} size={14} />
+                <strong>{r.usuario?.nombre || r.usuario?.email || 'Usuario'}</strong>
+                <StarRating valor={r.calificacion} size={14} />
               </div>
-              <p className="detalle__reseña-texto">{r.texto}</p>
+              {r.comentario && <p className="detalle__reseña-texto">{r.comentario}</p>}
             </div>
           ))}
         </div>

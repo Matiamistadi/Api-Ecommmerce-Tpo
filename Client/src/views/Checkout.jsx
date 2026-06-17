@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { realizarCheckout } from '../services/checkoutService';
 import { formatPrecio } from '@/lib/formato';
-import { CreditCard, Lock } from 'lucide-react';
+import { API_URL } from '../services/api';
+import { CreditCard, Lock, Tag } from 'lucide-react';
 import './Checkout.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,37 @@ const Checkout = () => {
   const [errores, setErrores] = useState({});
   const [procesando, setProcesando] = useState(false);
 
+  const [codigoCupon, setCodigoCupon] = useState('');
+  const [cuponAplicado, setCuponAplicado] = useState(null); // { codigo, descuento }
+  const [errorCupon, setErrorCupon] = useState('');
+  const [validandoCupon, setValidandoCupon] = useState(false);
+
+  const aplicarCupon = async () => {
+    if (!codigoCupon.trim()) return;
+    setValidandoCupon(true);
+    setErrorCupon('');
+    try {
+      const res = await fetch(`${API_URL}/api/cupones/validar?codigo=${encodeURIComponent(codigoCupon)}&subtotal=${subtotal}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.mensaje || 'Cupón inválido');
+      }
+      const data = await res.json();
+      setCuponAplicado({ codigo: data.codigo, descuento: data.descuento });
+    } catch (err) {
+      setErrorCupon(err.message);
+      setCuponAplicado(null);
+    } finally {
+      setValidandoCupon(false);
+    }
+  };
+
+  const quitarCupon = () => {
+    setCuponAplicado(null);
+    setCodigoCupon('');
+    setErrorCupon('');
+  };
+
   useEffect(() => {
     if (carrito.length === 0 && !isCheckingOut.current) {
       navigate('/carrito');
@@ -45,8 +77,9 @@ const Checkout = () => {
     }
   }, [usuario, navigate]);
 
+  const descuentoCupon = cuponAplicado?.descuento ?? 0;
   const impuestos = subtotal * 0.08;
-  const total = subtotal + impuestos;
+  const total = subtotal + impuestos - descuentoCupon;
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -110,6 +143,7 @@ const Checkout = () => {
       const orden = await realizarCheckout({
         usuarioId: usuario.id,
         items: carrito,
+        codigoCupon: cuponAplicado?.codigo ?? null,
         direccion: {
           nombre: form.nombre,
           telefono: form.telefono,
@@ -313,6 +347,37 @@ const Checkout = () => {
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* Cupón de descuento */}
+          <section className="checkout__seccion">
+            <div className="checkout__seccion-header">
+              <Tag size={18} />
+              <h2 className="checkout__seccion-title checkout__seccion-title--active">Cupón de descuento</h2>
+            </div>
+            {cuponAplicado ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 0' }}>
+                <span style={{ color: 'var(--gym-accent, #10b981)', fontWeight: 600 }}>
+                  ✓ {cuponAplicado.codigo} — {formatPrecio(cuponAplicado.descuento)} de descuento
+                </span>
+                <button type="button" onClick={quitarCupon} style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>Quitar</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Input
+                  type="text"
+                  placeholder="Código de cupón"
+                  className="checkout__input h-auto"
+                  value={codigoCupon}
+                  onChange={(e) => setCodigoCupon(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), aplicarCupon())}
+                />
+                <Button type="button" onClick={aplicarCupon} disabled={validandoCupon} className="h-auto px-4" variant="outline">
+                  {validandoCupon ? '...' : 'Aplicar'}
+                </Button>
+              </div>
+            )}
+            {errorCupon && <span className="checkout__field-error">{errorCupon}</span>}
           </section>
 
           <div className="checkout__acciones">

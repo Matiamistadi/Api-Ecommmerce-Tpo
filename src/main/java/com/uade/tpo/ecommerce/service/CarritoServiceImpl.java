@@ -104,6 +104,11 @@ public class CarritoServiceImpl implements CarritoService {
         Carrito carrito = carritoRepository.findById(carritoId)
                 .orElseThrow(() -> new RuntimeException("Carrito no encontrado: " + carritoId));
 
+        carrito.getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .ifPresent(item -> devolverStock(item.getProducto(), item.getCantidad()));
+
         carrito.getItems().removeIf(i -> i.getId().equals(itemId));
         recalcularSubtotal(carrito);
         return carritoRepository.save(carrito);
@@ -114,9 +119,15 @@ public class CarritoServiceImpl implements CarritoService {
         Carrito carrito = carritoRepository.findById(carritoId)
                 .orElseThrow(() -> new RuntimeException("Carrito no encontrado: " + carritoId));
 
+        carrito.getItems().forEach(item -> devolverStock(item.getProducto(), item.getCantidad()));
         carrito.getItems().clear();
         carrito.setSubtotal(0.0);
         return carritoRepository.save(carrito);
+    }
+
+    public void devolverStock(Producto producto, int cantidad) {
+        producto.setStock(producto.getStock() + cantidad);
+        productoRepository.save(producto);
     }
 
     @Override

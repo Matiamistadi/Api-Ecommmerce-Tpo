@@ -79,7 +79,7 @@ const Login = () => {
           <div className="login__field">
             <div className="login__label-row">
               <Label htmlFor="password" className="login__label">Contraseña</Label>
-              <a href="#forgot" className="login__forgot" onClick={(e) => { e.preventDefault(); mostrarToast('Función de recuperación de contraseña próximamente.'); }}>¿Olvidaste tu contraseña?</a>
+              <Link to="/olvide-password" className="login__forgot">¿Olvidaste tu contraseña?</Link>
             </div>
             <Input
               id="password"

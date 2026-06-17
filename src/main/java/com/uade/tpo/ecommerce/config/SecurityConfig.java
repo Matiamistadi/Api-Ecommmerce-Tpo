@@ -34,7 +34,9 @@ public class SecurityConfig {
 
                 // ── Rutas públicas (sin token) ──────────────────────────────
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/cambiar-password").hasAnyRole("CLIENTE", "ADMIN")
                 .requestMatchers("/status").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/newsletter/**").permitAll()
 
                 // Imágenes subidas de productos (visibles para todos)
                 .requestMatchers("/uploads/**").permitAll()
@@ -45,9 +47,16 @@ public class SecurityConfig {
 
                 // Cualquiera puede ver el catálogo (vidriera del gym)
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/*/resenas").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/marcas/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/descuentos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cupones/validar").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/cupones/aplicar").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cupones").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/cupones").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/cupones/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/cupones/**").hasRole("ADMIN")
 
                 // ── Solo ADMIN puede crear/modificar el catálogo ────────────
                 .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("ADMIN")

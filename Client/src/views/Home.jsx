@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -57,11 +58,27 @@ const Home = () => {
   const productosBase = productosActivos.slice(0, 3);
   const productosParaMostrar = ofertas.length > 0 ? ofertas : productosBase;
   const [suscripto, setSuscripto] = useState(false);
+  const [errorSuscripcion, setErrorSuscripcion] = useState('');
+  const [cargandoSuscripcion, setCargandoSuscripcion] = useState(false);
 
-  const handleSuscribirse = (e) => {
+  const handleSuscribirse = async (e) => {
     e.preventDefault();
-    setSuscripto(true);
-    setTimeout(() => setSuscripto(false), 4000);
+    const email = e.target.querySelector('input[type="email"]').value;
+    setCargandoSuscripcion(true);
+    setErrorSuscripcion('');
+    try {
+      const res = await fetch(`${API_URL}/api/newsletter/suscribir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('No se pudo enviar el mail');
+      setSuscripto(true);
+    } catch {
+      setErrorSuscripcion('Hubo un error al suscribirte. Intentá de nuevo.');
+    } finally {
+      setCargandoSuscripcion(false);
+    }
   };
 
   return (
@@ -211,27 +228,33 @@ const Home = () => {
             </p>
           </div>
         ) : (
-          <form
-            className="mx-auto flex max-w-[440px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:flex-row sm:rounded-full"
-            onSubmit={handleSuscribirse}
-          >
-            <input
-              type="email"
-              className="min-w-0 flex-1 border-none bg-transparent px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/40"
-              placeholder="tu@email.com"
-              aria-label="Correo electrónico"
-              required
-            />
-            <button
-              type="submit"
-              className={cn(
-                'shrink-0 border-none px-6 py-3.5 text-sm font-bold',
-                'bg-gym-accent text-gym-primary transition-opacity hover:opacity-90'
-              )}
+          <>
+            <form
+              className="mx-auto flex max-w-[440px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:flex-row sm:rounded-full"
+              onSubmit={handleSuscribirse}
             >
-              Suscribirse
-            </button>
-          </form>
+              <input
+                type="email"
+                className="min-w-0 flex-1 border-none bg-transparent px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/40"
+                placeholder="tu@email.com"
+                aria-label="Correo electrónico"
+                required
+              />
+              <button
+                type="submit"
+                disabled={cargandoSuscripcion}
+                className={cn(
+                  'shrink-0 border-none px-6 py-3.5 text-sm font-bold',
+                  'bg-gym-accent text-gym-primary transition-opacity hover:opacity-90 disabled:opacity-60'
+                )}
+              >
+                {cargandoSuscripcion ? 'Enviando...' : 'Suscribirse'}
+              </button>
+            </form>
+            {errorSuscripcion && (
+              <p className="mt-3 text-center text-sm text-red-400">{errorSuscripcion}</p>
+            )}
+          </>
         )}
       </section>
     </div>
