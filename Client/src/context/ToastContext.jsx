@@ -37,4 +37,5 @@ export const ToastProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- patrón estándar Context+hook: solo afecta el fast refresh en dev, no es un bug
 export const useToast = () => useContext(ToastContext);

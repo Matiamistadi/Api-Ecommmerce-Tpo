@@ -7,12 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../redux/features/authSlice';
-import { useToast } from '../context/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { mostrarToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});

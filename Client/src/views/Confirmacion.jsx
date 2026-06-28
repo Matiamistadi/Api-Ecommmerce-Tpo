@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Truck, Receipt, ClipboardList } from 'lucide-react';
 import './Confirmacion.css';
@@ -31,60 +31,65 @@ const Confirmacion = () => {
   const [numeroOrden] = useState(
     () => sessionStorage.getItem('ultimo_pedido_numero') || '#GS-' + Math.floor(10000 + Math.random() * 90000)
   );
-  const [items, setItems] = useState(MOCK_FALLBACK_ITEMS);
-  const [total, setTotal] = useState('€84.49');
-  const [subtotal, setSubtotal] = useState('€84.49');
-  const [envio, setEnvio] = useState('Gratis');
-  const [direccion, setDireccion] = useState({
-    nombre: 'Atleta Destacado',
-    direccion: 'Calle Gran Vía, 42',
-    ciudad: 'Apt. 3B, 28013, Madrid',
-    codigoPostal: 'España'
-  });
-
-  useEffect(() => {
+  // Todo se lee una sola vez de sessionStorage al montar (lo dejó Checkout tras pagar).
+  // Usamos inicializadores diferidos de useState en vez de un efecto: es estado inicial
+  // derivado de una fuente externa, no algo que deba resincronizarse después.
+  const [items] = useState(() => {
     const cachedItems = sessionStorage.getItem('ultimo_pedido_items');
+    if (!cachedItems) return MOCK_FALLBACK_ITEMS;
+    try {
+      const parsedItems = JSON.parse(cachedItems);
+      return parsedItems.map(item => ({
+        id: item.id,
+        nombre: item.nombre,
+        descripcion: `Sabor: Vainilla • Cantidad: ${item.cantidad}`,
+        categoria: 'Suplementos',
+        precio: formatPrecio(item.precio),
+        cantidad: item.cantidad,
+        imagen: item.imagenUrl || '/img/ProteVainilla.png'
+      }));
+    } catch (err) {
+      console.error('Error parsing cached items:', err);
+      return MOCK_FALLBACK_ITEMS;
+    }
+  });
+  const [total] = useState(() => {
     const cachedTotal = sessionStorage.getItem('ultimo_pedido_total');
+    return cachedTotal ? formatPrecio(Number(cachedTotal)) : '€84.49';
+  });
+  const [subtotal] = useState(() => {
     const cachedSubtotal = sessionStorage.getItem('ultimo_pedido_subtotal');
-    const cachedEnvio = sessionStorage.getItem('ultimo_pedido_envio');
+    return cachedSubtotal ? formatPrecio(Number(cachedSubtotal)) : '€84.49';
+  });
+  const [envio] = useState(() => sessionStorage.getItem('ultimo_pedido_envio') || 'Gratis');
+  const [direccion] = useState(() => {
     const cachedDireccion = sessionStorage.getItem('ultimo_pedido_direccion');
-
-    if (cachedItems) {
-      try {
-        const parsedItems = JSON.parse(cachedItems);
-        const formattedItems = parsedItems.map(item => ({
-          id: item.id,
-          nombre: item.nombre,
-          descripcion: `Sabor: Vainilla • Cantidad: ${item.cantidad}`,
-          categoria: 'Suplementos',
-          precio: formatPrecio(item.precio),
-          cantidad: item.cantidad,
-          imagen: item.imagenUrl || '/img/ProteVainilla.png'
-        }));
-        setItems(formattedItems);
-      } catch (err) {
-        console.error('Error parsing cached items:', err);
-      }
+    if (!cachedDireccion) {
+      return {
+        nombre: 'Atleta Destacado',
+        direccion: 'Calle Gran Vía, 42',
+        ciudad: 'Apt. 3B, 28013, Madrid',
+        codigoPostal: 'España'
+      };
     }
-
-    if (cachedTotal) setTotal(formatPrecio(Number(cachedTotal)));
-    if (cachedSubtotal) setSubtotal(formatPrecio(Number(cachedSubtotal)));
-    if (cachedEnvio) setEnvio(cachedEnvio);
-
-    if (cachedDireccion) {
-      try {
-        const parsedDir = JSON.parse(cachedDireccion);
-        setDireccion({
-          nombre: parsedDir.nombre || 'Atleta Destacado',
-          direccion: parsedDir.direccion || 'Calle Gran Vía, 42',
-          ciudad: `${parsedDir.ciudad || 'Madrid'}, ${parsedDir.codigoPostal || '28013'}`,
-          codigoPostal: 'España'
-        });
-      } catch (err) {
-        console.error('Error parsing cached address:', err);
-      }
+    try {
+      const parsedDir = JSON.parse(cachedDireccion);
+      return {
+        nombre: parsedDir.nombre || 'Atleta Destacado',
+        direccion: parsedDir.direccion || 'Calle Gran Vía, 42',
+        ciudad: `${parsedDir.ciudad || 'Madrid'}, ${parsedDir.codigoPostal || '28013'}`,
+        codigoPostal: 'España'
+      };
+    } catch (err) {
+      console.error('Error parsing cached address:', err);
+      return {
+        nombre: 'Atleta Destacado',
+        direccion: 'Calle Gran Vía, 42',
+        ciudad: 'Apt. 3B, 28013, Madrid',
+        codigoPostal: 'España'
+      };
     }
-  }, []);
+  });
 
   return (
     <main className="confirmacion">

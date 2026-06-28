@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import './FilterSidebar.css';
 
@@ -11,6 +11,22 @@ const rangosPrecio = [
   { label: '$30.000 a $40.000', min: '30000', max: '40000' },
   { label: 'Más de $40.000', min: '40000', max: '' },
 ];
+
+// Encabezado clickeable de cada sección (fuera del componente: no se recrea en cada render)
+const SectionHeader = ({ clave, titulo, abierto, onToggle }) => (
+  <button
+    type="button"
+    className="filter-sidebar__section-toggle"
+    onClick={() => onToggle(clave)}
+    aria-expanded={abierto}
+  >
+    <span>{titulo}</span>
+    <ChevronDown
+      size={16}
+      className={`filter-sidebar__chevron ${abierto ? 'filter-sidebar__chevron--open' : ''}`}
+    />
+  </button>
+);
 
 const FilterSidebar = ({
   categoriaSeleccionada,
@@ -31,15 +47,25 @@ const FilterSidebar = ({
   const [minInput, setMinInput] = useState(precioMin);
   const [maxInput, setMaxInput] = useState(precioMax);
 
+  // Si el rango cambia desde afuera (un chip o "Limpiar"), sincronizamos los inputs.
+  // Se ajusta durante el render (patrón recomendado por React), no en un efecto:
+  // evita un repintado extra y no dispara nada fuera de React.
+  const [precioMinPrevio, setPrecioMinPrevio] = useState(precioMin);
+  const [precioMaxPrevio, setPrecioMaxPrevio] = useState(precioMax);
+  if (precioMin !== precioMinPrevio) {
+    setPrecioMinPrevio(precioMin);
+    setMinInput(precioMin);
+  }
+  if (precioMax !== precioMaxPrevio) {
+    setPrecioMaxPrevio(precioMax);
+    setMaxInput(precioMax);
+  }
+
   // Qué secciones están abiertas (acordeón). Solo Categorías arranca abierta.
   const [abiertos, setAbiertos] = useState({ categoria: true, marca: false, sabor: false, precio: false });
   const toggle = (clave) => setAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
 
   const [errorPrecio, setErrorPrecio] = useState('');
-
-  // Si el rango cambia desde afuera (un chip o "Limpiar"), sincronizamos los inputs
-  useEffect(() => setMinInput(precioMin), [precioMin]);
-  useEffect(() => setMaxInput(precioMax), [precioMax]);
 
   const aplicarCustom = () => {
     // No permitimos un máximo menor que el mínimo (ej: mín 100, máx 10)
@@ -51,22 +77,6 @@ const FilterSidebar = ({
     onPrecioChange(minInput, maxInput);
   };
   const rangoActivo = (rango) => precioMin === rango.min && precioMax === rango.max;
-
-  // Encabezado clickeable de cada sección
-  const SectionHeader = ({ clave, titulo }) => (
-    <button
-      type="button"
-      className="filter-sidebar__section-toggle"
-      onClick={() => toggle(clave)}
-      aria-expanded={abiertos[clave]}
-    >
-      <span>{titulo}</span>
-      <ChevronDown
-        size={16}
-        className={`filter-sidebar__chevron ${abiertos[clave] ? 'filter-sidebar__chevron--open' : ''}`}
-      />
-    </button>
-  );
 
   return (
     <aside className="filter-sidebar">
@@ -82,7 +92,7 @@ const FilterSidebar = ({
 
       {/* Categorías */}
       <div className="filter-sidebar__section">
-        <SectionHeader clave="categoria" titulo="Categorías" />
+        <SectionHeader clave="categoria" titulo="Categorías" abierto={abiertos.categoria} onToggle={toggle} />
         {abiertos.categoria && (
           <ul className="filter-sidebar__list">
             {categorias.map((cat) => (
@@ -105,7 +115,7 @@ const FilterSidebar = ({
 
       {/* Marcas */}
       <div className="filter-sidebar__section">
-        <SectionHeader clave="marca" titulo="Marcas" />
+        <SectionHeader clave="marca" titulo="Marcas" abierto={abiertos.marca} onToggle={toggle} />
         {abiertos.marca && (
           <ul className="filter-sidebar__list">
             {marcas.map((m) => (
@@ -129,7 +139,7 @@ const FilterSidebar = ({
       {/* Gusto / sabor */}
       {sabores.length > 1 && (
         <div className="filter-sidebar__section">
-          <SectionHeader clave="sabor" titulo="Sabores" />
+          <SectionHeader clave="sabor" titulo="Sabores" abierto={abiertos.sabor} onToggle={toggle} />
           {abiertos.sabor && (
             <ul className="filter-sidebar__list">
               {sabores.map((s) => (
@@ -153,7 +163,7 @@ const FilterSidebar = ({
 
       {/* Precio */}
       <div className="filter-sidebar__section">
-        <SectionHeader clave="precio" titulo="Precio" />
+        <SectionHeader clave="precio" titulo="Precio" abierto={abiertos.precio} onToggle={toggle} />
         {abiertos.precio && (
           <>
             <ul className="filter-sidebar__list">
