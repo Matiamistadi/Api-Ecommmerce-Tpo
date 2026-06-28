@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../context/ProductsContext';
-import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectProductos } from '../redux/features/productsSlice';
+import { fetchResumenAdmin, selectAdminMetrics, selectAdminLoading, selectAdminError } from '../redux/features/adminSlice';
 import './Admin.css';
 
 const AdminDashboard = () => {
-  const { productos } = useProducts();
-  const [metrics, setMetrics] = useState(METRICS_VACIAS);
+  const dispatch = useDispatch();
+  const productos = useSelector(selectProductos);
+  const metrics = useSelector(selectAdminMetrics);
+  const loading = useSelector(selectAdminLoading);
+  const error = useSelector(selectAdminError);
 
   // Traemos las métricas reales (órdenes + clientes) del backend
   useEffect(() => {
-    getResumenAdmin()
-      .then((resumen) => setMetrics(resumen.metrics))
-      .catch(() => setMetrics(METRICS_VACIAS));
-  }, []);
+    dispatch(fetchResumenAdmin());
+  }, [dispatch]);
 
   const tarjetas = [
     { label: 'Total pedidos', value: metrics.totalPedidos, sub: 'Historial activo' },
@@ -39,6 +41,14 @@ const AdminDashboard = () => {
         <Link to="/agregar-producto" className="admin-panel__action">+ Agregar producto</Link>
       </header>
 
+      {loading && <p className="admin-panel__muted">Cargando métricas...</p>}
+      {!loading && error && (
+        <p className="admin-panel__muted" style={{ color: '#dc2626' }}>
+          No se pudieron cargar las métricas: {error.message}
+        </p>
+      )}
+
+      {!loading && !error && (
       <div className="admin__stats">
         {tarjetas.map((tarjeta) => (
           <article key={tarjeta.label} className="admin__stat-card">
@@ -48,6 +58,7 @@ const AdminDashboard = () => {
           </article>
         ))}
       </div>
+      )}
 
       <section className="admin-panel__grid">
         {accesos.map((acceso) => (

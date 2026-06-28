@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
-import { useProducts } from '../context/ProductsContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectCarrito, selectSubtotal, vaciarCarrito as vaciarCarritoAction } from '../redux/features/cartSlice';
+import { selectUsuario } from '../redux/features/authSlice';
+import { fetchProductos } from '../redux/features/productsSlice';
 import { realizarCheckout } from '../services/checkoutService';
 import { formatPrecio } from '@/lib/formato';
 import { API_URL } from '../services/api';
@@ -13,9 +14,10 @@ import { Input } from '@/components/ui/input';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { carrito, subtotal, vaciarCarrito } = useCart();
-  const { usuario } = useAuth();
-  const { recargarProductos } = useProducts();
+  const dispatch = useDispatch();
+  const carrito = useSelector(selectCarrito);
+  const subtotal = useSelector(selectSubtotal);
+  const usuario = useSelector(selectUsuario);
   const isCheckingOut = useRef(false);
 
   const [form, setForm] = useState({
@@ -170,9 +172,9 @@ const Checkout = () => {
       }));
 
       isCheckingOut.current = true;
-      vaciarCarrito();
+      dispatch(vaciarCarritoAction());
       // Refrescamos los productos para que el stock en pantalla quede actualizado
-      recargarProductos();
+      dispatch(fetchProductos());
       navigate('/confirmacion');
     } catch (err) {
       // Si algo falla (sin stock, sesión vencida, etc.) lo mostramos sin romper la app

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, ShoppingCart } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useDispatch } from 'react-redux';
+import { agregarAlCarrito } from '../redux/features/cartSlice';
 import { useToast } from '../context/ToastContext';
 import { cn } from '@/lib/utils';
 import { formatPrecio } from '@/lib/formato';
@@ -10,7 +11,7 @@ import StarRating from './StarRating';
 import './ProductCard.css';
 
 const ProductCard = ({ producto, variant }) => {
-  const { agregarAlCarrito } = useCart();
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
   const [agregado, setAgregado] = useState(false);
   const isHome = variant === 'home';
@@ -22,7 +23,7 @@ const ProductCard = ({ producto, variant }) => {
 
   const handleAgregar = (e) => {
     e.preventDefault();
-    agregarAlCarrito(producto, 1);
+    dispatch(agregarAlCarrito({ producto, cantidad: 1 }));
     setAgregado(true);
     mostrarToast(`${producto.nombre} agregado al carrito`);
     setTimeout(() => setAgregado(false), 1500);

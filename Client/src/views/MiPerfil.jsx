@@ -5,19 +5,41 @@ import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '../context/AuthContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUsuario, logout as logoutAction } from '../redux/features/authSlice';
+import {
+  fetchUsuarioActual,
+  actualizarUsuario as actualizarUsuarioThunk,
+  cambiarPassword as cambiarPasswordThunk,
+} from '../redux/features/usersSlice';
+import {
+  fetchDirecciones,
+  eliminarDireccion as eliminarDireccionThunk,
+  selectDirecciones,
+  selectDireccionesLoading,
+  selectDireccionesError,
+} from '../redux/features/direccionesSlice';
+import {
+  fetchOrdenesUsuario,
+  selectOrdenes,
+  selectOrdenesLoading,
+  selectOrdenesError,
+} from '../redux/features/ordersSlice';
 import { useToast } from '../context/ToastContext';
-import { getDirecciones, eliminarDireccion } from '../services/direccionService';
-import { getOrdenesPorUsuario } from '../services/ordenService';
-import { actualizarUsuario, getUsuario, cambiarPassword } from '../services/usuarioService';
 import { formatPrecio } from '@/lib/formato';
 
 const MiPerfil = () => {
   const navigate = useNavigate();
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector(selectUsuario);
+  const direcciones = useSelector(selectDirecciones);
+  const direccionesLoading = useSelector(selectDireccionesLoading);
+  const direccionesError = useSelector(selectDireccionesError);
+  const pedidos = useSelector(selectOrdenes);
+  const pedidosLoading = useSelector(selectOrdenesLoading);
+  const pedidosError = useSelector(selectOrdenesError);
+  const logout = () => dispatch(logoutAction());
   const { mostrarToast } = useToast();
-  const [direcciones, setDirecciones] = useState([]);
-  const [pedidos, setPedidos] = useState([]);
   const [perfil, setPerfil] = useState({
     nombre: '',
     email: usuario?.email || '',
@@ -29,8 +51,8 @@ const MiPerfil = () => {
   // Al entrar al perfil, traemos los datos reales del usuario, sus direcciones y sus pedidos
   useEffect(() => {
     if (usuario?.id) {
-      // Datos personales (nombre, email, teléfono)
-      getUsuario(usuario.id)
+      // Datos personales (nombre, email, teléfono): sincronizamos el form recién cuando llega la respuesta
+      dispatch(fetchUsuarioActual(usuario.id)).unwrap()
         .then((u) => setPerfil({
           nombre: u.nombre || '',
           email: u.email || '',
@@ -38,22 +60,20 @@ const MiPerfil = () => {
         }))
         .catch(() => {});
 
-      getDirecciones(usuario.id)
-        .then(setDirecciones)
-        .catch(() => setDirecciones([]));
-
-      getOrdenesPorUsuario(usuario.id)
-        .then(setPedidos)
-        .catch(() => setPedidos([]));
+      dispatch(fetchDirecciones(usuario.id));
+      dispatch(fetchOrdenesUsuario(usuario.id));
     }
-  }, [usuario]);
+  }, [usuario, dispatch]);
 
   // Guarda nombre y teléfono en el backend (el email no se cambia acá para no invalidar la sesión)
   const handleSave = async (e) => {
     e.preventDefault();
     setGuardandoDatos(true);
     try {
-      await actualizarUsuario(usuario.id, { nombre: perfil.nombre, telefono: perfil.telefono });
+      await dispatch(actualizarUsuarioThunk({
+        id: usuario.id,
+        datos: { nombre: perfil.nombre, telefono: perfil.telefono },
+      })).unwrap();
       mostrarToast('Datos guardados correctamente.');
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -69,8 +89,7 @@ const MiPerfil = () => {
 
   const handleEliminarDireccion = async (id) => {
     try {
-      await eliminarDireccion(usuario.id, id);
-      setDirecciones((prev) => prev.filter((d) => d.id !== id));
+      await dispatch(eliminarDireccionThunk({ usuarioId: usuario.id, direccionId: id })).unwrap();
       mostrarToast('Dirección eliminada.');
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -101,7 +120,7 @@ const MiPerfil = () => {
     setGuardandoPassword(true);
     setErrorPassword('');
     try {
-      await cambiarPassword(usuario.id, passwordActual, nuevaPassword);
+      await dispatch(cambiarPasswordThunk({ id: usuario.id, passwordActual, passwordNueva: nuevaPassword })).unwrap();
       setPasswordActual('');
       setNuevaPassword('');
       setConfirmarPassword('');
@@ -242,7 +261,17 @@ const MiPerfil = () => {
                 <h2 className="perfil__card-title">Direcciones de Envío</h2>
               </div>
 
-              {direcciones.map((dir) => (
+              {direccionesLoading && (
+                <p style={{ color: '#888', fontSize: '0.875rem', margin: '0 0 1rem' }}>Cargando direcciones...</p>
+              )}
+
+              {!direccionesLoading && direccionesError && (
+                <p style={{ color: '#dc2626', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+                  No se pudieron cargar las direcciones: {direccionesError.message}
+                </p>
+              )}
+
+              {!direccionesLoading && !direccionesError && direcciones.map((dir) => (
                 <div key={dir.id} className="perfil__address-box">
                   <div className="perfil__address-header">
                     <span className="perfil__address-tag">
@@ -269,7 +298,7 @@ const MiPerfil = () => {
                 </div>
               ))}
 
-              {direcciones.length === 0 && (
+              {!direccionesLoading && !direccionesError && direcciones.length === 0 && (
                 <p style={{ color: '#888', fontSize: '0.875rem', margin: '0 0 1rem' }}>Todavía no tenés direcciones guardadas.</p>
               )}
 
@@ -294,6 +323,17 @@ const MiPerfil = () => {
                 </div>
               </div>
 
+              {pedidosLoading && (
+                <p style={{ color: '#888', fontSize: '0.875rem', padding: '1rem' }}>Cargando pedidos...</p>
+              )}
+
+              {!pedidosLoading && pedidosError && (
+                <p style={{ color: '#dc2626', fontSize: '0.875rem', padding: '1rem' }}>
+                  No se pudieron cargar los pedidos: {pedidosError.message}
+                </p>
+              )}
+
+              {!pedidosLoading && !pedidosError && (
               <div style={{ overflowX: 'auto' }}>
                 <table className="perfil__orders-table">
                   <thead className="perfil__orders-thead">
@@ -351,6 +391,7 @@ const MiPerfil = () => {
                   </tbody>
                 </table>
               </div>
+              )}
             </section>
 
           </div>

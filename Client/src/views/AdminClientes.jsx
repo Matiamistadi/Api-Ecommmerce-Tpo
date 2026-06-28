@@ -1,8 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { AlertTriangle } from 'lucide-react';
-import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
-import { actualizarUsuario } from '../services/usuarioService';
+import {
+  fetchResumenAdmin,
+  selectAdminClientes,
+  selectAdminMetrics,
+  selectAdminLoading,
+  selectAdminError,
+} from '../redux/features/adminSlice';
+import { actualizarUsuario as actualizarUsuarioThunk } from '../redux/features/usersSlice';
 import { formatPrecio } from '@/lib/formato';
 import { useToast } from '../context/ToastContext';
 import './Admin.css';
@@ -10,25 +17,19 @@ import './Admin.css';
 const filtros = ['Todos', 'Activo', 'Suspendido'];
 
 const AdminClientes = () => {
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
-  const [clientes, setClientes] = useState([]);
-  const [metrics, setMetrics] = useState(METRICS_VACIAS);
+  const clientes = useSelector(selectAdminClientes);
+  const metrics = useSelector(selectAdminMetrics);
+  const loading = useSelector(selectAdminLoading);
+  const error = useSelector(selectAdminError);
   const [filtro, setFiltro] = useState('Todos');
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { cliente, nuevoEstado }
 
   // Trae usuarios reales (+ sus estadísticas de compra) del backend
-  const cargar = () => {
-    getResumenAdmin()
-      .then((resumen) => {
-        setClientes(resumen.clientes);
-        setMetrics(resumen.metrics);
-      })
-      .catch(() => setClientes([]));
-  };
-
   useEffect(() => {
-    cargar();
-  }, []);
+    dispatch(fetchResumenAdmin());
+  }, [dispatch]);
 
   const clientesFiltrados = useMemo(() => (
     filtro === 'Todos' ? clientes : clientes.filter((c) => c.estado === filtro)
@@ -50,10 +51,11 @@ const AdminClientes = () => {
   // Suspende/reactiva en el backend (PUT activo) y recarga la lista
   const confirmarCambioEstado = async () => {
     try {
-      await actualizarUsuario(confirmarCambio.cliente.id, {
-        activo: confirmarCambio.nuevoEstado === 'Activo',
-      });
-      cargar();
+      await dispatch(actualizarUsuarioThunk({
+        id: confirmarCambio.cliente.id,
+        datos: { activo: confirmarCambio.nuevoEstado === 'Activo' },
+      })).unwrap();
+      dispatch(fetchResumenAdmin());
       mostrarToast(`Cliente ${confirmarCambio.nuevoEstado === 'Activo' ? 'reactivado' : 'suspendido'}.`);
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -104,6 +106,14 @@ const AdminClientes = () => {
               <span>{clientesFiltrados.length} resultados</span>
             </div>
 
+            {loading && <p className="admin-panel__muted" style={{ padding: '1.5rem' }}>Cargando clientes...</p>}
+            {!loading && error && (
+              <p className="admin-panel__muted" style={{ padding: '1.5rem', color: '#dc2626' }}>
+                No se pudieron cargar los clientes: {error.message}
+              </p>
+            )}
+
+            {!loading && !error && (
             <div className="admin-panel__table-wrapper">
               <table className="admin-panel__table">
                 <thead>
@@ -146,6 +156,7 @@ const AdminClientes = () => {
                 </tbody>
               </table>
             </div>
+            )}
           </section>
         </section>
       </main>

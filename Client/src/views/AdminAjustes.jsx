@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { Store, Truck, Bell, Lock, CheckCircle2, X, AlertTriangle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { actualizarUsuario } from '../services/usuarioService';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUsuario } from '../redux/features/authSlice';
+import { actualizarUsuario as actualizarUsuarioThunk } from '../redux/features/usersSlice';
 import { getConfiguracion, actualizarConfiguracion } from '../services/configuracionService';
 
 const NOTIF_CONFIG = [
@@ -27,7 +28,8 @@ const NOTIF_CONFIG = [
 ];
 
 const AdminAjustes = () => {
-  const { usuario } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector(selectUsuario);
   const [tienda, setTienda] = useState({
     nombre: 'GymStore',
     descripcion: 'Tu tienda de suplementos y equipamiento deportivo.',
@@ -169,7 +171,7 @@ const AdminAjustes = () => {
   // Cambia la contraseña de verdad en el backend (PUT /api/usuarios/{id})
   const confirmarCambioPassword = async () => {
     try {
-      await actualizarUsuario(usuario.id, { password: cuenta.passwordNuevo });
+      await dispatch(actualizarUsuarioThunk({ id: usuario.id, datos: { password: cuenta.passwordNuevo } })).unwrap();
       setCuenta((prev) => ({ ...prev, passwordActual: '', passwordNuevo: '', passwordConfirm: '' }));
       setToast({ mensaje: 'Contraseña actualizada correctamente.' });
     } catch (err) {

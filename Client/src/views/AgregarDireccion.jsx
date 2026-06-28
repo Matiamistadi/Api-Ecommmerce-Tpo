@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUsuario } from '../redux/features/authSlice';
+import { crearDireccion } from '../redux/features/direccionesSlice';
 import { useToast } from '../context/ToastContext';
-import { crearDireccion } from '../services/direccionService';
 import './AgregarDireccion.css';
 
 const initialForm = {
@@ -17,7 +18,8 @@ const initialForm = {
 
 const AgregarDireccion = () => {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector(selectUsuario);
   const { mostrarToast } = useToast();
   const [form, setForm] = useState(initialForm);
   const [guardando, setGuardando] = useState(false);
@@ -40,13 +42,16 @@ const AgregarDireccion = () => {
     setGuardando(true);
     try {
       // El backend guarda la calle completa (juntamos calle + número + piso)
-      await crearDireccion(usuario.id, {
-        calle: `${form.calle} ${form.numero}${form.piso ? `, ${form.piso}` : ''}`.trim(),
-        ciudad: form.ciudad,
-        provincia: form.provincia,
-        codigoPostal: form.codigoPostal,
-        esPrincipal: false,
-      });
+      await dispatch(crearDireccion({
+        usuarioId: usuario.id,
+        direccion: {
+          calle: `${form.calle} ${form.numero}${form.piso ? `, ${form.piso}` : ''}`.trim(),
+          ciudad: form.ciudad,
+          provincia: form.provincia,
+          codigoPostal: form.codigoPostal,
+          esPrincipal: false,
+        },
+      })).unwrap();
       mostrarToast('Dirección guardada.');
       navigate('/perfil');
     } catch (err) {

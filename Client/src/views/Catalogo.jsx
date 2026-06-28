@@ -3,11 +3,16 @@ import { Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import FilterSidebar from '../components/FilterSidebar';
-import { useProducts } from '../context/ProductsContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProductos, selectProductos, selectProductosLoading, selectProductosError } from '../redux/features/productsSlice';
 import './Catalogo.css';
 
 const Catalogo = () => {
-  const { productos, loading, error, recargarProductos } = useProducts();
+  const dispatch = useDispatch();
+  const productos = useSelector(selectProductos);
+  const loading = useSelector(selectProductosLoading);
+  const error = useSelector(selectProductosError);
+  const recargarProductos = () => dispatch(fetchProductos());
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [marcaSeleccionada, setMarcaSeleccionada] = useState('Todas');
   const [saborSeleccionado, setSaborSeleccionado] = useState('Todos');

@@ -1,51 +1,32 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import axiosClient, { API_URL } from './axiosClient';
+
+export { API_URL };
 
 // Devuelve el token guardado (o null si el usuario no inició sesión)
 export function getToken() {
   return localStorage.getItem('token');
 }
 
+// Wrapper sobre Axios que mantiene la misma firma que usaban los services
+// (path, { method, body, headers }) para no tener que tocar cada llamada.
 export async function apiFetch(path, options = {}) {
-  const token = getToken();
-  // Si mandamos un FormData (subida de archivos), NO ponemos Content-Type:
-  // el navegador lo arma solo con el boundary correcto del multipart.
-  const esFormData = options.body instanceof FormData;
+  const { method = 'GET', body, headers } = options;
+  const esFormData = body instanceof FormData;
 
-  let response;
-  try {
-    response = await fetch(`${API_URL}${path}`, {
-      headers: {
-        ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
-        // Si hay token, lo mandamos en cada pedido para identificarnos
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-      ...options,
-    });
-  } catch {
-    throw new Error('No se pudo conectar con el servidor. Verificá que el backend esté corriendo.');
+  let data = body;
+  if (!esFormData && typeof body === 'string') {
+    data = JSON.parse(body);
   }
 
-  if (!response.ok) {
-    // 401 = token ausente/vencido → limpiamos la sesión y avisamos a la app
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('sesion');
-      window.dispatchEvent(new Event('sesion-expirada'));
-    }
+  const response = await axiosClient.request({
+    url: path,
+    method,
+    data,
+    headers: {
+      ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...headers,
+    },
+  });
 
-    // Intentamos leer el mensaje de error que manda el backend en el JSON
-    let mensaje = `Error ${response.status} al consultar ${path}`;
-    try {
-      const errorBody = await response.json();
-      // El backend manda el detalle en "mensaje"; "error" es solo el tipo (ej: "Bad Request")
-      mensaje = errorBody.mensaje || errorBody.error || errorBody.message || mensaje;
-    } catch {
-      // La respuesta no traía cuerpo JSON, dejamos el mensaje genérico
-    }
-    throw new Error(mensaje);
-  }
-
-  if (response.status === 204) return null;
-  return response.json();
+  return response.data;
 }

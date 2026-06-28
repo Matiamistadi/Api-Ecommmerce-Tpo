@@ -1,7 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { X, AlertTriangle, Package, MapPin, User } from 'lucide-react';
-import { getTodasLasOrdenes, actualizarEstadoOrden } from '../services/ordenService';
+import {
+  fetchTodasLasOrdenes,
+  actualizarEstadoOrden as actualizarEstadoOrdenThunk,
+  selectOrdenes,
+  selectOrdenesLoading,
+  selectOrdenesError,
+} from '../redux/features/ordersSlice';
 import { formatPrecio } from '@/lib/formato';
 import { useToast } from '../context/ToastContext';
 import './Admin.css';
@@ -25,18 +32,19 @@ const BADGE_COLOR = {
 const formatEstado = (estado) => estado.charAt(0) + estado.slice(1).toLowerCase();
 
 const AdminPedidos = () => {
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
-  const [pedidos, setPedidos] = useState([]);
+  const pedidos = useSelector(selectOrdenes);
+  const loading = useSelector(selectOrdenesLoading);
+  const error = useSelector(selectOrdenesError);
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { pedido, nuevoEstado }
 
   // Traemos todas las órdenes reales del backend al montar el panel
   useEffect(() => {
-    getTodasLasOrdenes()
-      .then(setPedidos)
-      .catch(() => setPedidos([]));
-  }, []);
+    dispatch(fetchTodasLasOrdenes());
+  }, [dispatch]);
 
   const pedidosFiltrados = useMemo(() => (
     filtro === 'Todos' ? pedidos : pedidos.filter((p) => p.estado === filtro)
@@ -75,8 +83,10 @@ const AdminPedidos = () => {
   // Cambia el estado en el backend (PATCH) y refresca la fila con la respuesta
   const confirmarCambioEstado = async () => {
     try {
-      const actualizado = await actualizarEstadoOrden(confirmarCambio.pedido.id, confirmarCambio.nuevoEstado);
-      setPedidos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
+      const actualizado = await dispatch(actualizarEstadoOrdenThunk({
+        id: confirmarCambio.pedido.id,
+        estado: confirmarCambio.nuevoEstado,
+      })).unwrap();
       mostrarToast(`Pedido #${actualizado.id} actualizado a ${formatEstado(actualizado.estado)}.`);
     } catch (err) {
       mostrarToast(err.message, 'error');
@@ -127,6 +137,14 @@ const AdminPedidos = () => {
               <span>{pedidosFiltrados.length} resultados</span>
             </div>
 
+            {loading && <p className="admin-panel__muted" style={{ padding: '1.5rem' }}>Cargando pedidos...</p>}
+            {!loading && error && (
+              <p className="admin-panel__muted" style={{ padding: '1.5rem', color: '#dc2626' }}>
+                No se pudieron cargar los pedidos: {error.message}
+              </p>
+            )}
+
+            {!loading && !error && (
             <div className="admin-panel__table-wrapper">
               <table className="admin-panel__table">
                 <thead>
@@ -182,6 +200,7 @@ const AdminPedidos = () => {
                 </tbody>
               </table>
             </div>
+            )}
           </section>
         </section>
       </main>

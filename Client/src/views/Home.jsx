@@ -10,7 +10,8 @@ import {
   Tag,
   Truck,
 } from 'lucide-react';
-import { useProducts } from '../context/ProductsContext';
+import { useSelector } from 'react-redux';
+import { selectProductos, selectProductosLoading, selectProductosError } from '../redux/features/productsSlice';
 import ProductCard from '../components/ProductCard';
 import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import { cn } from '@/lib/utils';
@@ -49,7 +50,9 @@ const getDiscount = (producto) => {
 };
 
 const Home = () => {
-  const { productos, loading, error } = useProducts();
+  const productos = useSelector(selectProductos);
+  const loading = useSelector(selectProductosLoading);
+  const error = useSelector(selectProductosError);
   const productosActivos = productos.filter((p) => p.activo !== false);
   const ofertas = [...productosActivos]
     .filter((p) => p.precioOriginal)

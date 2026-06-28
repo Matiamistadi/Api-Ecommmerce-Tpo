@@ -1,10 +1,20 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  selectCarrito,
+  selectSubtotal,
+  eliminarDelCarrito as eliminarDelCarritoAction,
+  actualizarCantidad as actualizarCantidadAction,
+} from '../redux/features/cartSlice';
 import { formatPrecio } from '@/lib/formato';
 import './Carrito.css';
 
 const Carrito = () => {
-  const { carrito, eliminarDelCarrito, actualizarCantidad, subtotal } = useCart();
+  const dispatch = useDispatch();
+  const carrito = useSelector(selectCarrito);
+  const subtotal = useSelector(selectSubtotal);
+  const eliminarDelCarrito = (id) => dispatch(eliminarDelCarritoAction(id));
+  const actualizarCantidad = (id, cantidad) => dispatch(actualizarCantidadAction({ id, cantidad }));
   const navigate = useNavigate();
 
   const impuestos = subtotal * 0.08;

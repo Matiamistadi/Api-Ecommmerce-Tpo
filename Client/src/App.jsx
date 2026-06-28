@@ -1,5 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { fetchProductos } from './redux/features/productsSlice';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './views/Home';
@@ -31,10 +33,15 @@ import './App.css';
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const dispatch = useDispatch();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    dispatch(fetchProductos());
+  }, [dispatch]);
 
   return (
     <div className="app">

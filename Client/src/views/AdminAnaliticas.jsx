@@ -1,30 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { TrendingUp, ShoppingBag, Users, DollarSign } from 'lucide-react';
-import { useProducts } from '../context/ProductsContext';
-import { getResumenAdmin, METRICS_VACIAS } from '../services/adminService';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectProductos } from '../redux/features/productsSlice';
+import {
+  fetchResumenAdmin,
+  selectAdminMetrics,
+  selectAdminPedidos,
+  selectAdminVentasMensuales,
+  selectAdminLoading,
+  selectAdminError,
+} from '../redux/features/adminSlice';
 import { formatPrecio } from '@/lib/formato';
 
 const AdminAnaliticas = () => {
-  const { productos } = useProducts();
-  const [metrics, setMetrics] = useState(METRICS_VACIAS);
-  const [pedidos, setPedidos] = useState([]);
-  const [ventasMensuales, setVentasMensuales] = useState([]);
+  const dispatch = useDispatch();
+  const productos = useSelector(selectProductos);
+  const metrics = useSelector(selectAdminMetrics);
+  const pedidos = useSelector(selectAdminPedidos);
+  const ventasMensuales = useSelector(selectAdminVentasMensuales);
+  const loading = useSelector(selectAdminLoading);
+  const error = useSelector(selectAdminError);
 
   // Traemos órdenes + métricas + ventas por mes reales del backend
   useEffect(() => {
-    getResumenAdmin()
-      .then((resumen) => {
-        setMetrics(resumen.metrics);
-        setPedidos(resumen.pedidos);
-        setVentasMensuales(resumen.ventasMensuales);
-      })
-      .catch(() => {
-        setMetrics(METRICS_VACIAS);
-        setPedidos([]);
-        setVentasMensuales([]);
-      });
-  }, []);
+    dispatch(fetchResumenAdmin());
+  }, [dispatch]);
 
   // El valor más alto, para escalar las barras (mínimo 1 para no dividir por cero)
   const maxVenta = Math.max(1, ...ventasMensuales.map((v) => v.ventas));
@@ -54,6 +55,13 @@ const AdminAnaliticas = () => {
             <p className="text-gray-500 text-sm">Resumen de rendimiento, ventas y clientes del negocio.</p>
           </div>
 
+          {loading && <p className="text-sm text-gray-500 mb-6">Cargando analíticas...</p>}
+          {!loading && error && (
+            <p className="text-sm text-red-500 mb-6">No se pudieron cargar las analíticas: {error.message}</p>
+          )}
+
+          {!loading && !error && (
+          <>
           {/* KPIs */}
           <div className="grid grid-cols-4 gap-6 mb-8">
             {kpis.map((kpi) => {
@@ -135,6 +143,8 @@ const AdminAnaliticas = () => {
               })}
             </div>
           </div>
+          </>
+          )}
         </div>
       </main>
     </div>

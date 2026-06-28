@@ -5,12 +5,13 @@ import './Login.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '../context/AuthContext';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../redux/features/authSlice';
 import { useToast } from '../context/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,9 +40,9 @@ const Login = () => {
 
     setCargando(true);
     try {
-      // login() llama al backend (POST /api/v1/auth/authenticate) y guarda el token.
-      // Como es asincrónico, esperamos la respuesta con await sin congelar la app.
-      const sesion = await login(email, password);
+      // loginUser es un thunk: despacha la action, espera la respuesta del backend
+      // (POST /api/v1/auth/authenticate) y recién ahí actualiza el store.
+      const sesion = await dispatch(loginUser({ email, password })).unwrap();
       setErrores({});
       // Según el rol que devolvió el backend, redirigimos a admin o a perfil
       navigate(sesion.rol === 'ADMIN' ? '/admin' : '/perfil');

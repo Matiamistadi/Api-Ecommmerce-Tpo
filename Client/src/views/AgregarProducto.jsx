@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useProducts } from '../context/ProductsContext';
+import { useDispatch } from 'react-redux';
+import { agregarProducto as agregarProductoThunk } from '../redux/features/productsSlice';
 import { getCategorias, getMarcas } from '../services/catalogoService';
 import './AgregarProducto.css';
 
@@ -19,7 +20,8 @@ const initialForm = {
 
 const AgregarProducto = () => {
   const navigate = useNavigate();
-  const { agregarProducto } = useProducts();
+  const dispatch = useDispatch();
+  const agregarProducto = (productoNuevo, archivos) => dispatch(agregarProductoThunk({ productoNuevo, archivos })).unwrap();
   const [form, setForm] = useState(initialForm);
   const [categorias, setCategorias] = useState([]);
   const [marcas, setMarcas] = useState([]);

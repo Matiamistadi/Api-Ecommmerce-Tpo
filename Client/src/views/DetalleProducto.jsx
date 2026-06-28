@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useProducts } from '../context/ProductsContext';
-import { useCart } from '../context/CartContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectProductos, selectProductosLoading, selectProductosError } from '../redux/features/productsSlice';
+import { agregarAlCarrito as agregarAlCarritoAction } from '../redux/features/cartSlice';
 import { useToast } from '../context/ToastContext';
-import { useAuth } from '../context/AuthContext';
+import { selectUsuario } from '../redux/features/authSlice';
 import { formatPrecio } from '@/lib/formato';
 import StarRating from '../components/StarRating';
 import ProductCard from '../components/ProductCard';
@@ -14,10 +15,12 @@ import { API_URL, apiFetch } from '../services/api';
 const DetalleProducto = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { agregarAlCarrito } = useCart();
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
-  const { usuario } = useAuth();
-  const { productos, loading, error } = useProducts();
+  const usuario = useSelector(selectUsuario);
+  const productos = useSelector(selectProductos);
+  const loading = useSelector(selectProductosLoading);
+  const error = useSelector(selectProductosError);
   const producto = productos.find((p) => p.id === parseInt(id));
   const [cantidad, setCantidad] = useState(1);
   const [imgActiva, setImgActiva] = useState(0);
@@ -121,7 +124,7 @@ const DetalleProducto = () => {
   const aumentar = () => setCantidad((c) => Math.min(producto.stock, c + 1));
 
   const handleAgregar = () => {
-    agregarAlCarrito(producto, cantidad);
+    dispatch(agregarAlCarritoAction({ producto, cantidad }));
     mostrarToast(`${cantidad} × ${producto.nombre} agregado al carrito`);
     navigate('/carrito');
   };

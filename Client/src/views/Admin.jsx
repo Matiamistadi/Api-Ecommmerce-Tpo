@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useProducts } from '../context/ProductsContext';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  selectProductos,
+  agregarProducto as agregarProductoThunk,
+  actualizarProducto as actualizarProductoThunk,
+  reemplazarImagenProducto as reemplazarImagenProductoThunk,
+  eliminarProducto as eliminarProductoThunk,
+  toggleActivo as toggleActivoThunk,
+} from '../redux/features/productsSlice';
 import { useToast } from '../context/ToastContext';
 import { formatPrecio } from '@/lib/formato';
 import { AdminSidebar } from '../components/AdminSidebar';
@@ -26,7 +34,13 @@ const formVacio = {
 };
 
 const Admin = () => {
-  const { productos, agregarProducto, actualizarProducto, reemplazarImagenProducto, eliminarProducto, toggleActivo } = useProducts();
+  const dispatch = useDispatch();
+  const productos = useSelector(selectProductos);
+  const agregarProducto = (productoNuevo, archivos) => dispatch(agregarProductoThunk({ productoNuevo, archivos })).unwrap();
+  const actualizarProducto = (productoActualizado) => dispatch(actualizarProductoThunk(productoActualizado)).unwrap();
+  const reemplazarImagenProducto = (id, file) => dispatch(reemplazarImagenProductoThunk({ id, file })).unwrap();
+  const eliminarProducto = (id) => dispatch(eliminarProductoThunk(id)).unwrap();
+  const toggleActivo = (id) => dispatch(toggleActivoThunk(id)).unwrap();
   const { mostrarToast } = useToast();
   const [busqueda, setBusqueda] = useState('');
   const [isAdding, setIsAdding] = useState(false);

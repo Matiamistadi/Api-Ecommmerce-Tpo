@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
+import { selectTotalItems } from '../redux/features/cartSlice';
+import { selectEsAdmin, selectEstaLogueado } from '../redux/features/authSlice';
 import './Header.css';
 
 const Header = () => {
-  const { totalItems } = useCart();
-  const { esAdmin, estaLogueado } = useAuth();
+  const totalItems = useSelector(selectTotalItems);
+  const esAdmin = useSelector(selectEsAdmin);
+  const estaLogueado = useSelector(selectEstaLogueado);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (

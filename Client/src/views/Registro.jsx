@@ -5,11 +5,12 @@ import './Registro.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '../context/AuthContext';
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../redux/features/authSlice';
 
 const Registro = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmar: '' });
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
@@ -48,8 +49,8 @@ const Registro = () => {
     setCargando(true);
     try {
       // El backend solo necesita email y password (el nombre es solo del front).
-      // register() crea el usuario y ya devuelve el token, así que queda logueado.
-      await register(form.email, form.password, form.nombre);
+      // registerUser crea el usuario y ya devuelve el token, así que queda logueado.
+      await dispatch(registerUser({ email: form.email, password: form.password, nombre: form.nombre })).unwrap();
       setErrores({});
       navigate('/perfil');
     } catch (err) {
