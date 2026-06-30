@@ -8,7 +8,6 @@ import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.OrdenRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
-import com.uade.tpo.ecommerce.service.EmailService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

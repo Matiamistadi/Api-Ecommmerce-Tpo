@@ -13,6 +13,14 @@ export function crearDireccion(usuarioId, direccion) {
   });
 }
 
+// PUT /api/usuarios/{usuarioId}/direcciones/{direccionId} → actualiza una dirección existente
+export function actualizarDireccion(usuarioId, direccionId, direccion) {
+  return apiFetch(`/api/usuarios/${usuarioId}/direcciones/${direccionId}`, {
+    method: 'PUT',
+    body: JSON.stringify(direccion),
+  });
+}
+
 // Elimina una dirección del usuario
 export function eliminarDireccion(usuarioId, direccionId) {
   return apiFetch(`/api/usuarios/${usuarioId}/direcciones/${direccionId}`, { method: 'DELETE' });

@@ -62,3 +62,20 @@ export function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem(SESION_KEY);
 }
+
+// POST /api/v1/auth/forgot-password  → inicia la recuperación (el backend responde 204
+// exista o no el email, para no revelar qué cuentas están registradas)
+export async function forgotPassword(email) {
+  await apiFetch('/api/v1/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+// POST /api/v1/auth/reset-password  → cambia la contraseña usando el código recibido por mail
+export async function resetPassword(token, nuevaPassword) {
+  await apiFetch('/api/v1/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, nuevaPassword }),
+  });
+}

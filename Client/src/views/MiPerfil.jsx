@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, MapPin, ShoppingBag, LogOut, Lock, Trash2 } from 'lucide-react';
+import { User, MapPin, ShoppingBag, LogOut, Lock, Trash2, Pencil } from 'lucide-react';
 import './MiPerfil.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,10 @@ import {
 import {
   fetchDirecciones,
   eliminarDireccion as eliminarDireccionThunk,
+  actualizarDireccion as actualizarDireccionThunk,
   selectDirecciones,
   selectDireccionesLoading,
+  selectDireccionesSaving,
   selectDireccionesError,
 } from '../redux/features/direccionesSlice';
 import {
@@ -34,6 +36,7 @@ const MiPerfil = () => {
   const usuario = useSelector(selectUsuario);
   const direcciones = useSelector(selectDirecciones);
   const direccionesLoading = useSelector(selectDireccionesLoading);
+  const direccionesSaving = useSelector(selectDireccionesSaving);
   const direccionesError = useSelector(selectDireccionesError);
   const pedidos = useSelector(selectOrdenes);
   const pedidosLoading = useSelector(selectOrdenesLoading);
@@ -91,6 +94,35 @@ const MiPerfil = () => {
     try {
       await dispatch(eliminarDireccionThunk({ usuarioId: usuario.id, direccionId: id })).unwrap();
       mostrarToast('Dirección eliminada.');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    }
+  };
+
+  // Edición de dirección: form inline mínimo sobre los campos que guarda el backend
+  const [editandoDireccion, setEditandoDireccion] = useState(null); // id en edición
+  const [formDireccion, setFormDireccion] = useState({ calle: '', ciudad: '', provincia: '', codigoPostal: '' });
+
+  const abrirEditarDireccion = (dir) => {
+    setEditandoDireccion(dir.id);
+    setFormDireccion({
+      calle: dir.calle || '',
+      ciudad: dir.ciudad || '',
+      provincia: dir.provincia || '',
+      codigoPostal: dir.codigoPostal || '',
+    });
+  };
+
+  // PUT de la dirección. La lista se actualiza en memoria (sin re-fetch).
+  const handleGuardarDireccion = async (dir) => {
+    try {
+      await dispatch(actualizarDireccionThunk({
+        usuarioId: usuario.id,
+        direccionId: dir.id,
+        direccion: { ...formDireccion, esPrincipal: dir.esPrincipal },
+      })).unwrap();
+      setEditandoDireccion(null);
+      mostrarToast('Dirección actualizada.');
     } catch (err) {
       mostrarToast(err.message, 'error');
     }
@@ -279,10 +311,22 @@ const MiPerfil = () => {
                     </span>
                     <div className="perfil__address-actions">
                       {dir.esPrincipal && <span className="perfil__address-badge">Predeterminada</span>}
+                      {editandoDireccion !== dir.id && (
+                        <button
+                          type="button"
+                          className="perfil__address-delete"
+                          onClick={() => abrirEditarDireccion(dir)}
+                          aria-label="Editar dirección"
+                          title="Editar dirección"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="perfil__address-delete"
                         onClick={() => handleEliminarDireccion(dir.id)}
+                        disabled={direccionesSaving}
                         aria-label="Eliminar dirección"
                         title="Eliminar dirección"
                       >
@@ -290,11 +334,68 @@ const MiPerfil = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="perfil__address-text">
-                    {dir.calle}<br />
-                    {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
-                    {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
-                  </p>
+
+                  {editandoDireccion === dir.id ? (
+                    <div className="perfil__form" style={{ marginTop: '0.75rem' }}>
+                      <div className="perfil__form-field">
+                        <Label className="perfil__form-label">Calle</Label>
+                        <Input
+                          className="perfil__form-input h-auto"
+                          value={formDireccion.calle}
+                          onChange={(e) => setFormDireccion({ ...formDireccion, calle: e.target.value })}
+                        />
+                      </div>
+                      <div className="perfil__form-field">
+                        <Label className="perfil__form-label">Ciudad</Label>
+                        <Input
+                          className="perfil__form-input h-auto"
+                          value={formDireccion.ciudad}
+                          onChange={(e) => setFormDireccion({ ...formDireccion, ciudad: e.target.value })}
+                        />
+                      </div>
+                      <div className="perfil__form-field">
+                        <Label className="perfil__form-label">Provincia</Label>
+                        <Input
+                          className="perfil__form-input h-auto"
+                          value={formDireccion.provincia}
+                          onChange={(e) => setFormDireccion({ ...formDireccion, provincia: e.target.value })}
+                        />
+                      </div>
+                      <div className="perfil__form-field">
+                        <Label className="perfil__form-label">Código postal</Label>
+                        <Input
+                          className="perfil__form-input h-auto"
+                          value={formDireccion.codigoPostal}
+                          onChange={(e) => setFormDireccion({ ...formDireccion, codigoPostal: e.target.value })}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <Button
+                          type="button"
+                          className="perfil__btn-guardar-cambios h-auto"
+                          onClick={() => handleGuardarDireccion(dir)}
+                          disabled={direccionesSaving}
+                        >
+                          {direccionesSaving ? 'Guardando...' : 'Guardar'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-auto"
+                          onClick={() => setEditandoDireccion(null)}
+                          disabled={direccionesSaving}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="perfil__address-text">
+                      {dir.calle}<br />
+                      {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
+                      {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
+                    </p>
+                  )}
                 </div>
               ))}
 

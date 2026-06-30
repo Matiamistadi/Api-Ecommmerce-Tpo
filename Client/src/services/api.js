@@ -1,6 +1,4 @@
-import axiosClient, { API_URL } from './axiosClient';
-
-export { API_URL };
+import axiosClient from './axiosClient';
 
 // Devuelve el token guardado (o null si el usuario no inició sesión)
 export function getToken() {

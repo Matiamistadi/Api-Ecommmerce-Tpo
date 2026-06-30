@@ -9,7 +9,13 @@ import {
   selectAdminLoading,
   selectAdminError,
 } from '../redux/features/adminSlice';
-import { actualizarUsuario as actualizarUsuarioThunk } from '../redux/features/usersSlice';
+import {
+  actualizarUsuario as actualizarUsuarioThunk,
+  cambiarRol as cambiarRolThunk,
+  eliminarUsuario as eliminarUsuarioThunk,
+  selectUsuariosSaving,
+} from '../redux/features/usersSlice';
+import { selectUsuario } from '../redux/features/authSlice';
 import { formatPrecio } from '@/lib/formato';
 import { useToast } from '../context/ToastContext';
 import './Admin.css';
@@ -23,6 +29,8 @@ const AdminClientes = () => {
   const metrics = useSelector(selectAdminMetrics);
   const loading = useSelector(selectAdminLoading);
   const error = useSelector(selectAdminError);
+  const saving = useSelector(selectUsuariosSaving);
+  const usuarioActual = useSelector(selectUsuario);
   const [filtro, setFiltro] = useState('Todos');
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { cliente, nuevoEstado }
 
@@ -61,6 +69,32 @@ const AdminClientes = () => {
       mostrarToast(err.message, 'error');
     } finally {
       setConfirmarCambio(null);
+    }
+  };
+
+  // Cambia el rol (PATCH /rol). La lista se actualiza en memoria desde adminSlice; sólo
+  // re-fetcheamos el resumen para mantener consistentes las métricas agregadas.
+  const handleCambiarRol = async (cliente, rol) => {
+    if (rol === cliente.rol) return;
+    try {
+      await dispatch(cambiarRolThunk({ id: cliente.id, rol })).unwrap();
+      dispatch(fetchResumenAdmin());
+      mostrarToast(`Rol de ${cliente.nombre} actualizado a ${rol === 'ADMIN' ? 'Admin' : 'Cliente'}.`);
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    }
+  };
+
+  // Elimina un usuario (DELETE). Confirmación simple; la fila se quita en memoria y
+  // re-fetcheamos el resumen para refrescar las métricas (total clientes, etc.).
+  const handleEliminar = async (cliente) => {
+    if (!window.confirm(`¿Eliminar al cliente ${cliente.nombre}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await dispatch(eliminarUsuarioThunk(cliente.id)).unwrap();
+      dispatch(fetchResumenAdmin());
+      mostrarToast('Cliente eliminado.');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
     }
   };
 
@@ -124,6 +158,7 @@ const AdminClientes = () => {
                     <th>Pedidos</th>
                     <th>Última compra</th>
                     <th>Total gastado</th>
+                    <th>Rol</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -141,6 +176,19 @@ const AdminClientes = () => {
                       <td>{cliente.ultimaCompra}</td>
                       <td>{formatPrecio(cliente.totalGastado)}</td>
                       <td>
+                        <select
+                          className="admin-panel__estado-select"
+                          value={cliente.rol}
+                          disabled={saving || cliente.id === usuarioActual?.id}
+                          onChange={(e) => handleCambiarRol(cliente, e.target.value)}
+                          aria-label={`Rol de ${cliente.nombre}`}
+                          title={cliente.id === usuarioActual?.id ? 'No podés cambiar tu propio rol' : 'Cambiar rol'}
+                        >
+                          <option value="CLIENTE">Cliente</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                      </td>
+                      <td>
                         <div className="admin-panel__actions">
                           <button
                             type="button"
@@ -148,6 +196,15 @@ const AdminClientes = () => {
                             onClick={() => solicitarCambioEstado(cliente)}
                           >
                             {cliente.estado === 'Activo' ? 'Suspender' : 'Reactivar'}
+                          </button>
+                          <button
+                            type="button"
+                            className="px-3 py-1.5 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            onClick={() => handleEliminar(cliente)}
+                            disabled={saving || cliente.id === usuarioActual?.id}
+                            title={cliente.id === usuarioActual?.id ? 'No podés eliminar tu propia cuenta' : 'Eliminar cliente'}
+                          >
+                            Eliminar
                           </button>
                         </div>
                       </td>

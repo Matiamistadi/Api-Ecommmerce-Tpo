@@ -26,3 +26,17 @@ export function cambiarPassword(id, passwordActual, passwordNueva) {
     body: JSON.stringify({ passwordActual, passwordNueva }),
   });
 }
+
+// PATCH /api/usuarios/{id}/rol → cambia el rol (solo ADMIN). rol: "ADMIN" | "CLIENTE".
+// Devuelve el usuario actualizado.
+export function cambiarRol(id, rol) {
+  return apiFetch(`/api/usuarios/${id}/rol`, {
+    method: 'PATCH',
+    body: JSON.stringify({ rol }),
+  });
+}
+
+// DELETE /api/usuarios/{id} → elimina un usuario (solo ADMIN, o el propio usuario)
+export function eliminarUsuario(id) {
+  return apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+}

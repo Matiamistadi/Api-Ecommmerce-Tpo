@@ -7,6 +7,7 @@ import {
   actualizarEstadoOrden as actualizarEstadoOrdenThunk,
   selectOrdenes,
   selectOrdenesLoading,
+  selectOrdenesSaving,
   selectOrdenesError,
 } from '../redux/features/ordersSlice';
 import { formatPrecio } from '@/lib/formato';
@@ -36,6 +37,7 @@ const AdminPedidos = () => {
   const { mostrarToast } = useToast();
   const pedidos = useSelector(selectOrdenes);
   const loading = useSelector(selectOrdenesLoading);
+  const saving = useSelector(selectOrdenesSaving);
   const error = useSelector(selectOrdenesError);
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
@@ -308,15 +310,17 @@ const AdminPedidos = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmarCambio(null)}
-                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors"
+                disabled={saving}
+                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarCambioEstado}
-                className="px-5 py-2.5 bg-[#00e69e] hover:bg-[#00c98a] text-black rounded-lg text-sm font-bold transition-colors"
+                disabled={saving}
+                className="px-5 py-2.5 bg-[#00e69e] hover:bg-[#00c98a] text-black rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
               >
-                Confirmar
+                {saving ? 'Guardando...' : 'Confirmar'}
               </button>
             </div>
           </div>

@@ -19,6 +19,26 @@ export const registerUser = createAsyncThunk('auth/register', async ({ email, pa
   }
 });
 
+// Thunk: inicia la recuperación de contraseña (POST /forgot-password).
+// No actualiza la sesión; el componente decide qué mostrar (por privacidad, no revela
+// si el email existe). Ver rechazo manejado en OlvidePassword.
+export const forgotPassword = createAsyncThunk('auth/forgotPassword', async ({ email }, { rejectWithValue }) => {
+  try {
+    return await authService.forgotPassword(email);
+  } catch (err) {
+    return rejectWithValue(err);
+  }
+});
+
+// Thunk: cambia la contraseña con el código recibido por mail (POST /reset-password).
+export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, nuevaPassword }, { rejectWithValue }) => {
+  try {
+    return await authService.resetPassword(token, nuevaPassword);
+  } catch (err) {
+    return rejectWithValue(err);
+  }
+});
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -58,6 +78,28 @@ const authSlice = createSlice({
         state.usuario = action.payload;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

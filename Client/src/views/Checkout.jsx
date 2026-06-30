@@ -6,7 +6,7 @@ import { selectUsuario } from '../redux/features/authSlice';
 import { fetchProductos } from '../redux/features/productsSlice';
 import { realizarCheckout } from '../services/checkoutService';
 import { formatPrecio } from '@/lib/formato';
-import { API_URL } from '../services/api';
+import { apiFetch } from '../services/api';
 import { CreditCard, Lock, Tag } from 'lucide-react';
 import './Checkout.css';
 import { Button } from '@/components/ui/button';
@@ -45,12 +45,7 @@ const Checkout = () => {
     setValidandoCupon(true);
     setErrorCupon('');
     try {
-      const res = await fetch(`${API_URL}/api/cupones/validar?codigo=${encodeURIComponent(codigoCupon)}&subtotal=${subtotal}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.mensaje || 'Cupón inválido');
-      }
-      const data = await res.json();
+      const data = await apiFetch(`/api/cupones/validar?codigo=${encodeURIComponent(codigoCupon)}&subtotal=${subtotal}`);
       setCuponAplicado({ codigo: data.codigo, descuento: data.descuento });
     } catch (err) {
       setErrorCupon(err.message);

@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { API_URL } from '../services/api';
+import { useDispatch } from 'react-redux';
+import { resetPassword } from '../redux/features/authSlice';
 import { useToast } from '../context/ToastContext';
 import './Login.css';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
   const [form, setForm] = useState({ token: '', nuevaPassword: '', confirmar: '' });
   const [error, setError] = useState('');
@@ -24,15 +26,7 @@ const ResetPassword = () => {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: form.token, nuevaPassword: form.nuevaPassword }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.mensaje || 'Token inválido o expirado');
-      }
+      await dispatch(resetPassword({ token: form.token, nuevaPassword: form.nuevaPassword })).unwrap();
       mostrarToast('Contraseña actualizada. Ya podés iniciar sesión.');
       navigate('/login');
     } catch (err) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   selectProductos,
+  selectProductosSaving,
   agregarProducto as agregarProductoThunk,
   actualizarProducto as actualizarProductoThunk,
   reemplazarImagenProducto as reemplazarImagenProductoThunk,
@@ -36,6 +37,7 @@ const formVacio = {
 const Admin = () => {
   const dispatch = useDispatch();
   const productos = useSelector(selectProductos);
+  const saving = useSelector(selectProductosSaving);
   const agregarProducto = (productoNuevo, archivos) => dispatch(agregarProductoThunk({ productoNuevo, archivos })).unwrap();
   const actualizarProducto = (productoActualizado) => dispatch(actualizarProductoThunk(productoActualizado)).unwrap();
   const reemplazarImagenProducto = (id, file) => dispatch(reemplazarImagenProductoThunk({ id, file })).unwrap();
@@ -432,9 +434,10 @@ const Admin = () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                  disabled={saving}
+                  className="bg-[#00e69e] hover:bg-[#00c98a] text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm disabled:opacity-60"
                 >
-                  {editando ? 'Guardar Cambios' : 'Guardar Producto'}
+                  {saving ? 'Guardando...' : editando ? 'Guardar Cambios' : 'Guardar Producto'}
                 </button>
               </div>
             </div>

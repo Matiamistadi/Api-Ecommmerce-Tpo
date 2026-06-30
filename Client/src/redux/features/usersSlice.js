@@ -42,12 +42,32 @@ export const cambiarPassword = createAsyncThunk(
   }
 );
 
+// PATCH /api/usuarios/{id}/rol → cambia el rol (solo ADMIN). Devuelve el usuario actualizado.
+export const cambiarRol = createAsyncThunk('users/cambiarRol', async ({ id, rol }, { rejectWithValue }) => {
+  try {
+    return await usuarioService.cambiarRol(id, rol);
+  } catch (err) {
+    return rejectWithValue(err);
+  }
+});
+
+// DELETE /api/usuarios/{id} → elimina el usuario. Devuelve el id eliminado para filtrar la lista.
+export const eliminarUsuario = createAsyncThunk('users/eliminarUsuario', async (id, { rejectWithValue }) => {
+  try {
+    await usuarioService.eliminarUsuario(id);
+    return id;
+  } catch (err) {
+    return rejectWithValue(err);
+  }
+});
+
 const usersSlice = createSlice({
   name: 'users',
   initialState: {
     lista: [],
     actual: null,
     loading: false,
+    saving: false,
     error: null,
   },
   reducers: {},
@@ -77,15 +97,55 @@ const usersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(actualizarUsuario.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(actualizarUsuario.fulfilled, (state, action) => {
+        state.saving = false;
         const idx = state.lista.findIndex((u) => u.id === action.payload.id);
         if (idx !== -1) state.lista[idx] = { ...state.lista[idx], ...action.payload };
         if (state.actual?.id === action.payload.id) state.actual = { ...state.actual, ...action.payload };
       })
       .addCase(actualizarUsuario.rejected, (state, action) => {
+        state.saving = false;
         state.error = action.payload;
       })
+      .addCase(cambiarPassword.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(cambiarPassword.fulfilled, (state) => {
+        state.saving = false;
+      })
       .addCase(cambiarPassword.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(cambiarRol.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(cambiarRol.fulfilled, (state, action) => {
+        state.saving = false;
+        const idx = state.lista.findIndex((u) => u.id === action.payload.id);
+        if (idx !== -1) state.lista[idx] = { ...state.lista[idx], ...action.payload };
+        if (state.actual?.id === action.payload.id) state.actual = { ...state.actual, ...action.payload };
+      })
+      .addCase(cambiarRol.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(eliminarUsuario.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(eliminarUsuario.fulfilled, (state, action) => {
+        state.saving = false;
+        state.lista = state.lista.filter((u) => u.id !== action.payload);
+      })
+      .addCase(eliminarUsuario.rejected, (state, action) => {
+        state.saving = false;
         state.error = action.payload;
       });
   },
@@ -94,6 +154,7 @@ const usersSlice = createSlice({
 export const selectUsuarios = (state) => state.users.lista;
 export const selectUsuarioActual = (state) => state.users.actual;
 export const selectUsuariosLoading = (state) => state.users.loading;
+export const selectUsuariosSaving = (state) => state.users.saving;
 export const selectUsuariosError = (state) => state.users.error;
 
 export default usersSlice.reducer;

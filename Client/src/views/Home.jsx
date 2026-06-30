@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { API_URL } from '../services/api';
+import { apiFetch } from '../services/api';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -70,12 +70,10 @@ const Home = () => {
     setCargandoSuscripcion(true);
     setErrorSuscripcion('');
     try {
-      const res = await fetch(`${API_URL}/api/newsletter/suscribir`, {
+      await apiFetch('/api/newsletter/suscribir', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error('No se pudo enviar el mail');
       setSuscripto(true);
     } catch {
       setErrorSuscripcion('Hubo un error al suscribirte. Intentá de nuevo.');

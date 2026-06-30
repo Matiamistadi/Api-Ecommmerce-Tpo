@@ -63,6 +63,7 @@ const productsSlice = createSlice({
   initialState: {
     productos: [],
     loading: true,
+    saving: false,
     error: null,
   },
   reducers: {},
@@ -80,29 +81,75 @@ const productsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(agregarProducto.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(agregarProducto.fulfilled, (state, action) => {
+        state.saving = false;
         state.productos.unshift(action.payload);
       })
+      .addCase(agregarProducto.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(reemplazarImagenProducto.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(reemplazarImagenProducto.fulfilled, (state, action) => {
+        state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
+      })
+      .addCase(reemplazarImagenProducto.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(actualizarProducto.pending, (state) => {
+        state.saving = true;
+        state.error = null;
       })
       .addCase(actualizarProducto.fulfilled, (state, action) => {
+        state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
+      })
+      .addCase(actualizarProducto.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(eliminarProducto.pending, (state) => {
+        state.saving = true;
+        state.error = null;
       })
       .addCase(eliminarProducto.fulfilled, (state, action) => {
+        state.saving = false;
         state.productos = state.productos.filter((p) => p.id !== action.payload);
       })
+      .addCase(eliminarProducto.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(toggleActivo.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(toggleActivo.fulfilled, (state, action) => {
+        state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
+      })
+      .addCase(toggleActivo.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
       });
   },
 });
 
 export const selectProductos = (state) => state.products.productos;
 export const selectProductosLoading = (state) => state.products.loading;
+export const selectProductosSaving = (state) => state.products.saving;
 export const selectProductosError = (state) => state.products.error;
 
 export default productsSlice.reducer;

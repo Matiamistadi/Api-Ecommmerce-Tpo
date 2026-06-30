@@ -4,10 +4,12 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { API_URL } from '../services/api';
+import { useDispatch } from 'react-redux';
+import { forgotPassword } from '../redux/features/authSlice';
 import './Login.css';
 
 const OlvidePassword = () => {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState('');
@@ -22,14 +24,17 @@ const OlvidePassword = () => {
     setCargando(true);
     setError('');
     try {
-      await fetch(`${API_URL}/api/v1/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      await dispatch(forgotPassword({ email })).unwrap();
       setEnviado(true);
-    } catch {
-      setError('No se pudo conectar con el servidor.');
+    } catch (err) {
+      // Por privacidad (evitar enumeración de usuarios) mostramos la pantalla de
+      // confirmación aunque el backend responda con error: así no se revela si el
+      // email existe o no. Solo avisamos si hubo un fallo de red real (sin respuesta).
+      if (err?.esRedCaida) {
+        setError('No se pudo conectar con el servidor.');
+      } else {
+        setEnviado(true);
+      }
     } finally {
       setCargando(false);
     }

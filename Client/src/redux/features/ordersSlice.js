@@ -42,6 +42,7 @@ const ordersSlice = createSlice({
   initialState: {
     items: [],
     loading: false,
+    saving: false,
     error: null,
   },
   reducers: {},
@@ -71,11 +72,17 @@ const ordersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(actualizarEstadoOrden.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(actualizarEstadoOrden.fulfilled, (state, action) => {
+        state.saving = false;
         const idx = state.items.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
       })
       .addCase(actualizarEstadoOrden.rejected, (state, action) => {
+        state.saving = false;
         state.error = action.payload;
       });
   },
@@ -83,6 +90,7 @@ const ordersSlice = createSlice({
 
 export const selectOrdenes = (state) => state.orders.items;
 export const selectOrdenesLoading = (state) => state.orders.loading;
+export const selectOrdenesSaving = (state) => state.orders.saving;
 export const selectOrdenesError = (state) => state.orders.error;
 
 export default ordersSlice.reducer;

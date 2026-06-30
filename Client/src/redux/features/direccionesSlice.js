@@ -22,6 +22,18 @@ export const crearDireccion = createAsyncThunk(
   }
 );
 
+// PUT /api/usuarios/{usuarioId}/direcciones/{direccionId}
+export const actualizarDireccion = createAsyncThunk(
+  'direcciones/actualizar',
+  async ({ usuarioId, direccionId, direccion }, { rejectWithValue }) => {
+    try {
+      return await direccionService.actualizarDireccion(usuarioId, direccionId, direccion);
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
+
 // DELETE /api/usuarios/{usuarioId}/direcciones/{direccionId}
 export const eliminarDireccion = createAsyncThunk(
   'direcciones/eliminar',
@@ -40,6 +52,7 @@ const direccionesSlice = createSlice({
   initialState: {
     items: [],
     loading: false,
+    saving: false,
     error: null,
   },
   reducers: {},
@@ -57,16 +70,41 @@ const direccionesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(crearDireccion.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(crearDireccion.fulfilled, (state, action) => {
+        state.saving = false;
         state.items.push(action.payload);
       })
       .addCase(crearDireccion.rejected, (state, action) => {
+        state.saving = false;
         state.error = action.payload;
       })
+      .addCase(actualizarDireccion.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
+      .addCase(actualizarDireccion.fulfilled, (state, action) => {
+        state.saving = false;
+        const idx = state.items.findIndex((d) => d.id === action.payload.id);
+        if (idx !== -1) state.items[idx] = action.payload;
+      })
+      .addCase(actualizarDireccion.rejected, (state, action) => {
+        state.saving = false;
+        state.error = action.payload;
+      })
+      .addCase(eliminarDireccion.pending, (state) => {
+        state.saving = true;
+        state.error = null;
+      })
       .addCase(eliminarDireccion.fulfilled, (state, action) => {
+        state.saving = false;
         state.items = state.items.filter((d) => d.id !== action.payload);
       })
       .addCase(eliminarDireccion.rejected, (state, action) => {
+        state.saving = false;
         state.error = action.payload;
       });
   },
@@ -74,6 +112,7 @@ const direccionesSlice = createSlice({
 
 export const selectDirecciones = (state) => state.direcciones.items;
 export const selectDireccionesLoading = (state) => state.direcciones.loading;
+export const selectDireccionesSaving = (state) => state.direcciones.saving;
 export const selectDireccionesError = (state) => state.direcciones.error;
 
 export default direccionesSlice.reducer;

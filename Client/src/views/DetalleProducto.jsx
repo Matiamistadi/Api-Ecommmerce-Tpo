@@ -10,7 +10,7 @@ import StarRating from '../components/StarRating';
 import ProductCard from '../components/ProductCard';
 import '../components/ProductCardSkeleton.css';
 import './DetalleProducto.css';
-import { API_URL, apiFetch } from '../services/api';
+import { apiFetch } from '../services/api';
 
 const DetalleProducto = () => {
   const { id } = useParams();
@@ -33,10 +33,9 @@ const DetalleProducto = () => {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`${API_URL}/api/productos/${id}/resenas`)
-      .then(r => r.ok ? r.json() : [])
+    apiFetch(`/api/productos/${id}/resenas`)
       .then(setResenas)
-      .catch(() => {});
+      .catch(() => setResenas([]));
   }, [id]);
 
   const promedioEstrellas = resenas.length
