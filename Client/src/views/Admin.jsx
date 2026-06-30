@@ -179,9 +179,9 @@ const Admin = () => {
       precio: precioFinal,
       precioOriginal: precioBase,
       stock: Number(form.stock),
-      imagenes: imagenesValidas.length > 0 ? imagenesValidas : ['/img/BannerNexa.png'],
-      imagenUrl: imagenesValidas[0] || '/img/BannerNexa.png',
-      imagenDetalleUrl: imagenesValidas[1] || imagenesValidas[0] || '/img/BannerNexa.png',
+      imagenes: imagenesValidas.length > 0 ? imagenesValidas : ['/img/sin-foto.svg'],
+      imagenUrl: imagenesValidas[0] || '/img/sin-foto.svg',
+      imagenDetalleUrl: imagenesValidas[1] || imagenesValidas[0] || '/img/sin-foto.svg',
     };
     try {
       if (editando) {

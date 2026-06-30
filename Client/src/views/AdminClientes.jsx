@@ -33,6 +33,7 @@ const AdminClientes = () => {
   const usuarioActual = useSelector(selectUsuario);
   const [filtro, setFiltro] = useState('Todos');
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { cliente, nuevoEstado }
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null); // cliente a eliminar
 
   // Trae usuarios reales (+ sus estadísticas de compra) del backend
   useEffect(() => {
@@ -85,16 +86,17 @@ const AdminClientes = () => {
     }
   };
 
-  // Elimina un usuario (DELETE). Confirmación simple; la fila se quita en memoria y
+  // Elimina un usuario (DELETE) tras confirmar en el modal. La fila se quita en memoria y
   // re-fetcheamos el resumen para refrescar las métricas (total clientes, etc.).
-  const handleEliminar = async (cliente) => {
-    if (!window.confirm(`¿Eliminar al cliente ${cliente.nombre}? Esta acción no se puede deshacer.`)) return;
+  const confirmarEliminarCliente = async () => {
     try {
-      await dispatch(eliminarUsuarioThunk(cliente.id)).unwrap();
+      await dispatch(eliminarUsuarioThunk(confirmarEliminar.id)).unwrap();
       dispatch(fetchResumenAdmin());
       mostrarToast('Cliente eliminado.');
     } catch (err) {
       mostrarToast(err.message, 'error');
+    } finally {
+      setConfirmarEliminar(null);
     }
   };
 
@@ -200,7 +202,7 @@ const AdminClientes = () => {
                           <button
                             type="button"
                             className="px-3 py-1.5 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            onClick={() => handleEliminar(cliente)}
+                            onClick={() => setConfirmarEliminar(cliente)}
                             disabled={saving || cliente.id === usuarioActual?.id}
                             title={cliente.id === usuarioActual?.id ? 'No podés eliminar tu propia cuenta' : 'Eliminar cliente'}
                           >
@@ -263,6 +265,43 @@ const AdminClientes = () => {
                 }`}
               >
                 {confirmarCambio.nuevoEstado === 'Suspendido' ? 'Sí, suspender' : 'Sí, reactivar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmación eliminar cliente */}
+      {confirmarEliminar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 animate-[toast-slide-up_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={20} className="text-red-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Eliminar cliente</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              ¿Estás seguro de que querés eliminar a{' '}
+              <span className="font-bold text-gray-900">
+                {confirmarEliminar.nombre} {confirmarEliminar.apellido}
+              </span>?
+            </p>
+            <p className="text-xs text-red-500 font-medium mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmarEliminar(null)}
+                disabled={saving}
+                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarEliminarCliente}
+                disabled={saving}
+                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
+              >
+                {saving ? 'Eliminando...' : 'Sí, eliminar'}
               </button>
             </div>
           </div>

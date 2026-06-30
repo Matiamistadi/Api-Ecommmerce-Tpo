@@ -5,6 +5,7 @@ import { X, AlertTriangle, Package, MapPin, User } from 'lucide-react';
 import {
   fetchTodasLasOrdenes,
   actualizarEstadoOrden as actualizarEstadoOrdenThunk,
+  eliminarOrden as eliminarOrdenThunk,
   selectOrdenes,
   selectOrdenesLoading,
   selectOrdenesSaving,
@@ -42,6 +43,7 @@ const AdminPedidos = () => {
   const [filtro, setFiltro] = useState('Todos');
   const [pedidoDetalle, setPedidoDetalle] = useState(null);
   const [confirmarCambio, setConfirmarCambio] = useState(null); // { pedido, nuevoEstado }
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null); // pedido a eliminar
 
   // Traemos todas las órdenes reales del backend al montar el panel
   useEffect(() => {
@@ -80,6 +82,18 @@ const AdminPedidos = () => {
   const solicitarCambioEstado = (pedido, nuevoEstado) => {
     if (nuevoEstado === pedido.estado) return;
     setConfirmarCambio({ pedido, nuevoEstado });
+  };
+
+  // Elimina la orden (DELETE) tras confirmar en el modal. La fila se quita en memoria.
+  const confirmarEliminarOrden = async () => {
+    try {
+      await dispatch(eliminarOrdenThunk(confirmarEliminar.id)).unwrap();
+      mostrarToast(`Pedido #${confirmarEliminar.id} eliminado.`);
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    } finally {
+      setConfirmarEliminar(null);
+    }
   };
 
   // Cambia el estado en el backend (PATCH) y refresca la fila con la respuesta
@@ -195,6 +209,15 @@ const AdminPedidos = () => {
                               <option key={estado} value={estado}>{formatEstado(estado)}</option>
                             ))}
                           </select>
+
+                          <button
+                            type="button"
+                            className="admin-panel__button"
+                            onClick={() => setConfirmarEliminar(pedido)}
+                            style={{ color: '#dc2626' }}
+                          >
+                            Eliminar
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -321,6 +344,44 @@ const AdminPedidos = () => {
                 className="px-5 py-2.5 bg-[#00e69e] hover:bg-[#00c98a] text-black rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
               >
                 {saving ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmación eliminar pedido */}
+      {confirmarEliminar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4 animate-[toast-slide-up_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={20} className="text-red-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">Eliminar pedido</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">
+              ¿Estás seguro de que querés eliminar el pedido{' '}
+              <span className="font-bold font-mono text-gray-900">#{confirmarEliminar.id}</span> de{' '}
+              <span className="font-bold text-gray-900">{confirmarEliminar.cliente}</span>?
+            </p>
+            <p className="text-xs text-red-500 font-medium mb-6">
+              Se borra junto con su pago asociado. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmarEliminar(null)}
+                disabled={saving}
+                className="px-5 py-2.5 border-2 border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarEliminarOrden}
+                disabled={saving}
+                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-60"
+              >
+                {saving ? 'Eliminando...' : 'Sí, eliminar'}
               </button>
             </div>
           </div>

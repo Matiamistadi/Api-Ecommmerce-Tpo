@@ -7,7 +7,9 @@ import com.uade.tpo.ecommerce.entity.Producto;
 import com.uade.tpo.ecommerce.repository.ImagenProductoRepository;
 import com.uade.tpo.ecommerce.repository.ItemCarritoRepository;
 import com.uade.tpo.ecommerce.repository.ItemOrdenRepository;
+import com.uade.tpo.ecommerce.repository.ProductoDescuentoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
+import com.uade.tpo.ecommerce.repository.ResenaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,6 +36,10 @@ public class ProductoServiceImpl implements ProductoService {
     private final ItemCarritoRepository itemCarritoRepository;
 
     private final ItemOrdenRepository itemOrdenRepository;
+
+    private final ResenaRepository resenaRepository;
+
+    private final ProductoDescuentoRepository productoDescuentoRepository;
 
     @Override
     public List<Producto> obtenerTodos() {
@@ -97,8 +103,11 @@ public class ProductoServiceImpl implements ProductoService {
                     "No se puede eliminar: el producto tiene pedidos asociados. Desactivalo en su lugar.");
         }
 
-        // Lo sacamos de cualquier carrito (los carritos son temporales) y recién ahí lo borramos
+        // Limpiamos las referencias que no son historial de ventas (FK sin cascade):
+        // los carritos son temporales, y las reseñas/descuentos pierden sentido sin el producto.
         itemCarritoRepository.deleteByProductoId(id);
+        resenaRepository.deleteByProductoId(id);
+        productoDescuentoRepository.deleteByProductoId(id);
         productoRepository.deleteById(id);
         return true;
     }

@@ -37,6 +37,19 @@ export const actualizarEstadoOrden = createAsyncThunk(
   }
 );
 
+// DELETE /api/ordenes/{id} → elimina un pedido (panel admin). Devuelve el id para filtrar.
+export const eliminarOrden = createAsyncThunk(
+  'orders/eliminarOrden',
+  async (id, { rejectWithValue }) => {
+    try {
+      await ordenService.eliminarOrden(id);
+      return id;
+    } catch (err) {
+      return rejectWithValue(err);
+    }
+  }
+);
+
 const ordersSlice = createSlice({
   name: 'orders',
   initialState: {
@@ -74,16 +87,26 @@ const ordersSlice = createSlice({
       })
       .addCase(actualizarEstadoOrden.pending, (state) => {
         state.saving = true;
-        state.error = null;
       })
       .addCase(actualizarEstadoOrden.fulfilled, (state, action) => {
         state.saving = false;
         const idx = state.items.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
       })
-      .addCase(actualizarEstadoOrden.rejected, (state, action) => {
+      // Los errores de mutación se muestran por toast en el componente; NO escribimos
+      // state.error (que es de la LISTA) para no ocultar la tabla con un cartel de carga.
+      .addCase(actualizarEstadoOrden.rejected, (state) => {
         state.saving = false;
-        state.error = action.payload;
+      })
+      .addCase(eliminarOrden.pending, (state) => {
+        state.saving = true;
+      })
+      .addCase(eliminarOrden.fulfilled, (state, action) => {
+        state.saving = false;
+        state.items = state.items.filter((o) => o.id !== action.payload);
+      })
+      .addCase(eliminarOrden.rejected, (state) => {
+        state.saving = false;
       });
   },
 });

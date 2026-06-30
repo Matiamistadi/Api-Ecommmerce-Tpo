@@ -18,7 +18,7 @@ export function mapOrden(orden) {
     cantidadItems,
     productoNombre: primerItem?.producto?.nombre ?? 'Productos',
     descripcion: cantidadItems === 1 ? '1 producto' : `${cantidadItems} productos`,
-    imagen: primerItem?.producto?.imagenes?.[0]?.url ?? '/img/ProteVainilla.png',
+    imagen: primerItem?.producto?.imagenes?.[0]?.url ?? '/img/sin-foto.svg',
   };
 }
 
@@ -68,4 +68,9 @@ export async function actualizarEstadoOrden(id, estado) {
     body: JSON.stringify({ estado }),
   });
   return mapOrdenAdmin(data);
+}
+
+// DELETE /api/ordenes/{id} → elimina la orden, sus items y el pago (solo ADMIN)
+export function eliminarOrden(id) {
+  return apiFetch(`/api/ordenes/${id}`, { method: 'DELETE' });
 }

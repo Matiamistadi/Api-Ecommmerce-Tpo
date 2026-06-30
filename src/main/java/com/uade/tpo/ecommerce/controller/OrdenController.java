@@ -57,4 +57,12 @@ public class OrdenController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // Solo ADMIN (ver SecurityConfig). Elimina la orden, sus items y el pago asociado.
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarOrden(@PathVariable Long id) {
+        return ordenService.eliminar(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
 }

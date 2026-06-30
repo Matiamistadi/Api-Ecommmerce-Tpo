@@ -63,6 +63,7 @@ const ProductCard = ({ producto, variant }) => {
               src={producto.imagenUrl}
               alt={producto.nombre}
               className="max-h-[200px] w-auto max-w-[85%] object-contain"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/img/sin-foto.svg'; }}
             />
           </div>
           <h3 className="mt-4 mb-2 font-gym-heading text-[17px] font-bold text-gym-text">
@@ -115,7 +116,11 @@ const ProductCard = ({ producto, variant }) => {
       <Link to={`/productos/${producto.id}`} className="product-card__link">
         <div className="product-card__image">
           {discount > 0 && <span className="product-card__discount">-{discount}%</span>}
-          <img src={producto.imagenUrl} alt={producto.nombre} />
+          <img
+            src={producto.imagenUrl}
+            alt={producto.nombre}
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/img/sin-foto.svg'; }}
+          />
         </div>
         <p className="product-card__brand">{producto.marca}</p>
         <h3 className="product-card__name">{producto.nombre}</h3>

@@ -75,9 +75,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/descuentos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/descuentos/**").hasRole("ADMIN")
 
-                // Solo ADMIN puede ver todas las órdenes y cambiar su estado
+                // Solo ADMIN puede ver todas las órdenes, cambiar su estado y eliminarlas
                 .requestMatchers(HttpMethod.GET, "/api/ordenes").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/ordenes/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/ordenes/**").hasRole("ADMIN")
 
                 // Solo ADMIN puede ver todos los usuarios y cambiar roles
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")

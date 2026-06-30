@@ -6,7 +6,9 @@ import com.uade.tpo.ecommerce.entity.EstadoOrden;
 import com.uade.tpo.ecommerce.entity.ItemOrden;
 import com.uade.tpo.ecommerce.entity.Orden;
 import com.uade.tpo.ecommerce.entity.Producto;
+import com.uade.tpo.ecommerce.repository.CarritoRepository;
 import com.uade.tpo.ecommerce.repository.OrdenRepository;
+import com.uade.tpo.ecommerce.repository.PagoRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ public class OrdenServiceImpl implements OrdenService {
 
     private final OrdenRepository ordenRepository;
     private final ProductoRepository productoRepository;
+    private final PagoRepository pagoRepository;
+    private final CarritoRepository carritoRepository;
     private final EmailService emailService;
 
     @Override
@@ -61,6 +65,31 @@ public class OrdenServiceImpl implements OrdenService {
             emailService.enviarCambioEstadoOrden(emailUsuario, guardada.getId(), nuevoEstado.name());
             return guardada;
         });
+    }
+
+    @Override
+    @Transactional
+    public boolean eliminar(Long id) {
+        Orden orden = ordenRepository.findById(id).orElse(null);
+        if (orden == null) {
+            return false;
+        }
+        // El carrito confirmado referencia la orden (FK carritos.id_orden). Lo desvinculamos
+        // para no violar la foreign key al borrar la orden.
+        carritoRepository.findByOrdenId(id).ifPresent(carrito -> {
+            carrito.setOrden(null);
+            carritoRepository.save(carrito);
+        });
+        // El pago (si existe) también tiene FK obligatoria a la orden y no se borra en cascada.
+        if (orden.getPago() != null) {
+            pagoRepository.delete(orden.getPago());
+        }
+        // Forzamos el UPDATE del carrito y el DELETE del pago antes de borrar la orden.
+        ordenRepository.flush();
+        // Al borrar la orden, sus items se eliminan en cascada (cascade ALL + orphanRemoval).
+        // No se toca el stock: para devolverlo, cancelar la orden (PATCH estado) antes de eliminar.
+        ordenRepository.delete(orden);
+        return true;
     }
 
     private boolean esCancelada(EstadoOrden estado) {

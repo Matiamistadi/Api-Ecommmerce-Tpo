@@ -31,8 +31,8 @@ export function mapProducto(producto) {
     marca: producto.marca?.nombre ?? '',
     marcaId: producto.marca?.id ?? null,
     sabor: getSabor(producto.nombre),
-    imagenUrl: producto.imagenes?.[0]?.url ?? '/img/BannerNexa.png',
-    imagenDetalleUrl: producto.imagenes?.[1]?.url ?? producto.imagenes?.[0]?.url,
+    imagenUrl: producto.imagenes?.[0]?.url ?? '/img/sin-foto.svg',
+    imagenDetalleUrl: producto.imagenes?.[1]?.url ?? producto.imagenes?.[0]?.url ?? '/img/sin-foto.svg',
   };
 }
 

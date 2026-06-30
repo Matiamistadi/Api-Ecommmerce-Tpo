@@ -11,4 +11,5 @@ public interface OrdenService {
     Optional<Orden> obtenerPorId(Long id);
     List<Orden> obtenerPorUsuario(Long usuarioId);
     Optional<Orden> actualizarEstado(Long id, EstadoOrden nuevoEstado);
+    boolean eliminar(Long id);
 }
