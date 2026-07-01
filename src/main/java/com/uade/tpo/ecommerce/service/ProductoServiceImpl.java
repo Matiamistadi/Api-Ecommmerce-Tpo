@@ -135,11 +135,8 @@ public class ProductoServiceImpl implements ProductoService {
             Path destino = carpeta.resolve(nombreArchivo);
             Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 
-            // 4) Armamos la URL pública para que el frontend pueda mostrar la imagen
-            String url = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/uploads/")
-                    .path(nombreArchivo)
-                    .toUriString();
+                // 4) Guardamos una ruta relativa para no depender del host/puerto del backend
+                String url = "/uploads/" + nombreArchivo;
 
             // 5) Guardamos la imagen asociada al producto
             ImagenProducto imagen = new ImagenProducto();

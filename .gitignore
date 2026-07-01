@@ -64,4 +64,32 @@ src/main/resources/application-local.properties
 .mcp.json
 
 # Imágenes subidas por usuarios en runtime (no versionar; los seeds van en resources/seed-images)
-/uploads/
+/uploads/*
+!/uploads/
+!/uploads/BCAABLUEDetalle.png
+!/uploads/BCAABLUE.png
+!/uploads/BCAABULL.png
+!/uploads/CreatinaBull.png
+!/uploads/CreatinaBullLimon.png
+!/uploads/CreatinaLima.png
+!/uploads/CreatinaLimaDetalleImg.png
+!/uploads/CreatinaMonohidratoSINSABROO.png
+!/uploads/CreatinaMonohidratoSINSABROODetalle.png
+!/uploads/EAABULL.png
+!/uploads/EaaPonche.png
+!/uploads/EaaPoncheDetalle.png
+!/uploads/GlutaminaBull.png
+!/uploads/L-glutaminasinsabor.png
+!/uploads/L-glutaminasinsaborDetalleImg.png
+!/uploads/PreworkManzana.png
+!/uploads/PreworkManzanaBull.png
+!/uploads/PreworkManzanaDetalle.png
+!/uploads/PreworkSandia.png
+!/uploads/PreworkSandiaBull.png
+!/uploads/PreworkSandiaDetalle.png
+!/uploads/ProteCHCL.png
+!/uploads/ProteCHCLBull.png
+!/uploads/ProteCHCLDetalle.png
+!/uploads/ProteVainilla.png
+!/uploads/ProteVainillaBull.png
+!/uploads/ProteVainillaDetalle.png

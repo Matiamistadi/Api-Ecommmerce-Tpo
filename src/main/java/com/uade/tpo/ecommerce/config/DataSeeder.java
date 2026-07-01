@@ -8,7 +8,6 @@ import com.uade.tpo.ecommerce.repository.CategoriaRepository;
 import com.uade.tpo.ecommerce.repository.MarcaRepository;
 import com.uade.tpo.ecommerce.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -30,9 +29,6 @@ public class DataSeeder implements CommandLineRunner {
     private final CategoriaRepository categoriaRepository;
     private final MarcaRepository marcaRepository;
     private final ProductoRepository productoRepository;
-
-    @Value("${app.base-url}")
-    private String appBaseUrl;
 
     @Override
     public void run(String... args) {
@@ -163,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
                 List<ImagenProducto> imagenes = new ArrayList<>();
                 for (String nombreArchivo : nombresArchivo) {
                     ImagenProducto img = new ImagenProducto();
-                    img.setUrl(appBaseUrl + "/uploads/" + nombreArchivo);
+                                        img.setUrl("/uploads/" + nombreArchivo);
                     img.setProducto(p);
                     imagenes.add(img);
                 }
@@ -188,7 +184,7 @@ public class DataSeeder implements CommandLineRunner {
         List<ImagenProducto> imagenes = new ArrayList<>();
         for (String nombreArchivo : nombresArchivo) {
             ImagenProducto img = new ImagenProducto();
-            img.setUrl(appBaseUrl + "/uploads/" + nombreArchivo);
+                        img.setUrl("/uploads/" + nombreArchivo);
             img.setProducto(producto);
             imagenes.add(img);
         }

@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { API_URL } from './axiosClient';
 
 // Deriva el "gusto" del producto a partir de su nombre (el backend no guarda un campo sabor)
 export function getSabor(nombre = '') {
@@ -13,6 +14,12 @@ export function getSabor(nombre = '') {
   if (n.includes('azul')) return 'Frutal';
   if (n.includes('sin sabor')) return 'Sin sabor';
   return 'Otro';
+}
+
+function resolverUrlImagen(url) {
+  if (!url) return '/img/sin-foto.svg';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 // Traduce el formato del backend (Producto entity) al formato que ya
@@ -31,8 +38,8 @@ export function mapProducto(producto) {
     marca: producto.marca?.nombre ?? '',
     marcaId: producto.marca?.id ?? null,
     sabor: getSabor(producto.nombre),
-    imagenUrl: producto.imagenes?.[0]?.url ?? '/img/sin-foto.svg',
-    imagenDetalleUrl: producto.imagenes?.[1]?.url ?? producto.imagenes?.[0]?.url ?? '/img/sin-foto.svg',
+    imagenUrl: resolverUrlImagen(producto.imagenes?.[0]?.url),
+    imagenDetalleUrl: resolverUrlImagen(producto.imagenes?.[1]?.url ?? producto.imagenes?.[0]?.url),
   };
 }
 
