@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -i http://localhost:8081/api/productos -H \"Origin: http://localhost:5176\")",
+      "Bash(lsof -i :5173 -i :5174 -i :5175 -sTCP:LISTEN)",
+      "Bash(lsof -i :5176 -sTCP:LISTEN)",
+      "Bash(kill 19463 27511 34388 36428)",
+      "Bash(lsof -i :5173 -i :5174 -i :5175 -i :5176 -sTCP:LISTEN)",
+      "Bash(curl -s -i http://localhost:8081/api/productos -H \"Origin: http://localhost:5173\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d[0]\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/img/ProteVainilla.png)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/img/ProteVainilla.png)",
+      "Bash(curl -s -i http://localhost:5173/img/ProteVainilla.png)",
+      "Bash(mysql -uroot -p'PINCHA2009manu@' ecommerce -e \"select id, url from imagenes_producto limit 40;\")",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -p'PINCHA2009manu@' ecommerce -e \"select id, url from imagenes_producto limit 40;\")",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -p'PINCHA2009manu@' ecommerce -N -e \"select replace\\(replace\\(url,'/img/DetalleImg/',''\\),'/img/',''\\) from imagenes_producto;\")",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -pPINCHA2009manu@ ecommerce -e ' *)",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -p'PINCHA2009manu@' ecommerce -e \"select id, url from imagenes_producto limit 5;\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/uploads/ProteVainilla.png)",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -p'PINCHA2009manu@' ecommerce -e \"select id,url from imagenes_producto limit 5;\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/api/productos)",
+      "Bash(break)",
+      "Bash(/usr/local/mysql/bin/mysql -uroot -p'PINCHA2009manu@' ecommerce -e \"select id,url from imagenes_producto where id in \\(1,2,3\\);\")"
+    ]
+  }
+}
