@@ -18,7 +18,23 @@ export function getSabor(nombre = '') {
 
 function resolverUrlImagen(url) {
   if (!url) return '/img/sin-foto.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      const esLocal = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+
+      if (esLocal) {
+        return `${API_URL}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+    } catch {
+      // Si la URL viene mal formada, la dejamos pasar tal cual para que el
+      // <img> active su fallback en onError.
+    }
+
+    return url;
+  }
+
   return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 

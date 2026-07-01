@@ -30,11 +30,12 @@ public class LegacyImageUrlMigrator implements CommandLineRunner {
     private String appBaseUrl;
 
     private static final String PREFIJO_VIEJO = "/img/";
+    private static final String PREFIJO_UPLOADS = "/uploads/";
 
     @Override
     public void run(String... args) {
         List<ImagenProducto> imagenesLegacy = imagenProductoRepository.findAll().stream()
-                .filter(img -> img.getUrl() != null && img.getUrl().startsWith(PREFIJO_VIEJO))
+                .filter(img -> img.getUrl() != null && esUrlLegacy(img.getUrl()))
                 .toList();
 
         if (imagenesLegacy.isEmpty()) {
@@ -42,15 +43,46 @@ public class LegacyImageUrlMigrator implements CommandLineRunner {
         }
 
         for (ImagenProducto img : imagenesLegacy) {
-            String nombreArchivo = img.getUrl().substring(PREFIJO_VIEJO.length());
-            int ultimaBarra = nombreArchivo.lastIndexOf('/');
-            if (ultimaBarra >= 0) {
-                nombreArchivo = nombreArchivo.substring(ultimaBarra + 1);
-            }
+            String nombreArchivo = extraerNombreArchivo(img.getUrl());
             img.setUrl(appBaseUrl + "/uploads/" + nombreArchivo);
         }
         imagenProductoRepository.saveAll(imagenesLegacy);
         log.info("Migradas {} URLs de imágenes del esquema viejo (/img/...) al nuevo (/uploads/...)",
                 imagenesLegacy.size());
+    }
+
+    private boolean esUrlLegacy(String url) {
+        if (url.startsWith(PREFIJO_VIEJO)) {
+            return true;
+        }
+
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return false;
+        }
+
+        try {
+            java.net.URI uri = java.net.URI.create(url);
+            String host = uri.getHost();
+            if (!"localhost".equals(host) && !"127.0.0.1".equals(host)) {
+                return false;
+            }
+
+            String path = uri.getPath();
+            return path != null && (path.startsWith(PREFIJO_VIEJO) || path.startsWith(PREFIJO_UPLOADS));
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
+
+    private String extraerNombreArchivo(String url) {
+        if (url.startsWith(PREFIJO_VIEJO) || url.startsWith(PREFIJO_UPLOADS)) {
+            String nombreArchivo = url.substring(url.lastIndexOf('/') + 1);
+            return nombreArchivo;
+        }
+
+        java.net.URI uri = java.net.URI.create(url);
+        String path = uri.getPath() != null ? uri.getPath() : "";
+        String nombreArchivo = path.substring(path.lastIndexOf('/') + 1);
+        return nombreArchivo;
     }
 }
