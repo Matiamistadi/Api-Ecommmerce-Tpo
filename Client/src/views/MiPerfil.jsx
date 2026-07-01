@@ -299,7 +299,7 @@ const MiPerfil = () => {
 
               {!direccionesLoading && direccionesError && (
                 <p style={{ color: '#dc2626', fontSize: '0.875rem', margin: '0 0 1rem' }}>
-                  No se pudieron cargar las direcciones: {direccionesError.message}
+                  No se pudieron cargar las direcciones: {direccionesError}
                 </p>
               )}
 
@@ -430,7 +430,7 @@ const MiPerfil = () => {
 
               {!pedidosLoading && pedidosError && (
                 <p style={{ color: '#dc2626', fontSize: '0.875rem', padding: '1rem' }}>
-                  No se pudieron cargar los pedidos: {pedidosError.message}
+                  No se pudieron cargar los pedidos: {pedidosError}
                 </p>
               )}
 

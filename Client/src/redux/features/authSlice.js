@@ -1,37 +1,10 @@
-import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 import * as authService from '../../services/authService';
+import { loginUser, registerUser, forgotPassword, resetPassword } from './authThunks';
 
-export const loginUser = createAsyncThunk('auth/login', async ({ email, password }, { rejectWithValue }) => {
-  try {
-    return await authService.login(email, password);
-  } catch (err) {
-    return rejectWithValue(err);
-  }
-});
-
-export const registerUser = createAsyncThunk('auth/register', async ({ email, password, nombre }, { rejectWithValue }) => {
-  try {
-    return await authService.register(email, password, nombre);
-  } catch (err) {
-    return rejectWithValue(err);
-  }
-});
-
-export const forgotPassword = createAsyncThunk('auth/forgotPassword', async ({ email }, { rejectWithValue }) => {
-  try {
-    return await authService.forgotPassword(email);
-  } catch (err) {
-    return rejectWithValue(err);
-  }
-});
-
-export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, nuevaPassword }, { rejectWithValue }) => {
-  try {
-    return await authService.resetPassword(token, nuevaPassword);
-  } catch (err) {
-    return rejectWithValue(err);
-  }
-});
+// Los thunks viven en authThunks.js (lógica asíncrona separada del estado).
+// Se re-exportan para que los componentes los importen desde el slice.
+export * from './authThunks';
 
 const authSlice = createSlice({
   name: 'auth',

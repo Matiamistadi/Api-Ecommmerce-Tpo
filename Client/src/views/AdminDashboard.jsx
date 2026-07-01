@@ -44,7 +44,7 @@ const AdminDashboard = () => {
       {loading && <p className="admin-panel__muted">Cargando métricas...</p>}
       {!loading && error && (
         <p className="admin-panel__muted" style={{ color: '#dc2626' }}>
-          No se pudieron cargar las métricas: {error.message}
+          No se pudieron cargar las métricas: {error}
         </p>
       )}
 

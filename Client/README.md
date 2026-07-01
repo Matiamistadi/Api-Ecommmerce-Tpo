@@ -13,7 +13,7 @@ Frontend del e-commerce de suplementos y equipamiento de gimnasio "GymStore", de
 
 ## Cómo ejecutar
 
-Prerrequisito: tener Node.js v20+ y el backend corriendo en `http://localhost:8080` (configurable con `VITE_API_URL`).
+Prerrequisito: tener Node.js v20+ y el backend corriendo en `http://localhost:8081` (configurable con `VITE_API_URL`).
 
 ```bash
 cd Client

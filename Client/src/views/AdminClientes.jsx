@@ -145,7 +145,7 @@ const AdminClientes = () => {
             {loading && <p className="admin-panel__muted" style={{ padding: '1.5rem' }}>Cargando clientes...</p>}
             {!loading && error && (
               <p className="admin-panel__muted" style={{ padding: '1.5rem', color: '#dc2626' }}>
-                No se pudieron cargar los clientes: {error.message}
+                No se pudieron cargar los clientes: {error}
               </p>
             )}
 

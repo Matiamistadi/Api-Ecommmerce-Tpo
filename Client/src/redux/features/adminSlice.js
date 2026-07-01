@@ -1,15 +1,10 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getResumenAdmin, METRICS_VACIAS } from '../../services/adminService';
-import { cambiarRol, eliminarUsuario } from './usersSlice';
+import { createSlice } from '@reduxjs/toolkit';
+import { METRICS_VACIAS } from '../../services/adminService';
+import { fetchResumenAdmin } from './adminThunks';
+import { cambiarRol, eliminarUsuario } from './usersThunks';
 
-// GET combinado (órdenes + usuarios en paralelo) que arma estadísticas para el panel admin
-export const fetchResumenAdmin = createAsyncThunk('admin/fetchResumen', async (_, { rejectWithValue }) => {
-  try {
-    return await getResumenAdmin();
-  } catch (err) {
-    return rejectWithValue(err);
-  }
-});
+// El thunk vive en adminThunks.js; se re-exporta para los componentes.
+export * from './adminThunks';
 
 const adminSlice = createSlice({
   name: 'admin',

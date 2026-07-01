@@ -57,7 +57,7 @@ const AdminAnaliticas = () => {
 
           {loading && <p className="text-sm text-gray-500 mb-6">Cargando analíticas...</p>}
           {!loading && error && (
-            <p className="text-sm text-red-500 mb-6">No se pudieron cargar las analíticas: {error.message}</p>
+            <p className="text-sm text-red-500 mb-6">No se pudieron cargar las analíticas: {error}</p>
           )}
 
           {!loading && !error && (
