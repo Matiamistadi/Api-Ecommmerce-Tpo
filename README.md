@@ -6,6 +6,17 @@ El proyecto está compuesto por dos módulos independientes: una **API REST** (b
 
 ---
 
+## Acceso rápido (demo)
+
+Con el proyecto corriendo (ver [Cómo ejecutar el proyecto](#cómo-ejecutar-el-proyecto)), en `http://localhost:5173`:
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| **ADMIN** | `admin@gym.com` | `admin123` |
+| CLIENTE | `cliente@gym.com` | `Cliente123!` |
+
+---
+
 ## Grupo 12
 
 | Nombre                      | Legajo   |
@@ -89,6 +100,8 @@ Esto crea:
 - Usuario **ADMIN**: `admin@gym.com` / `Admin1234!`
 - Usuario **CLIENTE**: `cliente@gym.com` / `Cliente123!`
 - 5 categorías, 5 marcas, 6 productos de ejemplo y 2 descuentos activos
+
+> **Nota:** si al correr `init.sql` la contraseña de arriba no funciona (por ejemplo si la base ya tenía datos previos con otro hash), probar con `admin@gym.com` / `admin123`.
 
 **2d. Compilar y ejecutar**
 

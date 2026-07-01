@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { agregarProducto as agregarProductoThunk } from '../redux/features/productsSlice';
-import { getCategorias, getMarcas } from '../services/catalogoService';
+import { selectCategorias, selectMarcas, fetchCategorias, fetchMarcas } from '../redux/features/catalogoSlice';
 import './AgregarProducto.css';
 
 const CATEGORIAS_PERMITIDAS = new Set(['Proteína', 'Energía', 'Recuperación', 'Fuerza']);
@@ -22,9 +22,10 @@ const AgregarProducto = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const agregarProducto = (productoNuevo, archivos) => dispatch(agregarProductoThunk({ productoNuevo, archivos })).unwrap();
+  const categoriasStore = useSelector(selectCategorias);
+  const categorias = categoriasStore.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre));
+  const marcas = useSelector(selectMarcas);
   const [form, setForm] = useState(initialForm);
-  const [categorias, setCategorias] = useState([]);
-  const [marcas, setMarcas] = useState([]);
   const [archivoPrincipal, setArchivoPrincipal] = useState(null);
   const [archivoDetalle, setArchivoDetalle] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -33,11 +34,9 @@ const AgregarProducto = () => {
 
   // Al montar, traemos las categorías y marcas reales del backend para los <select>
   useEffect(() => {
-    getCategorias()
-      .then((data) => setCategorias(data.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre))))
-      .catch((err) => setError(err.message));
-    getMarcas().then(setMarcas).catch((err) => setError(err.message));
-  }, []);
+    dispatch(fetchCategorias());
+    dispatch(fetchMarcas());
+  }, [dispatch]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;

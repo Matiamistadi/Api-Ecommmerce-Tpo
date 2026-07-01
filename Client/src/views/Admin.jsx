@@ -12,7 +12,7 @@ import {
 import { useToast } from '../context/ToastContext';
 import { formatPrecio } from '@/lib/formato';
 import { AdminSidebar } from '../components/AdminSidebar';
-import { getCategorias, getMarcas } from '../services/catalogoService';
+import { selectCategorias, selectMarcas, fetchCategorias, fetchMarcas } from '../redux/features/catalogoSlice';
 import {
   Search, Plus, SlidersHorizontal, Download, Edit2, Eye, EyeOff, Trash2, AlertTriangle,
   Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown
@@ -55,15 +55,14 @@ const Admin = () => {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
   const [confirmarToggle, setConfirmarToggle] = useState(null);
-  const [categorias, setCategorias] = useState([]);
-  const [marcas, setMarcas] = useState([]);
+  const categoriasStore = useSelector(selectCategorias);
+  const categorias = categoriasStore.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre));
+  const marcas = useSelector(selectMarcas);
 
   useEffect(() => {
-    getCategorias()
-      .then((data) => setCategorias(data.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre))))
-      .catch(() => setCategorias([]));
-    getMarcas().then(setMarcas).catch(() => setMarcas([]));
-  }, []);
+    dispatch(fetchCategorias());
+    dispatch(fetchMarcas());
+  }, [dispatch]);
 
   const filtrados = productos.filter((producto) => {
     const matchBusqueda = (

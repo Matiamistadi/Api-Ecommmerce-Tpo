@@ -4,7 +4,7 @@ import { Store, Truck, Bell, Lock, CheckCircle2, X, AlertTriangle } from 'lucide
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUsuario } from '../redux/features/authSlice';
 import { actualizarUsuario as actualizarUsuarioThunk } from '../redux/features/usersSlice';
-import { getConfiguracion, actualizarConfiguracion } from '../services/configuracionService';
+import { fetchConfiguracion, guardarConfiguracion as guardarConfiguracionThunk } from '../redux/features/configuracionSlice';
 
 const NOTIF_CONFIG = [
   {
@@ -69,26 +69,24 @@ const AdminAjustes = () => {
 
   // Al montar, cargamos la configuración real de la tienda
   useEffect(() => {
-    getConfiguracion()
-      .then((config) => {
-        setTienda((prev) => ({
-          ...prev,
-          email: config.emailContacto ?? prev.email,
-          telefono: config.telefono ?? prev.telefono,
-        }));
-        setEnvio((prev) => ({
-          ...prev,
-          costoBase: config.costoEnvio != null ? String(config.costoEnvio) : prev.costoBase,
-          minimoGratis: config.montoEnvioGratis != null ? String(config.montoEnvioGratis) : prev.minimoGratis,
-        }));
-        setNotificaciones({
-          stockBajo: config.notifStockBajo,
-          nuevosPedidos: config.notifNuevosPedidos,
-          clientesNuevos: config.notifClientesNuevos,
-        });
-      })
-      .catch(() => {});
-  }, []);
+    dispatch(fetchConfiguracion()).unwrap().then((config) => {
+      setTienda((prev) => ({
+        ...prev,
+        email: config.emailContacto ?? prev.email,
+        telefono: config.telefono ?? prev.telefono,
+      }));
+      setEnvio((prev) => ({
+        ...prev,
+        costoBase: config.costoEnvio != null ? String(config.costoEnvio) : prev.costoBase,
+        minimoGratis: config.montoEnvioGratis != null ? String(config.montoEnvioGratis) : prev.minimoGratis,
+      }));
+      setNotificaciones({
+        stockBajo: config.notifStockBajo,
+        nuevosPedidos: config.notifNuevosPedidos,
+        clientesNuevos: config.notifClientesNuevos,
+      });
+    }).catch(() => {});
+  }, [dispatch]);
 
   // Arma el payload completo de configuración a partir del estado actual
   const construirConfig = (overrides = {}) => ({
@@ -116,7 +114,7 @@ const AdminAjustes = () => {
   const guardarConfig = async (overrides, mensaje) => {
     setGuardando(true);
     try {
-      await actualizarConfiguracion(construirConfig(overrides));
+      await dispatch(guardarConfiguracionThunk(construirConfig(overrides))).unwrap();
       setToast({ mensaje });
     } catch (err) {
       setToast({ mensaje: err.message });
@@ -131,7 +129,7 @@ const AdminAjustes = () => {
     const nuevasNotif = { ...notificaciones, [key]: nuevo };
     setNotificaciones(nuevasNotif);
     // Persistimos la preferencia en el backend
-    actualizarConfiguracion(construirConfig({ [mapa[key]]: nuevo })).catch(() => {});
+    dispatch(guardarConfiguracionThunk(construirConfig({ [mapa[key]]: nuevo })));
   };
 
   const handleCuentaChange = (e) => {

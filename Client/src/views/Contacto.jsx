@@ -1,25 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
-import { getConfiguracion } from '../services/configuracionService';
+import { fetchConfiguracion, selectConfiguracion } from '../redux/features/configuracionSlice';
 import { apiFetch } from '../services/api';
 import './InfoPage.css';
 
 const Contacto = () => {
+  const dispatch = useDispatch();
   const { mostrarToast } = useToast();
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
   const [enviando, setEnviando] = useState(false);
-  const [contacto, setContacto] = useState({ email: 'contacto@gymstore.com', telefono: '+54 11 5555-0000' });
+  const config = useSelector(selectConfiguracion);
+  const contacto = {
+    email: config?.emailContacto || 'contacto@gymstore.com',
+    telefono: config?.telefono || '+54 11 5555-0000',
+  };
   const enviado = useRef(false);
 
   useEffect(() => {
-    getConfiguracion()
-      .then((config) => setContacto({
-        email: config.emailContacto || 'contacto@gymstore.com',
-        telefono: config.telefono || '+54 11 5555-0000',
-      }))
-      .catch(() => {});
-  }, []);
+    dispatch(fetchConfiguracion());
+  }, [dispatch]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

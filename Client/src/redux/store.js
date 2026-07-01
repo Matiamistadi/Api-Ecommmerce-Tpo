@@ -6,6 +6,8 @@ import usersReducer from './features/usersSlice';
 import direccionesReducer from './features/direccionesSlice';
 import ordersReducer from './features/ordersSlice';
 import adminReducer from './features/adminSlice';
+import catalogoReducer from './features/catalogoSlice';
+import configuracionReducer from './features/configuracionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,20 +18,17 @@ export const store = configureStore({
     direcciones: direccionesReducer,
     orders: ordersReducer,
     admin: adminReducer,
+    catalogo: catalogoReducer,
+    configuracion: configuracionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Los thunks pasan el Error completo en rejectWithValue para que
-        // .unwrap() lo propague con .message en los catch de los componentes.
-        // El estado SIEMPRE guarda solo el string (action.payload.message),
-        // así que únicamente necesitamos ignorar la acción, no el estado.
         ignoredActionPaths: ['payload'],
       },
     }),
 });
 
-// Si axiosClient detecta un 401, despacha este evento para limpiar la sesión en el store.
 window.addEventListener('sesion-expirada', () => store.dispatch(sesionExpirada()));
 
 export default store;
