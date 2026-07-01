@@ -13,7 +13,7 @@ const MOCK_FALLBACK_ITEMS = [
     categoria: 'Fuerza',
     precio: '€45.00',
     cantidad: 1,
-    imagen: '/img/ProteVainilla.png'
+    imagen: '/img/sin-foto.svg'
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ const MOCK_FALLBACK_ITEMS = [
     categoria: 'Energía',
     precio: '€39.49',
     cantidad: 1,
-    imagen: '/img/PreworkSandia.png'
+    imagen: '/img/sin-foto.svg'
   }
 ];
 
@@ -46,7 +46,7 @@ const Confirmacion = () => {
         categoria: 'Suplementos',
         precio: formatPrecio(item.precio),
         cantidad: item.cantidad,
-        imagen: item.imagenUrl || '/img/ProteVainilla.png'
+        imagen: item.imagenUrl || '/img/sin-foto.svg'
       }));
     } catch (err) {
       console.error('Error parsing cached items:', err);

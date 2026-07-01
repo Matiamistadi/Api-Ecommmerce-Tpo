@@ -62,3 +62,6 @@ src/main/resources/application-local.properties
 
 # MCP config (contiene API keys)
 .mcp.json
+
+# Imágenes subidas por usuarios en runtime (no versionar; los seeds van en resources/seed-images)
+/uploads/
