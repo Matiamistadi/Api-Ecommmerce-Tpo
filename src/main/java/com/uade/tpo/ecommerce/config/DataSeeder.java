@@ -158,6 +158,18 @@ public class DataSeeder implements CommandLineRunner {
                 p.setPrecioOriginal(precioOriginal * 1000);
                 cambios = true;
             }
+            // Migración: productos creados antes de sumar imágenes al seeder no tienen ImagenProducto
+            if ((p.getImagenes() == null || p.getImagenes().isEmpty()) && nombresArchivo.length > 0) {
+                List<ImagenProducto> imagenes = new ArrayList<>();
+                for (String nombreArchivo : nombresArchivo) {
+                    ImagenProducto img = new ImagenProducto();
+                    img.setUrl(appBaseUrl + "/uploads/" + nombreArchivo);
+                    img.setProducto(p);
+                    imagenes.add(img);
+                }
+                p.setImagenes(imagenes);
+                cambios = true;
+            }
             if (cambios) productoRepository.save(p);
             return;
         }
