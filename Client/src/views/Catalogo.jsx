@@ -21,7 +21,6 @@ const Catalogo = () => {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState('destacados');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
-  const [soloConStock, setSoloConStock] = useState(false);
 
   const productosActivos = productos.filter((p) => p.activo !== false);
 
@@ -37,8 +36,8 @@ const Catalogo = () => {
     const okSabor = saborSeleccionado === 'Todos' || p.sabor === saborSeleccionado;
     const okMin = precioMin === '' || p.precio >= Number(precioMin);
     const okMax = precioMax === '' || p.precio <= Number(precioMax);
-    const okStock = !soloConStock || (p.stock != null && p.stock > 0);
-    return okBusqueda && okCategoria && okMarca && okSabor && okMin && okMax && okStock;
+
+    return okBusqueda && okCategoria && okMarca && okSabor && okMin && okMax;
   });
 
   // Orden elegido por el usuario
@@ -135,15 +134,7 @@ const Catalogo = () => {
                   {productosOrdenados.length} {productosOrdenados.length === 1 ? 'producto' : 'productos'}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.85rem', color: 'inherit' }}>
-                    <input
-                      type="checkbox"
-                      checked={soloConStock}
-                      onChange={(e) => setSoloConStock(e.target.checked)}
-                    />
-                    Solo con stock
-                  </label>
-                  <label className="catalogo__sort-label">
+<label className="catalogo__sort-label">
                     Ordenar por
                     <select
                       className="catalogo__sort"

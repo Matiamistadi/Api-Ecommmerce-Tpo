@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
 import * as ordenService from '../../services/ordenService';
 
 // GET /api/ordenes/usuario/{usuarioId} → pedidos del usuario logueado (Mi Perfil)
@@ -61,53 +61,56 @@ const ordersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrdenesUsuario.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      // ─── Fulfilled de lecturas ────────────────────────────────────────────────
       .addCase(fetchOrdenesUsuario.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
-      })
-      .addCase(fetchOrdenesUsuario.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(fetchTodasLasOrdenes.pending, (state) => {
-        state.loading = true;
-        state.error = null;
       })
       .addCase(fetchTodasLasOrdenes.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
       })
-      .addCase(fetchTodasLasOrdenes.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(actualizarEstadoOrden.pending, (state) => {
-        state.saving = true;
-      })
+      // ─── Fulfilled de mutaciones ──────────────────────────────────────────────
       .addCase(actualizarEstadoOrden.fulfilled, (state, action) => {
         state.saving = false;
-        const idx = state.items.findIndex((p) => p.id === action.payload.id);
+        const idx = state.items.findIndex((o) => o.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
-      })
-      // Los errores de mutación se muestran por toast en el componente; NO escribimos
-      // state.error (que es de la LISTA) para no ocultar la tabla con un cartel de carga.
-      .addCase(actualizarEstadoOrden.rejected, (state) => {
-        state.saving = false;
-      })
-      .addCase(eliminarOrden.pending, (state) => {
-        state.saving = true;
       })
       .addCase(eliminarOrden.fulfilled, (state, action) => {
         state.saving = false;
         state.items = state.items.filter((o) => o.id !== action.payload);
       })
-      .addCase(eliminarOrden.rejected, (state) => {
-        state.saving = false;
-      });
+      // ─── Pending unificado para lecturas ──────────────────────────────────────
+      .addMatcher(
+        isAnyOf(fetchOrdenesUsuario.pending, fetchTodasLasOrdenes.pending),
+        (state) => {
+          state.loading = true;
+          state.error = null;
+        }
+      )
+      // ─── Pending unificado para mutaciones ────────────────────────────────────
+      .addMatcher(
+        isAnyOf(actualizarEstadoOrden.pending, eliminarOrden.pending),
+        (state) => {
+          state.saving = true;
+        }
+      )
+      // ─── Rejected unificado para lecturas ─────────────────────────────────────
+      .addMatcher(
+        isAnyOf(fetchOrdenesUsuario.rejected, fetchTodasLasOrdenes.rejected),
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload?.message ?? 'Error al cargar pedidos';
+        }
+      )
+      // Los errores de mutaciones se muestran por toast en el componente;
+      // no se escribe state.error para no ocultar la tabla con un cartel de error.
+      .addMatcher(
+        isAnyOf(actualizarEstadoOrden.rejected, eliminarOrden.rejected),
+        (state) => {
+          state.saving = false;
+        }
+      );
   },
 });
 

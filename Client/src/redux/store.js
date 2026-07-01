@@ -17,19 +17,19 @@ export const store = configureStore({
     orders: ordersReducer,
     admin: adminReducer,
   },
-  // Los thunks rechazan con instancias de Error (para conservar err.message en los
-  // catch de los componentes), por eso se excluyen del chequeo de serializabilidad.
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
+        // Los thunks pasan el Error completo en rejectWithValue para que
+        // .unwrap() lo propague con .message en los catch de los componentes.
+        // El estado SIEMPRE guarda solo el string (action.payload.message),
+        // así que únicamente necesitamos ignorar la acción, no el estado.
         ignoredActionPaths: ['payload'],
-        ignoredPaths: ['auth.error', 'products.error', 'users.error', 'direcciones.error', 'orders.error', 'admin.error'],
       },
     }),
 });
 
-// Si una petición detecta el token vencido (401, disparado desde axiosClient),
-// despachamos el logout para limpiar el estado global de auth.
+// Si axiosClient detecta un 401, despacha este evento para limpiar la sesión en el store.
 window.addEventListener('sesion-expirada', () => store.dispatch(sesionExpirada()));
 
 export default store;

@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { getConfiguracion } from '../services/configuracionService';
+import { apiFetch } from '../services/api';
 import './InfoPage.css';
 
 const Contacto = () => {
   const { mostrarToast } = useToast();
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
+  const [enviando, setEnviando] = useState(false);
   const [contacto, setContacto] = useState({ email: 'contacto@gymstore.com', telefono: '+54 11 5555-0000' });
+  const enviado = useRef(false);
 
-  // Traemos el email/teléfono reales que el admin configuró en Ajustes
   useEffect(() => {
     getConfiguracion()
       .then((config) => setContacto({
@@ -21,14 +23,26 @@ const Contacto = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.nombre || !form.email || !form.mensaje) {
       mostrarToast('Completá todos los campos.', 'error');
       return;
     }
-    setForm({ nombre: '', email: '', mensaje: '' });
-    mostrarToast('¡Mensaje enviado! Te responderemos a la brevedad.');
+    setEnviando(true);
+    try {
+      await apiFetch('/api/contacto', {
+        method: 'POST',
+        body: JSON.stringify(form),
+      });
+      enviado.current = true;
+      setForm({ nombre: '', email: '', mensaje: '' });
+      mostrarToast('¡Mensaje enviado! Te responderemos a la brevedad.');
+    } catch (err) {
+      mostrarToast(err.message || 'No se pudo enviar el mensaje.', 'error');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -77,7 +91,9 @@ const Contacto = () => {
             <label htmlFor="mensaje">Mensaje</label>
             <textarea id="mensaje" name="mensaje" rows={5} value={form.mensaje} onChange={handleChange} placeholder="¿En qué te podemos ayudar?" />
           </div>
-          <button type="submit" className="contacto__submit">Enviar mensaje</button>
+          <button type="submit" className="contacto__submit" disabled={enviando}>
+            {enviando ? 'Enviando...' : 'Enviar mensaje'}
+          </button>
         </form>
       </div>
     </main>

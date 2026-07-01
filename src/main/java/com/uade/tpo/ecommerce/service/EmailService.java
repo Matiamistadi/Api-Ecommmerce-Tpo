@@ -84,6 +84,12 @@ public class EmailService {
         }
     }
 
+    public void enviarMensajeContacto(String nombre, String email, String mensaje) {
+        enviar(remitente.isBlank() ? email : remitente,
+                "GymStore — Mensaje de contacto de " + nombre,
+                "De: %s <%s>\n\n%s".formatted(nombre, email, mensaje));
+    }
+
     private String armarCuerpo(Orden orden) {
         StringBuilder sb = new StringBuilder();
         sb.append("¡Gracias por tu compra en GymStore!\n\n");

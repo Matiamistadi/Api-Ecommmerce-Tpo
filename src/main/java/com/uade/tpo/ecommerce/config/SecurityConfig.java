@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/usuarios/*/cambiar-password").hasAnyRole("CLIENTE", "ADMIN")
                 .requestMatchers("/status").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/newsletter/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/contacto").permitAll()
 
                 // Imágenes subidas de productos (visibles para todos)
                 .requestMatchers("/uploads/**").permitAll()
@@ -122,7 +123,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

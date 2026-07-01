@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
 import * as direccionService from '../../services/direccionService';
 
 // GET /api/usuarios/{usuarioId}/direcciones
@@ -34,7 +34,7 @@ export const actualizarDireccion = createAsyncThunk(
   }
 );
 
-// DELETE /api/usuarios/{usuarioId}/direcciones/{direccionId}
+// DELETE /api/usuarios/{usuarioId}/direcciones/{direccionId} → devuelve el id para filtrar
 export const eliminarDireccion = createAsyncThunk(
   'direcciones/eliminar',
   async ({ usuarioId, direccionId }, { rejectWithValue }) => {
@@ -58,55 +58,50 @@ const direccionesSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchDirecciones.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      // ─── Fulfilled de lectura ─────────────────────────────────────────────────
       .addCase(fetchDirecciones.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
       })
-      .addCase(fetchDirecciones.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(crearDireccion.pending, (state) => {
-        state.saving = true;
-        state.error = null;
-      })
+      // ─── Fulfilled de mutaciones ──────────────────────────────────────────────
       .addCase(crearDireccion.fulfilled, (state, action) => {
         state.saving = false;
         state.items.push(action.payload);
-      })
-      .addCase(crearDireccion.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(actualizarDireccion.pending, (state) => {
-        state.saving = true;
-        state.error = null;
       })
       .addCase(actualizarDireccion.fulfilled, (state, action) => {
         state.saving = false;
         const idx = state.items.findIndex((d) => d.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
       })
-      .addCase(actualizarDireccion.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(eliminarDireccion.pending, (state) => {
-        state.saving = true;
-        state.error = null;
-      })
       .addCase(eliminarDireccion.fulfilled, (state, action) => {
         state.saving = false;
         state.items = state.items.filter((d) => d.id !== action.payload);
       })
-      .addCase(eliminarDireccion.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      });
+      // ─── Pending/Rejected de lectura ──────────────────────────────────────────
+      .addMatcher(isAnyOf(fetchDirecciones.pending), (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addMatcher(isAnyOf(fetchDirecciones.rejected), (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message ?? 'Error al cargar direcciones';
+      })
+      // ─── Pending unificado para mutaciones ────────────────────────────────────
+      .addMatcher(
+        isAnyOf(crearDireccion.pending, actualizarDireccion.pending, eliminarDireccion.pending),
+        (state) => {
+          state.saving = true;
+          state.error = null;
+        }
+      )
+      // ─── Rejected unificado para mutaciones ───────────────────────────────────
+      .addMatcher(
+        isAnyOf(crearDireccion.rejected, actualizarDireccion.rejected, eliminarDireccion.rejected),
+        (state, action) => {
+          state.saving = false;
+          state.error = action.payload?.message ?? 'Error al modificar dirección';
+        }
+      );
   },
 });
 

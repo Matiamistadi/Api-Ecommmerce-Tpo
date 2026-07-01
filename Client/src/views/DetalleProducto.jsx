@@ -102,11 +102,13 @@ const DetalleProducto = () => {
     );
   }
 
-  const imagenes = (
-    Array.isArray(producto.imagenes) && producto.imagenes.length > 0
-      ? producto.imagenes
-      : [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean)
-  );
+  const imagenesRaw = Array.isArray(producto.imagenes) && producto.imagenes.length > 0
+    ? producto.imagenes
+    : [producto.imagenUrl, producto.imagenDetalleUrl].filter(Boolean);
+  const imagenes = imagenesRaw.filter((img, i, arr) => {
+    const url = typeof img === 'string' ? img : img?.url;
+    return arr.findIndex((x) => (typeof x === 'string' ? x : x?.url) === url) === i;
+  });
 
   const sinStock = producto.stock <= 0;
   const discount =

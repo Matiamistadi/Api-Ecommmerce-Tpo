@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, isAnyOf } from '@reduxjs/toolkit';
 import {
   getProductos,
   crearProducto,
@@ -8,7 +8,7 @@ import {
   toggleActivoProducto,
 } from '../../services/productosService';
 
-// Thunk: trae el catálogo desde el backend (productosService usa Axios por debajo, vía apiFetch).
+// GET /api/productos → catálogo completo (público)
 export const fetchProductos = createAsyncThunk('products/fetch', async (_, { rejectWithValue }) => {
   try {
     return await getProductos();
@@ -17,6 +17,7 @@ export const fetchProductos = createAsyncThunk('products/fetch', async (_, { rej
   }
 });
 
+// POST /api/productos + subida de imágenes (solo ADMIN)
 export const agregarProducto = createAsyncThunk('products/agregar', async ({ productoNuevo, archivos }, { rejectWithValue }) => {
   try {
     return await crearProducto(productoNuevo, archivos);
@@ -25,6 +26,7 @@ export const agregarProducto = createAsyncThunk('products/agregar', async ({ pro
   }
 });
 
+// DELETE imágenes viejas + POST imagen nueva (solo ADMIN)
 export const reemplazarImagenProducto = createAsyncThunk('products/reemplazarImagen', async ({ id, file }, { rejectWithValue }) => {
   try {
     return await reemplazarImagen(id, file);
@@ -33,6 +35,7 @@ export const reemplazarImagenProducto = createAsyncThunk('products/reemplazarIma
   }
 });
 
+// PUT /api/productos/{id} (solo ADMIN)
 export const actualizarProducto = createAsyncThunk('products/actualizar', async (productoActualizado, { rejectWithValue }) => {
   try {
     return await actualizarProductoService(productoActualizado.id, productoActualizado);
@@ -41,6 +44,7 @@ export const actualizarProducto = createAsyncThunk('products/actualizar', async 
   }
 });
 
+// DELETE /api/productos/{id} → devuelve el id para filtrar el array en estado
 export const eliminarProducto = createAsyncThunk('products/eliminar', async (id, { rejectWithValue }) => {
   try {
     await eliminarProductoService(id);
@@ -50,6 +54,7 @@ export const eliminarProducto = createAsyncThunk('products/eliminar', async (id,
   }
 });
 
+// PATCH /api/productos/{id}/toggle-activo (solo ADMIN)
 export const toggleActivo = createAsyncThunk('products/toggleActivo', async (id, { rejectWithValue }) => {
   try {
     return await toggleActivoProducto(id);
@@ -62,13 +67,14 @@ const productsSlice = createSlice({
   name: 'products',
   initialState: {
     productos: [],
-    loading: true,
+    loading: false,
     saving: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // ─── Fetch catálogo ───────────────────────────────────────────────────────
       .addCase(fetchProductos.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -79,71 +85,60 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProductos.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message ?? 'Error al cargar productos';
       })
-      .addCase(agregarProducto.pending, (state) => {
-        state.saving = true;
-        state.error = null;
-      })
+      // ─── Fulfilled de mutaciones ──────────────────────────────────────────────
       .addCase(agregarProducto.fulfilled, (state, action) => {
         state.saving = false;
         state.productos.unshift(action.payload);
-      })
-      .addCase(agregarProducto.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(reemplazarImagenProducto.pending, (state) => {
-        state.saving = true;
-        state.error = null;
       })
       .addCase(reemplazarImagenProducto.fulfilled, (state, action) => {
         state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
       })
-      .addCase(reemplazarImagenProducto.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(actualizarProducto.pending, (state) => {
-        state.saving = true;
-        state.error = null;
-      })
       .addCase(actualizarProducto.fulfilled, (state, action) => {
         state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
       })
-      .addCase(actualizarProducto.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(eliminarProducto.pending, (state) => {
-        state.saving = true;
-        state.error = null;
-      })
       .addCase(eliminarProducto.fulfilled, (state, action) => {
         state.saving = false;
         state.productos = state.productos.filter((p) => p.id !== action.payload);
-      })
-      .addCase(eliminarProducto.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      })
-      .addCase(toggleActivo.pending, (state) => {
-        state.saving = true;
-        state.error = null;
       })
       .addCase(toggleActivo.fulfilled, (state, action) => {
         state.saving = false;
         const idx = state.productos.findIndex((p) => p.id === action.payload.id);
         if (idx !== -1) state.productos[idx] = action.payload;
       })
-      .addCase(toggleActivo.rejected, (state, action) => {
-        state.saving = false;
-        state.error = action.payload;
-      });
+      // ─── Pending unificado para todas las mutaciones ──────────────────────────
+      .addMatcher(
+        isAnyOf(
+          agregarProducto.pending,
+          reemplazarImagenProducto.pending,
+          actualizarProducto.pending,
+          eliminarProducto.pending,
+          toggleActivo.pending
+        ),
+        (state) => {
+          state.saving = true;
+          state.error = null;
+        }
+      )
+      // ─── Rejected unificado para todas las mutaciones ─────────────────────────
+      .addMatcher(
+        isAnyOf(
+          agregarProducto.rejected,
+          reemplazarImagenProducto.rejected,
+          actualizarProducto.rejected,
+          eliminarProducto.rejected,
+          toggleActivo.rejected
+        ),
+        (state, action) => {
+          state.saving = false;
+          state.error = action.payload?.message ?? 'Error al modificar producto';
+        }
+      );
   },
 });
 
