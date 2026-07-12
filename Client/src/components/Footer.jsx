@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectEstaLogueado } from '../redux/features/authSlice';
 import './Footer.css';
 
 // Íconos de marca como SVG propios (lucide-react ya no los exporta)
@@ -35,6 +37,8 @@ const XIcon = () => (
 
 const Footer = () => {
   const anio = new Date().getFullYear();
+  // Si ya inició sesión, "Mi cuenta" lleva al perfil; si no, al login
+  const estaLogueado = useSelector(selectEstaLogueado);
 
   return (
     <footer className="footer">
@@ -55,7 +59,7 @@ const Footer = () => {
           <h4 className="footer__col-title">Tienda</h4>
           <Link to="/productos" className="footer__link">Productos</Link>
           <Link to="/carrito" className="footer__link">Carrito</Link>
-          <Link to="/perfil" className="footer__link">Mi cuenta</Link>
+          <Link to={estaLogueado ? '/perfil' : '/login'} className="footer__link">Mi cuenta</Link>
         </nav>
 
         <nav className="footer__col">

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { AdminSidebar } from '../components/AdminSidebar';
-import { Store, Truck, Bell, Lock, CheckCircle2, X, AlertTriangle } from 'lucide-react';
+import { Store, Truck, Bell, Lock, AlertTriangle } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUsuario } from '../redux/features/authSlice';
-import { actualizarUsuario as actualizarUsuarioThunk } from '../redux/features/usersSlice';
+import { cambiarPassword as cambiarPasswordThunk } from '../redux/features/usersSlice';
 import { fetchConfiguracion, guardarConfiguracion as guardarConfiguracionThunk } from '../redux/features/configuracionSlice';
+import { useToast } from '../context/ToastContext';
 
 const NOTIF_CONFIG = [
   {
@@ -30,6 +31,7 @@ const NOTIF_CONFIG = [
 const AdminAjustes = () => {
   const dispatch = useDispatch();
   const usuario = useSelector(selectUsuario);
+  const { mostrarToast } = useToast();
   const [tienda, setTienda] = useState({
     nombre: 'GymStore',
     descripcion: 'Tu tienda de suplementos y equipamiento deportivo.',
@@ -58,14 +60,7 @@ const AdminAjustes = () => {
   const [erroresCuenta, setErroresCuenta] = useState({});
   const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
 
-  const [toast, setToast] = useState(null);
   const [guardando, setGuardando] = useState(false);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   // Al montar, cargamos la configuración real de la tienda
   useEffect(() => {
@@ -115,21 +110,27 @@ const AdminAjustes = () => {
     setGuardando(true);
     try {
       await dispatch(guardarConfiguracionThunk(construirConfig(overrides))).unwrap();
-      setToast({ mensaje });
+      mostrarToast(mensaje);
     } catch (err) {
-      setToast({ mensaje: err.message });
+      mostrarToast(err.message, 'error');
     } finally {
       setGuardando(false);
     }
   };
 
-  const handleNotifToggle = (key) => {
+  const handleNotifToggle = async (key) => {
     const mapa = { stockBajo: 'notifStockBajo', nuevosPedidos: 'notifNuevosPedidos', clientesNuevos: 'notifClientesNuevos' };
     const nuevo = !notificaciones[key];
-    const nuevasNotif = { ...notificaciones, [key]: nuevo };
-    setNotificaciones(nuevasNotif);
-    // Persistimos la preferencia en el backend
-    dispatch(guardarConfiguracionThunk(construirConfig({ [mapa[key]]: nuevo })));
+    setNotificaciones((prev) => ({ ...prev, [key]: nuevo })); // optimista
+    try {
+      // Persistimos la preferencia en el backend
+      await dispatch(guardarConfiguracionThunk(construirConfig({ [mapa[key]]: nuevo }))).unwrap();
+      mostrarToast('Preferencia de notificaciones guardada.');
+    } catch (err) {
+      // Si el backend rechaza, revertimos el switch para no mentirle al admin
+      setNotificaciones((prev) => ({ ...prev, [key]: !nuevo }));
+      mostrarToast(err.message, 'error');
+    }
   };
 
   const handleCuentaChange = (e) => {
@@ -166,14 +167,18 @@ const AdminAjustes = () => {
     setMostrarConfirmPassword(true);
   };
 
-  // Cambia la contraseña de verdad en el backend (PUT /api/usuarios/{id})
+  // Cambia la contraseña validando la actual en el backend (mismo endpoint que Mi Perfil)
   const confirmarCambioPassword = async () => {
     try {
-      await dispatch(actualizarUsuarioThunk({ id: usuario.id, datos: { password: cuenta.passwordNuevo } })).unwrap();
+      await dispatch(cambiarPasswordThunk({
+        id: usuario.id,
+        passwordActual: cuenta.passwordActual,
+        passwordNueva: cuenta.passwordNuevo,
+      })).unwrap();
       setCuenta((prev) => ({ ...prev, passwordActual: '', passwordNuevo: '', passwordConfirm: '' }));
-      setToast({ mensaje: 'Contraseña actualizada correctamente.' });
+      mostrarToast('Contraseña actualizada correctamente.');
     } catch (err) {
-      setToast({ mensaje: err.message });
+      mostrarToast(err.message, 'error');
     } finally {
       setMostrarConfirmPassword(false);
     }
@@ -408,20 +413,6 @@ const AdminAjustes = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-start gap-3 bg-white border border-gray-100 shadow-lg rounded-xl px-5 py-4 max-w-sm animate-[toast-slide-up_0.25s_ease-out]">
-          <CheckCircle2 size={20} className="text-[#00c98a] flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-gray-900 mb-0.5">Listo</p>
-            <p className="text-xs text-gray-500">{toast.mensaje}</p>
-          </div>
-          <button onClick={() => setToast(null)} className="text-gray-300 hover:text-gray-600 transition-colors flex-shrink-0">
-            <X size={16} />
-          </button>
         </div>
       )}
     </div>

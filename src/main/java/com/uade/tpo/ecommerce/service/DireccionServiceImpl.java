@@ -42,6 +42,18 @@ public class DireccionServiceImpl implements DireccionService {
             existente.setCiudad(direccionActualizada.getCiudad());
             existente.setProvincia(direccionActualizada.getProvincia());
             existente.setCodigoPostal(direccionActualizada.getCodigoPostal());
+
+            // Solo puede haber una dirección principal por usuario: si esta pasa a ser
+            // principal, desmarcamos las demás del mismo usuario antes de guardarla.
+            if (direccionActualizada.isEsPrincipal() && existente.getUsuario() != null) {
+                Long usuarioId = existente.getUsuario().getId();
+                for (Direccion otra : direccionRepository.findByUsuarioId(usuarioId)) {
+                    if (!otra.getId().equals(existente.getId()) && otra.isEsPrincipal()) {
+                        otra.setEsPrincipal(false);
+                        direccionRepository.save(otra);
+                    }
+                }
+            }
             existente.setEsPrincipal(direccionActualizada.isEsPrincipal());
             return direccionRepository.save(existente);
         });

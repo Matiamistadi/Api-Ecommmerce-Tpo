@@ -21,6 +21,9 @@ import {
 const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
 const CATEGORIAS_PERMITIDAS = new Set(CATEGORIAS);
 
+// Umbral por debajo del cual una unidad se considera "stock bajo" (una sola fuente de verdad)
+const STOCK_BAJO = 15;
+
 const formVacio = {
   nombre: '',
   descripcion: '',
@@ -71,7 +74,7 @@ const Admin = () => {
       || producto.marca.toLowerCase().includes(busqueda.toLowerCase())
     );
     const matchCategoria = filtroCategoria === 'Todas' || producto.categoria === filtroCategoria;
-    const matchStock = !filtroStock || producto.stock < 15;
+    const matchStock = !filtroStock || producto.stock < STOCK_BAJO;
     return matchBusqueda && matchCategoria && matchStock;
   });
 
@@ -163,8 +166,33 @@ const Admin = () => {
   const handleSave = async () => {
     const nuevosErrores = {};
     if (!form.nombre.trim()) nuevosErrores.nombre = 'El nombre es obligatorio';
-    if (!form.precioOriginal) nuevosErrores.precioOriginal = 'El precio es obligatorio';
-    if (!form.stock) nuevosErrores.stock = 'El stock es obligatorio';
+
+    // Precio: obligatorio y mayor a cero
+    const precioNum = Number(form.precioOriginal);
+    if (!form.precioOriginal) {
+      nuevosErrores.precioOriginal = 'El precio es obligatorio';
+    } else if (Number.isNaN(precioNum) || precioNum <= 0) {
+      nuevosErrores.precioOriginal = 'El precio debe ser mayor a 0';
+    }
+
+    // Precio con descuento (opcional): si se carga, debe ser mayor a 0 y menor al precio
+    if (form.precio !== '' && form.precio != null) {
+      const descuentoNum = Number(form.precio);
+      if (Number.isNaN(descuentoNum) || descuentoNum <= 0) {
+        nuevosErrores.precio = 'El precio con descuento debe ser mayor a 0';
+      } else if (!Number.isNaN(precioNum) && descuentoNum >= precioNum) {
+        nuevosErrores.precio = 'El descuento debe ser menor al precio';
+      }
+    }
+
+    // Stock: obligatorio y no negativo
+    const stockNum = Number(form.stock);
+    if (form.stock === '' || form.stock == null) {
+      nuevosErrores.stock = 'El stock es obligatorio';
+    } else if (Number.isNaN(stockNum) || stockNum < 0) {
+      nuevosErrores.stock = 'El stock no puede ser negativo';
+    }
+
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
       return;
@@ -194,8 +222,9 @@ const Admin = () => {
       setArchivoImagen(null);
       setIsAdding(false);
       setEditando(null);
+      mostrarToast(editando ? 'Producto actualizado.' : 'Producto creado.');
     } catch (err) {
-      setErrores({ nombre: err.message });
+      mostrarToast(err.message, 'error');
     }
   };
 
@@ -251,7 +280,7 @@ const Admin = () => {
                   <h3 className="text-gray-600 font-bold text-sm">Stock Bajo</h3>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {productos.filter((p) => p.stock < 15).length}
+                  {productos.filter((p) => p.stock < STOCK_BAJO).length}
                 </div>
                 <div className="text-xs font-semibold text-red-500">Requiere atención</div>
               </div>
@@ -309,7 +338,7 @@ const Admin = () => {
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#00e69e] outline-none"
                           >
                             <option value="Todas">Todas</option>
-                            {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
+                            {categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
                           </select>
                         </div>
                         <label className="flex items-center gap-2 cursor-pointer">
@@ -319,7 +348,7 @@ const Admin = () => {
                             onChange={(e) => setFiltroStock(e.target.checked)}
                             className="w-4 h-4 accent-[#00e69e]"
                           />
-                          <span className="text-xs font-semibold text-gray-700">Solo stock bajo (&lt;15)</span>
+                          <span className="text-xs font-semibold text-gray-700">Solo stock bajo (&lt;{STOCK_BAJO})</span>
                         </label>
                         <button
                           type="button"
@@ -366,7 +395,7 @@ const Admin = () => {
                           <span className="bg-[#e6fff7] text-[#00c98a] px-3 py-1 rounded-md text-xs font-bold">{producto.categoria}</span>
                         </td>
                         <td className="py-5 px-6 text-gray-600 font-medium">{formatPrecio(producto.precio)}</td>
-                        <td className={`py-5 px-6 font-medium ${producto.stock < 15 ? 'text-red-500 font-bold' : 'text-gray-600'}`}>
+                        <td className={`py-5 px-6 font-medium ${producto.stock < STOCK_BAJO ? 'text-red-500 font-bold' : 'text-gray-600'}`}>
                           {producto.stock}
                         </td>
                         <td className="py-5 px-6">
@@ -516,9 +545,10 @@ const Admin = () => {
                           onChange={handleChange}
                           placeholder="0.00"
                           step="0.01"
-                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium"
+                          className={`w-full pl-8 pr-4 py-3 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-[#00e69e] outline-none font-medium ${errores.precio ? 'border-red-400' : 'border-gray-100'}`}
                         />
                       </div>
+                      {errores.precio && <p className="text-red-500 text-xs mt-1 font-medium">{errores.precio}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-900 mb-2">Stock Inicial</label>

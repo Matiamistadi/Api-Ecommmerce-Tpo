@@ -113,6 +113,28 @@ const MiPerfil = () => {
     });
   };
 
+  // Marca una dirección como predeterminada. El backend desmarca las demás,
+  // así que refrescamos la lista para reflejar el cambio en las otras tarjetas.
+  const handleMarcarPrincipal = async (dir) => {
+    try {
+      await dispatch(actualizarDireccionThunk({
+        usuarioId: usuario.id,
+        direccionId: dir.id,
+        direccion: {
+          calle: dir.calle,
+          ciudad: dir.ciudad,
+          provincia: dir.provincia,
+          codigoPostal: dir.codigoPostal,
+          esPrincipal: true,
+        },
+      })).unwrap();
+      dispatch(fetchDirecciones(usuario.id));
+      mostrarToast('Dirección marcada como predeterminada.');
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+    }
+  };
+
   // PUT de la dirección. La lista se actualiza en memoria (sin re-fetch).
   const handleGuardarDireccion = async (dir) => {
     try {
@@ -390,11 +412,25 @@ const MiPerfil = () => {
                       </div>
                     </div>
                   ) : (
-                    <p className="perfil__address-text">
-                      {dir.calle}<br />
-                      {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
-                      {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
-                    </p>
+                    <>
+                      <p className="perfil__address-text">
+                        {dir.calle}<br />
+                        {dir.ciudad}{dir.provincia ? `, ${dir.provincia}` : ''}<br />
+                        {dir.codigoPostal ? `CP ${dir.codigoPostal}` : ''}
+                      </p>
+                      {/* Solo tiene sentido elegir predeterminada si hay más de una dirección */}
+                      {!dir.esPrincipal && direcciones.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-auto"
+                          onClick={() => handleMarcarPrincipal(dir)}
+                          disabled={direccionesSaving}
+                        >
+                          Marcar como predeterminada
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
