@@ -48,7 +48,11 @@
       "Bash(zip -r -X /private/tmp/claude-501/-Users-manuel-Documents-GitHub-Api-Ecommmerce-Tpo/5d3b46c7-8ca4-4a31-879b-eee156a22a88/scratchpad/entrega/GymStore_Grupo12_TPO.zip . -x Client/node_modules/* -x target/* -x .git/* -x .DS_Store -x *.DS_Store -x Client/dist/* -x .claude/* -x .antigravitycli/* -x .vscode/* -x .mcp.json -x .github/*)",
       "Bash(unzip -l /private/tmp/claude-501/-Users-manuel-Documents-GitHub-Api-Ecommmerce-Tpo/5d3b46c7-8ca4-4a31-879b-eee156a22a88/scratchpad/entrega/GymStore_Grupo12_TPO.zip)",
       "Bash(cp /private/tmp/claude-501/-Users-manuel-Documents-GitHub-Api-Ecommmerce-Tpo/5d3b46c7-8ca4-4a31-879b-eee156a22a88/scratchpad/entrega/GymStore_Grupo12_TPO.zip ~/Desktop/GymStore_Grupo12_TPO.zip)",
-      "Read(//Users/manuel/Desktop/**)"
+      "Read(//Users/manuel/Desktop/**)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import json,sys; print\\([c['nombre'] for c in json.load\\(sys.stdin\\)]\\)\")",
+      "Bash(npx eslint *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['nombre'], '|', d['categoria']\\)\")"
     ]
   }
 }

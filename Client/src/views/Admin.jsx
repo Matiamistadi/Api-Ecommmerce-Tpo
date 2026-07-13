@@ -18,9 +18,6 @@ import {
   Package, Shapes, Banknote, ChevronRight, UploadCloud, ChevronDown
 } from 'lucide-react';
 
-const CATEGORIAS = ['Proteína', 'Energía', 'Recuperación', 'Fuerza'];
-const CATEGORIAS_PERMITIDAS = new Set(CATEGORIAS);
-
 // Umbral por debajo del cual una unidad se considera "stock bajo" (una sola fuente de verdad)
 const STOCK_BAJO = 15;
 
@@ -58,8 +55,7 @@ const Admin = () => {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
   const [confirmarToggle, setConfirmarToggle] = useState(null);
-  const categoriasStore = useSelector(selectCategorias);
-  const categorias = categoriasStore.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre));
+  const categorias = useSelector(selectCategorias);
   const marcas = useSelector(selectMarcas);
 
   useEffect(() => {

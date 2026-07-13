@@ -5,8 +5,6 @@ import { agregarProducto as agregarProductoThunk } from '../redux/features/produ
 import { selectCategorias, selectMarcas, fetchCategorias, fetchMarcas } from '../redux/features/catalogoSlice';
 import './AgregarProducto.css';
 
-const CATEGORIAS_PERMITIDAS = new Set(['Proteína', 'Energía', 'Recuperación', 'Fuerza']);
-
 const initialForm = {
   nombre: '',
   marcaId: '',
@@ -22,8 +20,7 @@ const AgregarProducto = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const agregarProducto = (productoNuevo, archivos) => dispatch(agregarProductoThunk({ productoNuevo, archivos })).unwrap();
-  const categoriasStore = useSelector(selectCategorias);
-  const categorias = categoriasStore.filter((categoria) => CATEGORIAS_PERMITIDAS.has(categoria.nombre));
+  const categorias = useSelector(selectCategorias);
   const marcas = useSelector(selectMarcas);
   const [form, setForm] = useState(initialForm);
   const [archivoPrincipal, setArchivoPrincipal] = useState(null);
