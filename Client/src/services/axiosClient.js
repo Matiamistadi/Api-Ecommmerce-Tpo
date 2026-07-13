@@ -25,11 +25,18 @@ axiosClient.interceptors.response.use(
 
     const { status } = error.response;
 
-    // 401: token vencido/ inválido → limpiamos la sesión y avisamos al store
+    // 401: token vencido/ inválido → limpiamos la sesión y avisamos al store.
+    // Excepción: un 401 desde un endpoint de auth (/api/v1/auth/*: authenticate,
+    // register, forgot-password, reset-password) NO es una sesión vencida sino
+    // credenciales/datos inválidos. En ese caso dejamos que el error siga su curso
+    // (el thunk lo recibe como rechazo con el mensaje del backend) sin limpiar sesión.
     if (status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('sesion');
-      window.dispatchEvent(new Event('sesion-expirada'));
+      const esEndpointAuth = error.config?.url?.includes('/api/v1/auth/');
+      if (!esEndpointAuth) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('sesion');
+        window.dispatchEvent(new Event('sesion-expirada'));
+      }
     }
 
     // 403: autenticado pero sin permisos (ej: cliente intentando acción de admin)

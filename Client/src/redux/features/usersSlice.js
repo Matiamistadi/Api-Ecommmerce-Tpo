@@ -7,19 +7,22 @@ import {
   cambiarRol,
   eliminarUsuario,
 } from './usersThunks';
+import { logout, sesionExpirada } from './authSlice';
 
 // Los thunks viven en usersThunks.js; se re-exportan para los componentes.
 export * from './usersThunks';
 
+const initialState = {
+  lista: [],
+  actual: null,
+  loading: false,
+  saving: false,
+  error: null,
+};
+
 const usersSlice = createSlice({
   name: 'users',
-  initialState: {
-    lista: [],
-    actual: null,
-    loading: false,
-    saving: false,
-    error: null,
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -83,7 +86,12 @@ const usersSlice = createSlice({
           state.saving = false;
           state.error = action.payload?.message ?? 'Error al modificar usuario';
         }
-      );
+      )
+      // ─── Fin de sesión: limpiar datos del usuario anterior ────────────────────
+      // Se dispara al cerrar sesión (logout) o al expirar el token (sesionExpirada),
+      // ambos consumidos desde el authSlice. Resetea al initialState para no dejar
+      // `actual`/`lista` con datos del usuario previo.
+      .addMatcher(isAnyOf(logout, sesionExpirada), () => initialState);
   },
 });
 

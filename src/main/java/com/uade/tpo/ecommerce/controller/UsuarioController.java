@@ -2,9 +2,11 @@ package com.uade.tpo.ecommerce.controller;
 
 import com.uade.tpo.ecommerce.dto.CambiarPasswordRequest;
 import com.uade.tpo.ecommerce.dto.CambiarRolRequest;
+import com.uade.tpo.ecommerce.dto.UsuarioResponseDTO;
 import com.uade.tpo.ecommerce.dto.UsuarioUpdateRequest;
 import com.uade.tpo.ecommerce.entity.Rol;
 import com.uade.tpo.ecommerce.entity.Usuario;
+import com.uade.tpo.ecommerce.mapper.UsuarioMapper;
 import com.uade.tpo.ecommerce.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,22 +22,24 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final UsuarioMapper usuarioMapper;
 
     @GetMapping
-    public ResponseEntity<List<Usuario>> listarUsuarios() {
-        return ResponseEntity.ok(usuarioService.obtenerTodos());
+    public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios() {
+        return ResponseEntity.ok(usuarioMapper.toResponseDTO(usuarioService.obtenerTodos()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> obtenerUsuario(@PathVariable Long id) {
+    public ResponseEntity<UsuarioResponseDTO> obtenerUsuario(@PathVariable Long id) {
         return usuarioService.obtenerPorId(id)
+                .map(usuarioMapper::toResponseDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Solo puede editarse a sí mismo, salvo que sea ADMIN
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizarUsuario(
+    public ResponseEntity<UsuarioResponseDTO> actualizarUsuario(
             @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateRequest request,
             @AuthenticationPrincipal Usuario usuarioAutenticado) {
@@ -45,16 +49,18 @@ public class UsuarioController {
         }
 
         return usuarioService.actualizar(id, request)
+                .map(usuarioMapper::toResponseDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Solo ADMIN puede cambiar el rol de un usuario
     @PatchMapping("/{id}/rol")
-    public ResponseEntity<Usuario> cambiarRol(
+    public ResponseEntity<UsuarioResponseDTO> cambiarRol(
             @PathVariable Long id,
             @Valid @RequestBody CambiarRolRequest request) {
         return usuarioService.cambiarRol(id, request.getRol())
+                .map(usuarioMapper::toResponseDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
