@@ -52,7 +52,10 @@
       "Bash(python3 -m json.tool)",
       "Bash(python3 -c \"import json,sys; print\\([c['nombre'] for c in json.load\\(sys.stdin\\)]\\)\")",
       "Bash(npx eslint *)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['nombre'], '|', d['categoria']\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['nombre'], '|', d['categoria']\\)\")",
+      "Bash(curl -s -o /dev/null -w \"front: %{http_code}\\\\n\" http://localhost:5173/ --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"back: %{http_code}\\\\n\" http://localhost:8081/status --max-time 3)",
+      "Bash(node verify_slices.mjs)"
     ]
   }
 }
